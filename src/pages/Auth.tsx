@@ -6,18 +6,67 @@ import { Logo } from "@/components/Logo";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [username, setUsername] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement authentication
-    navigate("/feed");
+    setLoading(true);
+
+    try {
+      if (isLogin) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "Welcome back!",
+          description: "You've successfully signed in.",
+        });
+        navigate("/feed");
+      } else {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: fullName,
+              username: username,
+            },
+            emailRedirectTo: `${window.location.origin}/feed`,
+          },
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "Account created!",
+          description: "Welcome to FutoraOne!",
+        });
+        navigate("/feed");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -50,18 +99,32 @@ const Auth = () => {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {!isLogin && (
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-semibold">Full Name</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Enter your name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="h-12 rounded-xl border-2 focus:border-primary"
-                  required
-                />
-              </div>
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="fullName" className="text-sm font-semibold">Full Name</Label>
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder="Enter your name"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="h-12 rounded-xl border-2 focus:border-primary"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="username" className="text-sm font-semibold">Username</Label>
+                  <Input
+                    id="username"
+                    type="text"
+                    placeholder="Choose a username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="h-12 rounded-xl border-2 focus:border-primary"
+                    required
+                  />
+                </div>
+              </>
             )}
 
             <div className="space-y-2">
@@ -87,6 +150,7 @@ const Auth = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="h-12 rounded-xl border-2 focus:border-primary"
                 required
+                minLength={6}
               />
             </div>
 
@@ -100,36 +164,11 @@ const Auth = () => {
 
             <Button 
               type="submit"
+              disabled={loading}
               className="w-full h-12 rounded-xl font-semibold text-lg gradient-primary text-white hover:opacity-90"
             >
-              {isLogin ? "Sign In" : "Create Account"}
+              {loading ? "Loading..." : isLogin ? "Sign In" : "Create Account"}
             </Button>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-muted-foreground">Or continue with</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <Button 
-                type="button"
-                variant="outline"
-                className="h-12 rounded-xl font-semibold"
-              >
-                Google
-              </Button>
-              <Button 
-                type="button"
-                variant="outline"
-                className="h-12 rounded-xl font-semibold"
-              >
-                Facebook
-              </Button>
-            </div>
           </form>
 
           <div className="mt-6 text-center">
