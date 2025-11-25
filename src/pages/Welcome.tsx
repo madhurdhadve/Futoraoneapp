@@ -37,7 +37,7 @@ const Welcome = () => {
             FutoraOne
           </h1>
           <p className="text-white/90 text-lg font-medium">
-            Connect with friends and share your moments
+            Where tech enthusiasts share ideas, projects, and innovations
           </p>
         </motion.div>
 
@@ -54,29 +54,23 @@ const Welcome = () => {
             Get Started
           </Button>
 
-          <p className="text-white/70 text-sm font-medium">or continue with</p>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Button 
-              variant="secondary"
-              className="bg-white/20 hover:bg-white/30 text-white border-white/30 font-semibold rounded-full h-12"
-            >
-              Google
-            </Button>
-            <Button 
-              variant="secondary"
-              className="bg-white/20 hover:bg-white/30 text-white border-white/30 font-semibold rounded-full h-12"
-            >
-              Facebook
-            </Button>
-          </div>
-
           <p className="text-white/60 text-xs pt-4">
             By continuing, you agree to our{" "}
-            <a href="#" className="underline hover:text-white">Terms of Service</a>
+            <button onClick={() => navigate("/terms")} className="underline hover:text-white">
+              Terms of Service
+            </button>
             {" "}and{" "}
-            <a href="#" className="underline hover:text-white">Privacy Policy</a>
+            <button onClick={() => navigate("/privacy")} className="underline hover:text-white">
+              Privacy Policy
+            </button>
           </p>
+          
+          <button 
+            onClick={() => navigate("/about")} 
+            className="text-white/70 text-sm hover:text-white underline"
+          >
+            About FutoraOne Tech Community
+          </button>
         </motion.div>
       </motion.div>
     </div>

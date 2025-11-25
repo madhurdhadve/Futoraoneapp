@@ -262,21 +262,42 @@ const Feed = () => {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 glass-card border-t">
+      <nav className="fixed bottom-0 left-0 right-0 glass-card border-t z-50">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-around">
-          <Button variant="ghost" size="icon" className="text-primary">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-primary"
+            onClick={() => navigate("/feed")}
+          >
             <Home className="w-6 h-6" />
           </Button>
-          <Button variant="ghost" size="icon">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => navigate("/explore")}
+          >
             <Search className="w-6 h-6" />
           </Button>
-          <Button size="icon" className="gradient-primary text-white rounded-full">
+          <Button 
+            size="icon" 
+            className="gradient-primary text-white rounded-full"
+            onClick={() => navigate("/create-post")}
+          >
             <Plus className="w-6 h-6" />
           </Button>
-          <Button variant="ghost" size="icon">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => navigate("/notifications")}
+          >
             <Bell className="w-6 h-6" />
           </Button>
-          <Button variant="ghost" size="icon">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => navigate("/profile")}
+          >
             <UserIcon className="w-6 h-6" />
           </Button>
         </div>

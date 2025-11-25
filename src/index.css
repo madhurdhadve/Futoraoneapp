@@ -8,98 +8,92 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Vibrant gradient colors */
-    --gradient-start: 280 85% 55%; /* Purple */
-    --gradient-mid: 330 85% 60%; /* Pink */
-    --gradient-end: 25 95% 60%; /* Orange */
+    /* Tech-themed neon accents */
+    --gradient-start: 200 100% 40%; /* Tech blue */
+    --gradient-mid: 200 100% 50%; /* Brighter tech blue */
+    --gradient-end: 200 80% 60%; /* Accent blue */
     
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 204 71% 6%; /* #090E11 */
+    --foreground: 200 6% 81%; /* #C8CBCE */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 203 43% 23%; /* #1F3B54 */
+    --card-foreground: 200 6% 81%; /* #C8CBCE */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 203 43% 23%; /* #1F3B54 */
+    --popover-foreground: 200 6% 81%; /* #C8CBCE */
 
-    --primary: 280 85% 55%; /* Purple */
+    --primary: 200 93% 41%; /* #0E7AC1 */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 330 85% 60%; /* Pink */
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 203 43% 23%; /* #1F3B54 */
+    --secondary-foreground: 200 6% 81%; /* #C8CBCE */
 
-    --accent: 330 75% 65%; /* Light pink */
+    --accent: 200 93% 41%; /* #0E7AC1 */
     --accent-foreground: 0 0% 100%;
 
-    --muted: 280 20% 96%;
-    --muted-foreground: 280 10% 45%;
+    --muted: 200 8% 39%; /* #57636A */
+    --muted-foreground: 200 6% 81%; /* #C8CBCE */
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 280 20% 90%;
-    --input: 280 20% 95%;
-    --ring: 280 85% 55%;
+    --border: 200 8% 39%; /* #57636A */
+    --input: 203 43% 23%; /* #1F3B54 */
+    --ring: 200 93% 41%; /* #0E7AC1 */
 
-    --radius: 1rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 204 71% 6%;
+    --sidebar-foreground: 200 6% 81%;
+    --sidebar-primary: 200 93% 41%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 203 43% 23%;
+    --sidebar-accent-foreground: 200 6% 81%;
+    --sidebar-border: 200 8% 39%;
+    --sidebar-ring: 200 93% 41%;
   }
 
   .dark {
-    --gradient-start: 280 85% 55%;
-    --gradient-mid: 330 85% 60%;
-    --gradient-end: 25 95% 60%;
+    --gradient-start: 200 100% 40%;
+    --gradient-mid: 200 100% 50%;
+    --gradient-end: 200 80% 60%;
     
-    --background: 280 25% 8%;
-    --foreground: 0 0% 98%;
+    --background: 204 71% 6%; /* #090E11 */
+    --foreground: 200 6% 81%; /* #C8CBCE */
 
-    --card: 280 20% 12%;
-    --card-foreground: 0 0% 98%;
+    --card: 203 43% 23%; /* #1F3B54 */
+    --card-foreground: 200 6% 81%; /* #C8CBCE */
 
-    --popover: 280 20% 12%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 203 43% 23%; /* #1F3B54 */
+    --popover-foreground: 200 6% 81%; /* #C8CBCE */
 
-    --primary: 280 85% 55%;
+    --primary: 200 93% 41%; /* #0E7AC1 */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 330 85% 60%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 203 43% 23%; /* #1F3B54 */
+    --secondary-foreground: 200 6% 81%; /* #C8CBCE */
 
-    --accent: 330 75% 65%;
+    --accent: 200 93% 41%; /* #0E7AC1 */
     --accent-foreground: 0 0% 100%;
 
-    --muted: 280 20% 18%;
-    --muted-foreground: 280 10% 65%;
+    --muted: 200 8% 39%; /* #57636A */
+    --muted-foreground: 200 6% 81%; /* #C8CBCE */
 
     --destructive: 0 62.8% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 280 20% 20%;
-    --input: 280 20% 18%;
-    --ring: 280 85% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --border: 200 8% 39%; /* #57636A */
+    --input: 203 43% 23%; /* #1F3B54 */
+    --ring: 200 93% 41%; /* #0E7AC1 */
+    
+    --sidebar-background: 204 71% 6%;
+    --sidebar-foreground: 200 6% 81%;
+    --sidebar-primary: 200 93% 41%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 203 43% 23%;
+    --sidebar-accent-foreground: 200 6% 81%;
+    --sidebar-border: 200 8% 39%;
+    --sidebar-ring: 200 93% 41%;
   }
 }
 
@@ -132,8 +126,12 @@ All colors MUST be HSL.
   }
 
   .glass-card {
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(31, 59, 84, 0.7);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(14, 122, 193, 0.2);
+  }
+  
+  .tech-glow {
+    box-shadow: 0 0 20px rgba(14, 122, 193, 0.3);
   }
 }

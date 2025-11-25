@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,13 +19,32 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Persistent authentication check
+  useEffect(() => {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user && window.location.pathname === "/auth") {
+        navigate("/feed");
+      }
+    });
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user && window.location.pathname === "/auth") {
+        navigate("/feed");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
       if (isLogin) {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
@@ -38,7 +57,7 @@ const Auth = () => {
         });
         navigate("/feed");
       } else {
-        const { data, error } = await supabase.auth.signUp({
+        const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -54,7 +73,7 @@ const Auth = () => {
 
         toast({
           title: "Account created!",
-          description: "Welcome to FutoraOne!",
+          description: "Welcome to FutoraOne Tech Community!",
         });
         navigate("/feed");
       }
