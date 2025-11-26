@@ -39,10 +39,10 @@ const Welcome = () => {
           transition={{ delay: 0.5 }}
           className="space-y-4"
         >
-          <h1 className="text-6xl font-bold text-foreground mb-4 gradient-text">
+          <h1 className="text-6xl font-bold text-primary mb-4 drop-shadow-lg">
             FutoraOne
           </h1>
-          <p className="text-foreground/80 text-lg font-medium leading-relaxed">
+          <p className="text-foreground text-lg font-medium leading-relaxed">
             Where tech enthusiasts share ideas, projects, and innovations
           </p>
         </motion.div>
