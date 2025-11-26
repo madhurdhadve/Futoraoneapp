@@ -20,6 +20,7 @@ import CategoryPage from "./pages/CategoryPage";
 import TopicPage from "./pages/TopicPage";
 import ProjectDetails from "./pages/ProjectDetails";
 import SearchResults from "./pages/SearchResults";
+import UserProfile from "./pages/UserProfile";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
           <Route path="/explore" element={<Explore />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/user/:userId" element={<UserProfile />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/ai-roadmap" element={<AIRoadmap />} />
           <Route path="/terms" element={<Terms />} />

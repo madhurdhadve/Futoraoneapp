@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { PostSkeleton } from "@/components/PostSkeleton";
 import { BottomNav } from "@/components/BottomNav";
+import { CommentSection } from "@/components/CommentSection";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -290,13 +291,13 @@ const Feed = () => {
                 <Card className="overflow-hidden shadow-lg">
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate(`/user/${post.user_id}`)}>
                         <Avatar className="w-12 h-12 border-2 border-primary">
                           <AvatarImage src={post.profiles.avatar_url || undefined} />
                           <AvatarFallback>{post.profiles.username[0]}</AvatarFallback>
                         </Avatar>
                         <div>
-                          <h3 className="font-semibold">{post.profiles.full_name}</h3>
+                          <h3 className="font-semibold hover:text-primary transition-colors">{post.profiles.full_name}</h3>
                           <p className="text-sm text-muted-foreground">
                             @{post.profiles.username} · {new Date(post.created_at).toLocaleDateString()}
                           </p>
@@ -367,6 +368,15 @@ const Feed = () => {
                       <Button variant="ghost" size="sm" onClick={() => handleShare(post)}>
                         <Share2 className="w-5 h-5 mr-2" />
                       </Button>
+                    </div>
+
+                    {/* Comments Section */}
+                    <div className="mt-4 pt-4 border-t">
+                      <CommentSection
+                        postId={post.id}
+                        postAuthorId={post.user_id}
+                        currentUser={user}
+                      />
                     </div>
                   </div>
                 </Card>
