@@ -30,7 +30,7 @@ const Welcome = () => {
             delay: 0.2 
           }}
         >
-          <Logo className="w-32 h-32 mx-auto mb-8 tech-glow" />
+          <Logo className="w-32 h-32 mx-auto mb-8 object-contain" />
         </motion.div>
 
         <motion.div
@@ -55,7 +55,7 @@ const Welcome = () => {
         >
           <Button 
             onClick={() => navigate("/auth")}
-            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-lg h-14 rounded-full premium-glow transition-all hover:scale-105"
+            className="w-full bg-white text-background hover:bg-white/90 font-semibold text-lg h-14 rounded-full shadow-xl transition-all hover:scale-105"
           >
             Get Started
           </Button>
