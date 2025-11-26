@@ -7,9 +7,15 @@ const Welcome = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen gradient-primary flex items-center justify-center p-6">
+    <div className="min-h-screen gradient-primary flex items-center justify-center p-6 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }}></div>
+      </div>
+
       <motion.div 
-        className="max-w-md w-full text-center space-y-8"
+        className="max-w-md w-full text-center space-y-8 relative z-10"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
@@ -24,7 +30,7 @@ const Welcome = () => {
             delay: 0.2 
           }}
         >
-          <Logo className="w-32 h-32 mx-auto mb-8" />
+          <Logo className="w-32 h-32 mx-auto mb-8 tech-glow" />
         </motion.div>
 
         <motion.div
@@ -33,10 +39,10 @@ const Welcome = () => {
           transition={{ delay: 0.5 }}
           className="space-y-4"
         >
-          <h1 className="text-5xl font-bold text-white mb-4">
+          <h1 className="text-6xl font-bold text-foreground mb-4 gradient-text">
             FutoraOne
           </h1>
-          <p className="text-white/90 text-lg font-medium">
+          <p className="text-foreground/80 text-lg font-medium leading-relaxed">
             Where tech enthusiasts share ideas, projects, and innovations
           </p>
         </motion.div>
@@ -49,25 +55,25 @@ const Welcome = () => {
         >
           <Button 
             onClick={() => navigate("/auth")}
-            className="w-full bg-white text-primary hover:bg-white/90 font-semibold text-lg h-14 rounded-full shadow-xl"
+            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-lg h-14 rounded-full premium-glow transition-all hover:scale-105"
           >
             Get Started
           </Button>
 
-          <p className="text-white/60 text-xs pt-4">
+          <p className="text-muted-foreground text-xs pt-4">
             By continuing, you agree to our{" "}
-            <button onClick={() => navigate("/terms")} className="underline hover:text-white">
+            <button onClick={() => navigate("/terms")} className="text-primary underline hover:text-primary/80 transition-colors">
               Terms of Service
             </button>
             {" "}and{" "}
-            <button onClick={() => navigate("/privacy")} className="underline hover:text-white">
+            <button onClick={() => navigate("/privacy")} className="text-primary underline hover:text-primary/80 transition-colors">
               Privacy Policy
             </button>
           </p>
           
           <button 
             onClick={() => navigate("/about")} 
-            className="text-white/70 text-sm hover:text-white underline"
+            className="text-muted-foreground text-sm hover:text-foreground transition-colors underline"
           >
             About FutoraOne Tech Community
           </button>
