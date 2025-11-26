@@ -251,7 +251,8 @@ const Feed = () => {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-2xl mx-auto px-4 py-6 pb-24">
+      {/* Main Content */}
+      <main className="max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-6 pb-24">
         {/* Create Post Button */}
         <Card className="p-6 mb-6 shadow-lg">
           <div className="flex items-center gap-4">

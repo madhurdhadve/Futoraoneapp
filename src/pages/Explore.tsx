@@ -122,11 +122,13 @@ const Explore = () => {
                   className="cursor-pointer hover:border-primary transition-all bg-card border-border hover:shadow-lg"
                   onClick={() => handleCategoryClick(category.name)}
                 >
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <div className={`${category.color} p-3 rounded-lg`}>
-                      <category.icon className="text-white" size={24} />
+                  <CardContent className="p-3 flex items-center gap-2">
+                    <div className={`${category.color} p-2.5 rounded-lg shrink-0`}>
+                      <category.icon className="text-white" size={20} />
                     </div>
-                    <span className="font-semibold text-foreground">{category.name}</span>
+                    <span className="font-semibold text-foreground text-sm sm:text-base truncate min-w-0 flex-1" title={category.name}>
+                      {category.name}
+                    </span>
                   </CardContent>
                 </Card>
               </motion.div>

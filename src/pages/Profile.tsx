@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, Settings, Github, Linkedin, Globe, MapPin, Edit } from "lucide-react";
+import { LogOut, Settings, Github, Linkedin, Globe, MapPin, Edit, Heart, MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import type { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
@@ -34,6 +34,15 @@ interface Project {
   project_likes: { id: string }[];
 }
 
+interface Post {
+  id: string;
+  content: string;
+  image_url: string | null;
+  created_at: string;
+  likes: { id: string }[];
+  comments: { id: string }[];
+}
+
 const Profile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -42,6 +51,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -71,6 +81,19 @@ const Profile = () => {
         .order('created_at', { ascending: false });
 
       setProjects((projectsData as unknown as Project[]) || []);
+
+      // Fetch user's posts
+      const { data: postsData } = await supabase
+        .from("posts")
+        .select(`
+          *,
+          likes(id),
+          comments(id)
+        `)
+        .eq("user_id", user.id)
+        .order('created_at', { ascending: false });
+
+      setPosts((postsData as unknown as Post[]) || []);
       setLoading(false);
     };
 
@@ -106,7 +129,7 @@ const Profile = () => {
       {/* Header with Cover */}
       <div className="relative h-32 gradient-primary" />
 
-      <div className="px-4 -mt-16 relative z-10">
+      <div className="px-3 sm:px-4 -mt-12 sm:-mt-16 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -252,8 +275,45 @@ const Profile = () => {
                 ))
               )}
             </TabsContent>
-            <TabsContent value="posts" className="mt-4">
-              <p className="text-center text-muted-foreground py-8">No posts yet</p>
+            <TabsContent value="posts" className="space-y-4 mt-4">
+              {posts.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">No posts yet</p>
+              ) : (
+                posts.map((post) => (
+                  <Card key={post.id} className="bg-card border-border">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3 mb-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={profile?.avatar_url || undefined} />
+                          <AvatarFallback>{profile?.username?.[0]}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-semibold text-foreground">{profile?.full_name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(post.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-foreground mb-3">{post.content}</p>
+                      {post.image_url && (
+                        <img
+                          src={post.image_url}
+                          alt="Post"
+                          className="w-full rounded-lg object-cover mb-3 max-h-64"
+                        />
+                      )}
+                      <div className="flex items-center gap-4 text-muted-foreground text-sm">
+                        <span className="flex items-center gap-1">
+                          <Heart size={16} /> {post.likes?.length || 0}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <MessageCircle size={16} /> {post.comments?.length || 0}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </TabsContent>
           </Tabs>
 
