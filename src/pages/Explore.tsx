@@ -1,13 +1,17 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Search, TrendingUp, Code, Brain, Shield, Cloud, Cpu, Blocks } from "lucide-react";
 import { motion } from "framer-motion";
 import { BottomNav } from "@/components/BottomNav";
+import { useToast } from "@/hooks/use-toast";
 
 const Explore = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   const categories = [
     { name: "AI & ML", icon: Brain, color: "bg-blue-500" },
@@ -47,21 +51,59 @@ const Explore = () => {
     },
   ];
 
+  const handleCategoryClick = (categoryName: string) => {
+    toast({
+      title: `Exploring ${categoryName}`,
+      description: `Showing posts and projects related to ${categoryName}`,
+    });
+    // You can navigate to a filtered feed or projects page
+    navigate(`/feed?category=${encodeURIComponent(categoryName)}`);
+  };
+
+  const handleTopicClick = (tag: string) => {
+    toast({
+      title: `#${tag}`,
+      description: `Viewing all posts with #${tag}`,
+    });
+    navigate(`/feed?tag=${encodeURIComponent(tag)}`);
+  };
+
+  const handleProjectClick = (projectTitle: string) => {
+    toast({
+      title: projectTitle,
+      description: "Opening project details...",
+    });
+    navigate("/projects");
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      toast({
+        title: "Searching...",
+        description: `Looking for "${searchQuery}"`,
+      });
+      navigate(`/feed?search=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-card border-b border-border p-4">
         <h1 className="text-2xl font-bold text-foreground mb-4">Explore</h1>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
-          <Input
-            type="text"
-            placeholder="Search projects, topics, people..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-background border-border text-foreground"
-          />
-        </div>
+        <form onSubmit={handleSearch}>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
+            <Input
+              type="text"
+              placeholder="Search projects, topics, people..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 bg-background border-border text-foreground"
+            />
+          </div>
+        </form>
       </div>
 
       <div className="p-4 space-y-6">
@@ -76,7 +118,10 @@ const Explore = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Card className="cursor-pointer hover:border-primary transition-all bg-card border-border">
+                <Card
+                  className="cursor-pointer hover:border-primary transition-all bg-card border-border hover:shadow-lg"
+                  onClick={() => handleCategoryClick(category.name)}
+                >
                   <CardContent className="p-4 flex items-center gap-3">
                     <div className={`${category.color} p-3 rounded-lg`}>
                       <category.icon className="text-white" size={24} />
@@ -103,7 +148,10 @@ const Explore = () => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Card className="cursor-pointer hover:border-primary transition-all bg-card border-border">
+                <Card
+                  className="cursor-pointer hover:border-primary transition-all bg-card border-border hover:shadow-lg"
+                  onClick={() => handleTopicClick(topic.tag)}
+                >
                   <CardContent className="p-4 flex items-center justify-between">
                     <div>
                       <p className="font-semibold text-foreground">#{topic.tag}</p>
@@ -130,7 +178,10 @@ const Explore = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Card className="cursor-pointer hover:border-primary transition-all bg-card border-border">
+                <Card
+                  className="cursor-pointer hover:border-primary transition-all bg-card border-border hover:shadow-lg"
+                  onClick={() => handleProjectClick(project.title)}
+                >
                   <CardContent className="p-4">
                     <h3 className="font-bold text-foreground mb-1">{project.title}</h3>
                     <p className="text-sm text-muted-foreground mb-3">by {project.author}</p>

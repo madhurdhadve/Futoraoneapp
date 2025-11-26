@@ -59,7 +59,7 @@ const Feed = () => {
   useEffect(() => {
     if (user) {
       fetchPosts();
-      
+
       // Subscribe to realtime updates
       const channel = supabase
         .channel('posts-changes')
@@ -108,10 +108,10 @@ const Feed = () => {
 
       if (error) throw error;
       setPosts(data || []);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error loading posts",
-        description: error.message,
+        description: (error as Error).message,
         variant: "destructive",
       });
     } finally {
@@ -135,10 +135,10 @@ const Feed = () => {
           post_id: postId,
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message,
+        description: (error as Error).message,
         variant: "destructive",
       });
     }
@@ -259,8 +259,8 @@ const Feed = () => {
               <AvatarImage src={user?.user_metadata?.avatar_url} />
               <AvatarFallback>{user?.user_metadata?.username?.[0] || "U"}</AvatarFallback>
             </Avatar>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="flex-1 justify-start text-muted-foreground hover:border-primary"
               onClick={() => navigate("/create-post")}
             >
@@ -313,7 +313,7 @@ const Feed = () => {
                               <Edit className="w-4 h-4 mr-2" />
                               Edit Post
                             </DropdownMenuItem>
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               onClick={() => handleDeletePost(post.id)}
                               className="text-destructive"
                             >
@@ -343,9 +343,8 @@ const Feed = () => {
                         className={post.likes.some(like => like.user_id === user?.id) ? "text-secondary" : ""}
                       >
                         <Heart
-                          className={`w-5 h-5 mr-2 ${
-                            post.likes.some(like => like.user_id === user?.id) ? "fill-secondary" : ""
-                          }`}
+                          className={`w-5 h-5 mr-2 ${post.likes.some(like => like.user_id === user?.id) ? "fill-secondary" : ""
+                            }`}
                         />
                         {post.likes.length}
                       </Button>
@@ -360,9 +359,8 @@ const Feed = () => {
                         className={post.saves?.some(save => save.user_id === user?.id) ? "text-primary" : ""}
                       >
                         <Bookmark
-                          className={`w-5 h-5 mr-2 ${
-                            post.saves?.some(save => save.user_id === user?.id) ? "fill-primary" : ""
-                          }`}
+                          className={`w-5 h-5 mr-2 ${post.saves?.some(save => save.user_id === user?.id) ? "fill-primary" : ""
+                            }`}
                         />
                       </Button>
                       <Button variant="ghost" size="sm" onClick={() => handleShare(post)}>

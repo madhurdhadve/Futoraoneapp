@@ -20,7 +20,7 @@ const CreatePost = () => {
   const [tags, setTags] = useState("");
   const [postType, setPostType] = useState<"post" | "project_update">("post");
   const [selectedProject, setSelectedProject] = useState<string>("");
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<{ id: string; title: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -45,7 +45,7 @@ const CreatePost = () => {
         fetchPostForEdit(editId);
       }
     }
-  }, [user, searchParams]);
+  }, [user, searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchProjects = async () => {
     if (!user) return;
@@ -80,10 +80,10 @@ const CreatePost = () => {
       if (data.image_url) setImagePreview(data.image_url);
       setPostType(data.is_project_update ? "project_update" : "post");
       if (data.project_id) setSelectedProject(data.project_id);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message,
+        description: (error as Error).message,
         variant: "destructive",
       });
     }
@@ -125,7 +125,7 @@ const CreatePost = () => {
       if (imageFile) {
         const fileExt = imageFile.name.split('.').pop();
         const fileName = `${user.id}/${Math.random()}.${fileExt}`;
-        
+
         const { error: uploadError } = await supabase.storage
           .from('post-images')
           .upload(fileName, imageFile);
@@ -143,7 +143,7 @@ const CreatePost = () => {
       if (videoFile) {
         const fileExt = videoFile.name.split('.').pop();
         const fileName = `${user.id}/${Math.random()}.${fileExt}`;
-        
+
         const { error: uploadError } = await supabase.storage
           .from('post-images')
           .upload(fileName, videoFile);
@@ -216,10 +216,10 @@ const CreatePost = () => {
       }
 
       navigate("/feed");
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message,
+        description: (error as Error).message,
         variant: "destructive",
       });
     } finally {
@@ -245,7 +245,7 @@ const CreatePost = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="postType">Post Type</Label>
-              <Select value={postType} onValueChange={(value: any) => setPostType(value)}>
+              <Select value={postType} onValueChange={(value: "post" | "project_update") => setPostType(value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select post type" />
                 </SelectTrigger>
@@ -278,9 +278,9 @@ const CreatePost = () => {
               <div className="p-4 bg-muted rounded-lg">
                 <p className="text-sm text-muted-foreground">
                   You need to create a project first to post updates.{" "}
-                  <Button 
-                    variant="link" 
-                    className="p-0 h-auto" 
+                  <Button
+                    variant="link"
+                    className="p-0 h-auto"
                     onClick={() => navigate("/projects")}
                   >
                     Create a project

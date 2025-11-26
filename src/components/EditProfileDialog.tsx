@@ -8,10 +8,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Upload } from "lucide-react";
 
+interface Profile {
+  id: string;
+  username: string;
+  full_name: string;
+  avatar_url: string | null;
+  bio: string | null;
+  location: string | null;
+  github_url: string | null;
+  linkedin_url: string | null;
+  portfolio_url: string | null;
+  tech_skills: string[] | null;
+}
+
 interface EditProfileDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  profile: any;
+  profile: Profile | null;
   onUpdate: () => void;
 }
 
@@ -41,7 +54,7 @@ export const EditProfileDialog = ({ open, onOpenChange, profile, onUpdate }: Edi
       if (avatarFile) {
         const fileExt = avatarFile.name.split('.').pop();
         const fileName = `${profile.id}/avatar.${fileExt}`;
-        
+
         const { error: uploadError } = await supabase.storage
           .from('post-images')
           .upload(fileName, avatarFile, { upsert: true });
@@ -68,7 +81,7 @@ export const EditProfileDialog = ({ open, onOpenChange, profile, onUpdate }: Edi
           tech_skills: formData.tech_skills.split(',').map(s => s.trim()).filter(Boolean),
           avatar_url: avatarUrl,
         })
-        .eq('id', profile.id);
+        .eq('id', profile!.id);
 
       if (error) throw error;
 
@@ -79,10 +92,10 @@ export const EditProfileDialog = ({ open, onOpenChange, profile, onUpdate }: Edi
 
       onUpdate();
       onOpenChange(false);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message,
+        description: (error as Error).message,
         variant: "destructive",
       });
     } finally {

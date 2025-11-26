@@ -13,14 +13,35 @@ import { useToast } from "@/hooks/use-toast";
 import { EditProfileDialog } from "@/components/EditProfileDialog";
 import { BottomNav } from "@/components/BottomNav";
 
+interface Profile {
+  id: string;
+  username: string;
+  full_name: string;
+  avatar_url: string | null;
+  bio: string | null;
+  location: string | null;
+  github_url: string | null;
+  linkedin_url: string | null;
+  portfolio_url: string | null;
+  tech_skills: string[] | null;
+}
+
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  tech_stack: string[];
+  project_likes: { id: string }[];
+}
+
 const Profile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -49,7 +70,7 @@ const Profile = () => {
         .eq("user_id", user.id)
         .order('created_at', { ascending: false });
 
-      setProjects(projectsData || []);
+      setProjects((projectsData as unknown as Project[]) || []);
       setLoading(false);
     };
 
@@ -101,9 +122,9 @@ const Profile = () => {
                     {profile?.full_name?.[0] || user?.email?.[0]?.toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   className="border-border text-foreground"
                   onClick={() => setEditDialogOpen(true)}
                 >
@@ -114,7 +135,7 @@ const Profile = () => {
 
               <h1 className="text-2xl font-bold text-foreground">{profile?.full_name}</h1>
               <p className="text-muted-foreground">@{profile?.username}</p>
-              
+
               {profile?.bio && (
                 <p className="text-foreground mt-3">{profile.bio}</p>
               )}
@@ -202,8 +223,8 @@ const Profile = () => {
                 <Card className="bg-card border-border">
                   <CardContent className="p-8 text-center">
                     <p className="text-muted-foreground">No projects yet</p>
-                    <Button 
-                      onClick={() => navigate("/projects")} 
+                    <Button
+                      onClick={() => navigate("/projects")}
                       className="mt-4 gradient-primary text-white"
                     >
                       Create Your First Project

@@ -14,9 +14,25 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BottomNav } from "@/components/BottomNav";
 import type { User } from "@supabase/supabase-js";
 
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  tech_stack: string[];
+  github_url: string;
+  live_url: string;
+  created_at: string;
+  profiles: {
+    username: string;
+    full_name: string;
+    avatar_url: string | null;
+  };
+  project_likes: { id: string; user_id: string }[];
+}
+
 const Projects = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -43,7 +59,7 @@ const Projects = () => {
     if (user) {
       fetchProjects();
     }
-  }, [user]);
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchProjects = async () => {
     try {
@@ -57,11 +73,11 @@ const Projects = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setProjects(data || []);
-    } catch (error: any) {
+      setProjects((data as unknown as Project[]) || []);
+    } catch (error) {
       toast({
         title: "Error loading projects",
-        description: error.message,
+        description: (error as Error).message,
         variant: "destructive",
       });
     } finally {
@@ -93,10 +109,10 @@ const Projects = () => {
       setDialogOpen(false);
       setFormData({ title: "", description: "", tech_stack: "", github_url: "", live_url: "" });
       fetchProjects();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message,
+        description: (error as Error).message,
         variant: "destructive",
       });
     }
@@ -106,11 +122,11 @@ const Projects = () => {
     if (!user) return;
 
     const project = projects.find(p => p.id === projectId);
-    const hasLiked = project?.project_likes.some((like: any) => like.user_id === user.id);
+    const hasLiked = project?.project_likes.some((like) => like.user_id === user.id);
 
     try {
       if (hasLiked) {
-        const likeId = project?.project_likes.find((like: any) => like.user_id === user.id)?.id;
+        const likeId = project?.project_likes.find((like) => like.user_id === user.id)?.id;
         await supabase.from('project_likes').delete().eq('id', likeId);
       } else {
         await supabase.from('project_likes').insert({
@@ -119,10 +135,10 @@ const Projects = () => {
         });
       }
       fetchProjects();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message,
+        description: (error as Error).message,
         variant: "destructive",
       });
     }
@@ -213,12 +229,11 @@ const Projects = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => toggleLike(project.id)}
-                    className={project.project_likes.some((like: any) => like.user_id === user?.id) ? "text-secondary" : ""}
+                    className={project.project_likes.some((like) => like.user_id === user?.id) ? "text-secondary" : ""}
                   >
                     <Heart
-                      className={`w-5 h-5 mr-2 ${
-                        project.project_likes.some((like: any) => like.user_id === user?.id) ? "fill-secondary" : ""
-                      }`}
+                      className={`w-5 h-5 mr-2 ${project.project_likes.some((like) => like.user_id === user?.id) ? "fill-secondary" : ""
+                        }`}
                     />
                     {project.project_likes.length}
                   </Button>

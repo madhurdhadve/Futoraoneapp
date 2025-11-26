@@ -77,10 +77,10 @@ const Auth = () => {
         });
         navigate("/feed");
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message,
+        description: (error as Error).message,
         variant: "destructive",
       });
     } finally {
@@ -90,7 +90,7 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen gradient-primary flex items-center justify-center p-6">
-      <motion.div 
+      <motion.div
         className="max-w-md w-full"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -181,7 +181,7 @@ const Auth = () => {
               </div>
             )}
 
-            <Button 
+            <Button
               type="submit"
               disabled={loading}
               className="w-full h-12 rounded-xl font-semibold text-lg gradient-primary text-white hover:opacity-90"
