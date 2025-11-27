@@ -13,8 +13,14 @@ import Explore from "./pages/Explore";
 import Notifications from "./pages/Notifications";
 import Profile from "./pages/Profile";
 import Projects from "./pages/Projects";
-import AIRoadmap from "./pages/AIRoadmap";
-import Terms from "./pages/Terms";
+import AIPage from "./pages/AIPage";
+
+// ... existing imports
+
+// ... inside Routes
+            <Route path="/ai-roadmap" element={<AIRoadmap />} />
+            <Route path="/ai-tools" element={<AIPage />} />
+            <Route path="/terms" element={<Terms />} />
 import Privacy from "./pages/Privacy";
 import About from "./pages/About";
 import NotFound from "./pages/NotFound";
