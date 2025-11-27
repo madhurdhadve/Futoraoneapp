@@ -170,17 +170,17 @@ const UserProfile = () => {
                                         {profile?.full_name?.[0] || profile?.username?.[0]?.toUpperCase()}
                                     </AvatarFallback>
                                 </Avatar>
-                            <div className="flex gap-2">
-                                <FollowButton
-                                    userId={userId!}
-                                    currentUserId={currentUser?.id}
-                                    onFollowChange={fetchFollowerCounts}
-                                />
-                                <StartChatButton
-                                    userId={userId!}
-                                    currentUserId={currentUser?.id}
-                                />
-                            </div>
+                                <div className="flex gap-2">
+                                    <FollowButton
+                                        userId={userId!}
+                                        currentUserId={currentUser?.id}
+                                        onFollowChange={fetchFollowerCounts}
+                                    />
+                                    <StartChatButton
+                                        userId={userId!}
+                                        currentUserId={currentUser?.id}
+                                    />
+                                </div>
                             </div>
 
                             <h1 className="text-2xl font-bold text-foreground">{profile?.full_name}</h1>
@@ -316,7 +316,6 @@ const UserProfile = () => {
                                                     <AvatarImage src={profile?.avatar_url || undefined} />
                                                     <AvatarFallback>{profile?.username?.[0]}</AvatarFallback>
                                                 </Avatar>
-                                                </span>
                                             </div>
                                         </CardContent>
                                     </Card>
