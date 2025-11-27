@@ -20,40 +20,74 @@ export const StartChatButton = ({ userId, currentUserId }: StartChatButtonProps)
 
     setLoading(true);
 
-    try {
-      // @ts-ignore
-      const { data: conversationId, error } = await supabase.rpc('get_or_create_conversation', {
-        other_user_id: userId
-      });
+    // Check if conversation already exists
+    const { data: existingParticipations } = await supabase
+      .from("conversation_participants")
+      .select("conversation_id")
+      .eq("user_id", currentUserId);
 
-      if (error) throw error;
+    if (existingParticipations) {
+      for (const participation of existingParticipations) {
+        const { data: otherParticipant } = await supabase
+          .from("conversation_participants")
+          .select("user_id")
+          .eq("conversation_id", participation.conversation_id)
+          .eq("user_id", userId)
+          .single();
 
-      navigate(`/messages/${conversationId}`);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to start chat",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
+        if (otherParticipant) {
+          navigate(`/messages/${participation.conversation_id}`);
+          setLoading(false);
+          return;
+        }
+      }
     }
-  };
 
-  if (!currentUserId || currentUserId === userId) {
-    return null;
+    // Create new conversation with client-side ID to bypass RLS select restriction
+    const newConversationId = crypto.randomUUID();
+
+    const { error: createError } = await supabase
+      .from("conversations")
+      .insert({ id: newConversationId });
+
+    if (createError) throw createError;
+
+    // Add participants
+    const { error: participantsError } = await supabase
+      .from("conversation_participants")
+      .insert([
+        { conversation_id: newConversationId, user_id: currentUserId },
+        { conversation_id: newConversationId, user_id: userId }
+      ]);
+
+    if (participantsError) throw participantsError;
+
+    navigate(`/messages/${newConversationId}`);
+  } catch (error) {
+    toast({
+      title: "Error",
+      description: error instanceof Error ? error.message : "Failed to start chat",
+      variant: "destructive"
+    });
+  } finally {
+    setLoading(false);
   }
+};
 
-  return (
-    <Button
-      onClick={startChat}
-      disabled={loading}
-      variant="outline"
-      size="sm"
-      className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-    >
-      <MessageCircle className="w-4 h-4 mr-2" />
-      Message
-    </Button>
-  );
+if (!currentUserId || currentUserId === userId) {
+  return null;
+}
+
+return (
+  <Button
+    onClick={startChat}
+    disabled={loading}
+    variant="outline"
+    size="sm"
+    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+  >
+    <MessageCircle className="w-4 h-4 mr-2" />
+    Message
+  </Button>
+);
 };
