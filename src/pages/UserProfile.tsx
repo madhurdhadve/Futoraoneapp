@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { BottomNav } from "@/components/BottomNav";
 import { FollowButton } from "@/components/FollowButton";
 import { FollowersModal } from "@/components/FollowersModal";
+import { StartChatButton } from "@/components/StartChatButton";
 
 interface Profile {
     id: string;
@@ -169,11 +170,17 @@ const UserProfile = () => {
                                         {profile?.full_name?.[0] || profile?.username?.[0]?.toUpperCase()}
                                     </AvatarFallback>
                                 </Avatar>
+                            <div className="flex gap-2">
                                 <FollowButton
                                     userId={userId!}
                                     currentUserId={currentUser?.id}
                                     onFollowChange={fetchFollowerCounts}
                                 />
+                                <StartChatButton
+                                    userId={userId!}
+                                    currentUserId={currentUser?.id}
+                                />
+                            </div>
                             </div>
 
                             <h1 className="text-2xl font-bold text-foreground">{profile?.full_name}</h1>

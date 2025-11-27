@@ -21,6 +21,8 @@ import TopicPage from "./pages/TopicPage";
 import ProjectDetails from "./pages/ProjectDetails";
 import SearchResults from "./pages/SearchResults";
 import UserProfile from "./pages/UserProfile";
+import Messages from "./pages/Messages";
+import Chat from "./pages/Chat";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +50,8 @@ const App = () => (
           <Route path="/topic/:topic" element={<TopicPage />} />
           <Route path="/project/:projectId" element={<ProjectDetails />} />
           <Route path="/search" element={<SearchResults />} />
+          <Route path="/messages" element={<Messages />} />
+          <Route path="/chat/:conversationId" element={<Chat />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

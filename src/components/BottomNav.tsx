@@ -1,10 +1,22 @@
 import { Button } from "@/components/ui/button";
-import { Home, Search, Plus, Sparkles, User as UserIcon } from "lucide-react";
+import { Home, Search, Plus, MessageCircle, User as UserIcon } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useUnreadMessages } from "@/hooks/useUnreadMessages";
+import { Badge } from "@/components/ui/badge";
 
 export const BottomNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [userId, setUserId] = useState<string>();
+  const unreadCount = useUnreadMessages(userId);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUserId(user?.id);
+    });
+  }, []);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -34,14 +46,21 @@ export const BottomNav = () => {
         >
           <Plus className="w-6 h-6" />
         </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className={isActive("/ai-roadmap") ? "text-primary" : ""}
-          onClick={() => navigate("/ai-roadmap")}
-        >
-          <Sparkles className="w-6 h-6" />
-        </Button>
+        <div className="relative">
+          <Button
+            variant="ghost"
+            size="icon"
+            className={isActive("/messages") ? "text-primary" : ""}
+            onClick={() => navigate("/messages")}
+          >
+            <MessageCircle className="w-6 h-6" />
+          </Button>
+          {unreadCount > 0 && (
+            <Badge className="absolute -top-1 -right-1 h-5 min-w-5 flex items-center justify-center p-0 text-xs bg-red-500 text-white border-2 border-background">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </Badge>
+          )}
+        </div>
         <Button
           variant="ghost"
           size="icon"

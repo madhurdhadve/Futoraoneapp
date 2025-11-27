@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { FollowButton } from "@/components/FollowButton";
+import { StartChatButton } from "@/components/StartChatButton";
 import type { User } from "@supabase/supabase-js";
 
 interface SearchUser {
@@ -128,8 +129,12 @@ const SearchResults = () => {
                                                 )}
                                             </div>
                                         </div>
-                                        <div className="shrink-0">
+                                        <div className="flex gap-2 shrink-0">
                                             <FollowButton
+                                                userId={user.id}
+                                                currentUserId={currentUser?.id}
+                                            />
+                                            <StartChatButton
                                                 userId={user.id}
                                                 currentUserId={currentUser?.id}
                                             />
