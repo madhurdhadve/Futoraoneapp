@@ -1,15 +1,35 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Heart, MessageCircle, UserPlus, Share2, AtSign } from "lucide-react";
+import { Heart, MessageCircle, UserPlus } from "lucide-react";
 import { motion } from "framer-motion";
 import { BottomNav } from "@/components/BottomNav";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
+import { formatDistanceToNow } from "date-fns";
+
+interface Notification {
+  id: string;
+  type: string;
+  created_at: string;
+  is_read: boolean;
+  post_id: string | null;
+  actor: {
+    id: string;
+    username: string;
+    full_name: string;
+    avatar_url: string | null;
+  } | null;
+  post?: {
+    content: string;
+  } | null;
+}
 
 const Notifications = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,123 +38,153 @@ const Notifications = () => {
         navigate("/auth");
       } else {
         setUser(session.user);
+        fetchNotifications(session.user.id);
       }
     });
   }, [navigate]);
 
-  const notifications = [
-    {
-      id: 1,
-      type: "like",
-      user: "Sarah Chen",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
-      action: "liked your post",
-      content: "AI Image Generator progress update",
-      time: "2 hours ago",
-      icon: Heart,
-      iconColor: "text-red-500",
-    },
-    {
-      id: 2,
-      type: "comment",
-      user: "Mike Johnson",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Mike",
-      action: "commented on your project",
-      content: '"This is amazing! Can you share the code?"',
-      time: "5 hours ago",
-      icon: MessageCircle,
-      iconColor: "text-blue-500",
-    },
-    {
-      id: 3,
-      type: "follow",
-      user: "Emma Davis",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Emma",
-      action: "started following you",
-      content: "",
-      time: "1 day ago",
-      icon: UserPlus,
-      iconColor: "text-green-500",
-    },
-    {
-      id: 4,
-      type: "share",
-      user: "Alex Rodriguez",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex",
-      action: "shared your project",
-      content: "Blockchain Voting System",
-      time: "2 days ago",
-      icon: Share2,
-      iconColor: "text-purple-500",
-    },
-    {
-      id: 5,
-      type: "like",
-      user: "Jessica Kim",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Jessica",
-      action: "liked your comment",
-      content: 'on "Real-time Chat App"',
-      time: "3 days ago",
-      icon: Heart,
-      iconColor: "text-red-500",
-    },
-    {
-      id: 6,
-      type: "mention",
-      user: "David Lee",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=David",
-      action: "mentioned you in a comment",
-      content: "on AI Discussion thread",
-      time: "4 days ago",
-      icon: AtSign,
-      iconColor: "text-blue-500",
-    },
-  ];
+  const fetchNotifications = async (userId: string) => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("notifications")
+      .select(`
+        *,
+        actor:profiles!notifications_actor_id_fkey(id, username, full_name, avatar_url),
+        post:posts(content)
+      `)
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    if (!error && data) {
+      setNotifications(data as unknown as Notification[]);
+    }
+    setLoading(false);
+  };
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case "like":
+        return Heart;
+      case "comment":
+        return MessageCircle;
+      case "follow":
+        return UserPlus;
+      default:
+        return Heart;
+    }
+  };
+
+  const getNotificationText = (notif: Notification) => {
+    switch (notif.type) {
+      case "like":
+        return "liked your post";
+      case "comment":
+        return "commented on your post";
+      case "follow":
+        return "started following you";
+      default:
+        return "interacted with you";
+    }
+  };
+
+  const getIconColor = (type: string) => {
+    switch (type) {
+      case "like":
+        return "text-red-500";
+      case "comment":
+        return "text-blue-500";
+      case "follow":
+        return "text-green-500";
+      default:
+        return "text-muted-foreground";
+    }
+  };
+
+  const handleNotificationClick = async (notif: Notification) => {
+    // Mark as read
+    await supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("id", notif.id);
+
+    // Navigate based on notification type
+    if (notif.type === "follow" && notif.actor) {
+      navigate(`/user/${notif.actor.id}`);
+    } else if (notif.post_id) {
+      navigate(`/feed`); // Navigate to feed where the post is
+    }
+  };
+
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-24">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-card border-b border-border p-4">
-        <h1 className="text-2xl font-bold text-foreground">Notifications</h1>
+      <div className="sticky top-0 z-10 bg-card border-b border-border p-3 sm:p-4">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Notifications</h1>
       </div>
 
-      <div className="p-4 space-y-3">
-        {notifications.map((notification, index) => (
-          <motion.div
-            key={notification.id}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            <Card className="cursor-pointer hover:border-primary transition-all bg-card border-border">
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  <div className="relative">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={notification.avatar} />
-                      <AvatarFallback className="bg-muted text-muted-foreground">
-                        {notification.user[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className={`absolute -bottom-1 -right-1 bg-background rounded-full p-1`}>
-                      <notification.icon className={notification.iconColor} size={14} />
+      <div className="p-3 sm:p-4 space-y-3">
+        {loading ? (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">Loading notifications...</p>
+          </div>
+        ) : notifications.length === 0 ? (
+          <Card className="bg-card border-border">
+            <CardContent className="p-8 text-center">
+              <p className="text-muted-foreground">No notifications yet</p>
+            </CardContent>
+          </Card>
+        ) : (
+          notifications.map((notification, index) => {
+            const Icon = getNotificationIcon(notification.type);
+            return (
+              <motion.div
+                key={notification.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <Card
+                  className={`cursor-pointer hover:border-primary transition-all bg-card border-border ${
+                    !notification.is_read ? "bg-primary/5" : ""
+                  }`}
+                  onClick={() => handleNotificationClick(notification)}
+                >
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="relative shrink-0">
+                        <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
+                          <AvatarImage src={notification.actor?.avatar_url || undefined} />
+                          <AvatarFallback className="bg-muted text-muted-foreground">
+                            {notification.actor?.username[0]?.toUpperCase() || "?"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-1">
+                          <Icon className={getIconColor(notification.type)} size={12} />
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm sm:text-base text-foreground">
+                          <span className="font-semibold">{notification.actor?.full_name || "Someone"}</span>{" "}
+                          <span className="text-muted-foreground">{getNotificationText(notification)}</span>
+                        </p>
+                        {notification.post?.content && (
+                          <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-2">
+                            {notification.post.content}
+                          </p>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-foreground">
-                      <span className="font-semibold">{notification.user}</span>{" "}
-                      <span className="text-muted-foreground">{notification.action}</span>
-                    </p>
-                    {notification.content && (
-                      <p className="text-sm text-muted-foreground mt-1">{notification.content}</p>
-                    )}
-                    <p className="text-xs text-muted-foreground mt-2">{notification.time}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })
+        )}
       </div>
 
       <BottomNav />

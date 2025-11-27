@@ -12,6 +12,7 @@ import type { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
 import { EditProfileDialog } from "@/components/EditProfileDialog";
 import { BottomNav } from "@/components/BottomNav";
+import { FollowersModal } from "@/components/FollowersModal";
 
 interface Profile {
   id: string;
@@ -52,6 +53,10 @@ const Profile = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [followersModalOpen, setFollowersModalOpen] = useState(false);
+  const [followersModalTab, setFollowersModalTab] = useState<"followers" | "following">("followers");
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -94,11 +99,28 @@ const Profile = () => {
         .order('created_at', { ascending: false });
 
       setPosts((postsData as unknown as Post[]) || []);
+
+      await fetchFollowerCounts(user.id);
       setLoading(false);
     };
 
     fetchUserData();
   }, [navigate]);
+
+  const fetchFollowerCounts = async (userId: string) => {
+    const { count: followers } = await supabase
+      .from("follows")
+      .select("*", { count: "exact", head: true })
+      .eq("following_id", userId);
+
+    const { count: following } = await supabase
+      .from("follows")
+      .select("*", { count: "exact", head: true })
+      .eq("follower_id", userId);
+
+    setFollowerCount(followers || 0);
+    setFollowingCount(following || 0);
+  };
 
   const refreshProfile = async () => {
     if (!user) return;
@@ -203,12 +225,24 @@ const Profile = () => {
                   <p className="text-xl font-bold text-foreground">{projects.length}</p>
                   <p className="text-sm text-muted-foreground">Projects</p>
                 </div>
-                <div>
-                  <p className="text-xl font-bold text-foreground">0</p>
+                <div
+                  className="cursor-pointer hover:text-primary transition-colors"
+                  onClick={() => {
+                    setFollowersModalTab("followers");
+                    setFollowersModalOpen(true);
+                  }}
+                >
+                  <p className="text-xl font-bold text-foreground">{followerCount}</p>
                   <p className="text-sm text-muted-foreground">Followers</p>
                 </div>
-                <div>
-                  <p className="text-xl font-bold text-foreground">0</p>
+                <div
+                  className="cursor-pointer hover:text-primary transition-colors"
+                  onClick={() => {
+                    setFollowersModalTab("following");
+                    setFollowersModalOpen(true);
+                  }}
+                >
+                  <p className="text-xl font-bold text-foreground">{followingCount}</p>
                   <p className="text-sm text-muted-foreground">Following</p>
                 </div>
               </div>
@@ -334,6 +368,14 @@ const Profile = () => {
         onOpenChange={setEditDialogOpen}
         profile={profile}
         onUpdate={refreshProfile}
+      />
+
+      <FollowersModal
+        open={followersModalOpen}
+        onOpenChange={setFollowersModalOpen}
+        userId={user?.id || ""}
+        currentUserId={user?.id}
+        defaultTab={followersModalTab}
       />
 
       <BottomNav />
