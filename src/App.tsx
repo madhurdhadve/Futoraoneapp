@@ -13,14 +13,8 @@ import Explore from "./pages/Explore";
 import Notifications from "./pages/Notifications";
 import Profile from "./pages/Profile";
 import Projects from "./pages/Projects";
-import AIPage from "./pages/AIPage";
-
-// ... existing imports
-
-// ... inside Routes
-            <Route path="/ai-roadmap" element={<AIRoadmap />} />
-            <Route path="/ai-tools" element={<AIPage />} />
-            <Route path="/terms" element={<Terms />} />
+import AIRoadmap from "./pages/AIRoadmap";
+import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import About from "./pages/About";
 import NotFound from "./pages/NotFound";
@@ -30,6 +24,7 @@ import ProjectDetails from "./pages/ProjectDetails";
 import SearchResults from "./pages/SearchResults";
 import UserProfile from "./pages/UserProfile";
 import ChatPage from "./pages/ChatPage";
+import AIPage from "./pages/AIPage";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +48,7 @@ const App = () => {
             <Route path="/user/:userId" element={<UserProfile />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/ai-roadmap" element={<AIRoadmap />} />
+            <Route path="/ai-tools" element={<AIPage />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/about" element={<About />} />
