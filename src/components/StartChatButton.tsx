@@ -21,55 +21,14 @@ export const StartChatButton = ({ userId, currentUserId }: StartChatButtonProps)
     setLoading(true);
 
     try {
-      // Check if conversation already exists
-      const { data: existingParticipations } = await supabase
-        .from("conversation_participants")
-        .select("conversation_id")
-        .eq("user_id", currentUserId);
+      // @ts-ignore
+      const { data: conversationId, error } = await supabase.rpc('get_or_create_conversation', {
+        other_user_id: userId
+      });
 
-      if (existingParticipations) {
-        for (const participation of existingParticipations) {
-          const { data: otherParticipant } = await supabase
-            .from("conversation_participants")
-            .select("user_id")
-            .eq("conversation_id", participation.conversation_id)
-            .eq("user_id", userId)
-            .single();
+      if (error) throw error;
 
-          if (otherParticipant) {
-            // Conversation exists, navigate to it
-            navigate(`/messages/${participation.conversation_id}`);
-            setLoading(false);
-            return;
-          }
-        }
-      }
-
-      // Create new conversation
-      const { data: conversation, error: convError } = await supabase
-        .from("conversations")
-        .insert({})
-        .select()
-        .single();
-
-      if (convError || !conversation) {
-        throw new Error("Failed to create conversation");
-      }
-
-      // Add both participants
-      const { error: participantsError } = await supabase
-        .from("conversation_participants")
-        .insert([
-          { conversation_id: conversation.id, user_id: currentUserId },
-          { conversation_id: conversation.id, user_id: userId }
-        ]);
-
-      if (participantsError) {
-        throw new Error("Failed to add participants");
-      }
-
-      // Navigate to new conversation
-      navigate(`/messages/${conversation.id}`);
+      navigate(`/messages/${conversationId}`);
     } catch (error) {
       toast({
         title: "Error",
