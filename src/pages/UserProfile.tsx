@@ -316,27 +316,6 @@ const UserProfile = () => {
                                                     <AvatarImage src={profile?.avatar_url || undefined} />
                                                     <AvatarFallback>{profile?.username?.[0]}</AvatarFallback>
                                                 </Avatar>
-                                                <div>
-                                                    <p className="font-semibold text-foreground">{profile?.full_name}</p>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        {new Date(post.created_at).toLocaleDateString()}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <p className="text-foreground mb-3">{post.content}</p>
-                                            {post.image_url && (
-                                                <img
-                                                    src={post.image_url}
-                                                    alt="Post"
-                                                    className="w-full rounded-lg object-cover mb-3 max-h-64"
-                                                />
-                                            )}
-                                            <div className="flex items-center gap-4 text-muted-foreground text-sm">
-                                                <span className="flex items-center gap-1">
-                                                    <Heart size={16} /> {post.likes?.length || 0}
-                                                </span>
-                                                <span className="flex items-center gap-1">
-                                                    <MessageCircle size={16} /> {post.comments?.length || 0}
                                                 </span>
                                             </div>
                                         </CardContent>
@@ -357,7 +336,7 @@ const UserProfile = () => {
             />
 
             <BottomNav />
-        </div>
+        </div >
     );
 };
 
