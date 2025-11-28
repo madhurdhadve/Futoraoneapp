@@ -174,6 +174,7 @@ export type Database = {
           created_at: string
           id: string
           is_read: boolean
+          read_at: string | null
           sender_id: string
         }
         Insert: {
@@ -182,6 +183,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_read?: boolean
+          read_at?: string | null
           sender_id: string
         }
         Update: {
@@ -190,6 +192,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_read?: boolean
+          read_at?: string | null
           sender_id?: string
         }
         Relationships: [
@@ -352,6 +355,7 @@ export type Database = {
           id: string
           linkedin_url: string | null
           location: string | null
+          one_signal_player_id: string | null
           portfolio_url: string | null
           tech_skills: string[] | null
           updated_at: string
@@ -366,6 +370,7 @@ export type Database = {
           id: string
           linkedin_url?: string | null
           location?: string | null
+          one_signal_player_id?: string | null
           portfolio_url?: string | null
           tech_skills?: string[] | null
           updated_at?: string
@@ -380,6 +385,7 @@ export type Database = {
           id?: string
           linkedin_url?: string | null
           location?: string | null
+          one_signal_player_id?: string | null
           portfolio_url?: string | null
           tech_skills?: string[] | null
           updated_at?: string
