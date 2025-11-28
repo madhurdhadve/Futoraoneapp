@@ -2,44 +2,54 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
 @layer base {
   :root {
     /* Premium dark blue gradients */
-    --gradient-start: 217 91% 60%; /* Bright blue */
-    --gradient-mid: 221 83% 53%; /* Royal blue */
-    --gradient-end: 224 76% 48%; /* Deep blue */
-    
-    --background: 222 47% 11%; /* Rich dark blue-black */
-    --foreground: 210 40% 98%; /* Crisp white-blue */
+    --gradient-start: 217 91% 60%;
+    /* Bright blue */
+    --gradient-mid: 221 83% 53%;
+    /* Royal blue */
+    --gradient-end: 224 76% 48%;
+    /* Deep blue */
 
-    --card: 217 33% 17%; /* Elevated dark blue */
+    --background: 222 47% 11%;
+    /* Rich dark blue-black */
+    --foreground: 210 40% 98%;
+    /* Crisp white-blue */
+
+    --card: 217 33% 17%;
+    /* Elevated dark blue */
     --card-foreground: 210 40% 98%;
 
     --popover: 217 33% 17%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 217 91% 60%; /* Vibrant blue */
+    --primary: 217 91% 60%;
+    /* Vibrant blue */
     --primary-foreground: 222 47% 11%;
 
-    --secondary: 215 28% 24%; /* Muted blue-gray */
+    --secondary: 215 28% 24%;
+    /* Muted blue-gray */
     --secondary-foreground: 210 40% 98%;
 
-    --accent: 217 91% 60%; /* Vibrant blue accent */
+    --accent: 217 91% 60%;
+    /* Vibrant blue accent */
     --accent-foreground: 222 47% 11%;
 
-    --muted: 215 20% 35%; /* Soft gray-blue */
-    --muted-foreground: 217 33% 80%; /* Light blue-gray */
+    --muted: 215 20% 35%;
+    /* Soft gray-blue */
+    --muted-foreground: 217 33% 80%;
+    /* Light blue-gray */
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 215 28% 24%; /* Subtle blue border */
-    --input: 217 33% 17%; /* Dark blue input */
-    --ring: 217 91% 60%; /* Blue focus ring */
+    --border: 215 28% 24%;
+    /* Subtle blue border */
+    --input: 217 33% 17%;
+    /* Dark blue input */
+    --ring: 217 91% 60%;
+    /* Blue focus ring */
 
     --radius: 0.75rem;
 
@@ -57,7 +67,7 @@ All colors MUST be HSL.
     --gradient-start: 217 91% 60%;
     --gradient-mid: 221 83% 53%;
     --gradient-end: 224 76% 48%;
-    
+
     --background: 222 47% 11%;
     --foreground: 210 40% 98%;
 
@@ -85,7 +95,7 @@ All colors MUST be HSL.
     --border: 215 28% 24%;
     --input: 217 33% 17%;
     --ring: 217 91% 60%;
-    
+
     --sidebar-background: 222 47% 11%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 217 91% 60%;
@@ -109,17 +119,17 @@ All colors MUST be HSL.
 
 @layer utilities {
   .gradient-primary {
-    background: linear-gradient(135deg, 
-      hsl(var(--gradient-start)) 0%, 
-      hsl(var(--gradient-mid)) 50%, 
-      hsl(var(--gradient-end)) 100%);
+    background: linear-gradient(135deg,
+        hsl(var(--gradient-start)) 0%,
+        hsl(var(--gradient-mid)) 50%,
+        hsl(var(--gradient-end)) 100%);
   }
-  
+
   .gradient-text {
-    background: linear-gradient(135deg, 
-      hsl(var(--gradient-start)) 0%, 
-      hsl(var(--gradient-mid)) 50%, 
-      hsl(var(--gradient-end)) 100%);
+    background: linear-gradient(135deg,
+        hsl(var(--gradient-start)) 0%,
+        hsl(var(--gradient-mid)) 50%,
+        hsl(var(--gradient-end)) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -130,13 +140,66 @@ All colors MUST be HSL.
     backdrop-filter: blur(16px);
     border: 1px solid rgba(96, 165, 250, 0.2);
   }
-  
+
   .tech-glow {
     box-shadow: 0 0 30px rgba(96, 165, 250, 0.4),
-                0 0 60px rgba(96, 165, 250, 0.2);
+      0 0 60px rgba(96, 165, 250, 0.2);
   }
-  
+
   .premium-glow {
     box-shadow: 0 4px 24px rgba(96, 165, 250, 0.15);
   }
+}
+
+@keyframes blink-glow {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+  }
+
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
+  }
+}
+
+.animate-blink-glow {
+  animation: blink-glow 2s infinite;
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes grid-move {
+  0% {
+    transform: translateY(0);
+  }
+
+  100% {
+    transform: translateY(50px);
+  }
+}
+
+.bg-grid-pattern {
+  background-size: 50px 50px;
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  animation: grid-move 20s linear infinite;
 }

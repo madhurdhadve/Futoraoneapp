@@ -25,7 +25,6 @@ import SearchResults from "./pages/SearchResults";
 import UserProfile from "./pages/UserProfile";
 import ChatPage from "./pages/ChatPage";
 import AIPage from "./pages/AIPage";
-
 const queryClient = new QueryClient();
 
 const App = () => {

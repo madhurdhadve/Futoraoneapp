@@ -95,10 +95,18 @@ export function ChatWindow({ conversationId, currentUserId }: { conversationId: 
     };
 
     const markAsRead = async (messageId: string) => {
+        // Update message read status
         await supabase
             .from('messages')
             .update({ read_at: new Date().toISOString() })
             .eq('id', messageId);
+
+        // Update conversation participant last_read_at
+        await supabase
+            .from('conversation_participants')
+            .update({ last_read_at: new Date().toISOString() })
+            .eq('conversation_id', conversationId)
+            .eq('user_id', currentUserId);
     };
 
     const scrollToBottom = () => {

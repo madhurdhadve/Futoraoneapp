@@ -1,13 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Bot, Sparkles, Code, FileText, Lightbulb, Zap } from "lucide-react";
+import { ArrowLeft, Bot, Sparkles, Code, FileText, Lightbulb, Zap, Cpu, Globe, Network } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 const AIPage = () => {
     const navigate = useNavigate();
     const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            setMousePosition({
+                x: (e.clientX / window.innerWidth) * 2 - 1,
+                y: (e.clientY / window.innerHeight) * 2 - 1,
+            });
+        };
+        window.addEventListener("mousemove", handleMouseMove);
+        return () => window.removeEventListener("mousemove", handleMouseMove);
+    }, []);
 
     const tools = [
         {
@@ -18,6 +30,7 @@ const AIPage = () => {
             color: "from-cyan-500/20 to-blue-500/20",
             border: "hover:border-cyan-500/50",
             action: () => navigate("/ai-roadmap"),
+            delay: 0,
         },
         {
             id: "code-assistant",
@@ -28,6 +41,7 @@ const AIPage = () => {
             border: "hover:border-purple-500/50",
             action: () => { }, // Placeholder
             comingSoon: true,
+            delay: 0.1,
         },
         {
             id: "project-ideas",
@@ -38,6 +52,7 @@ const AIPage = () => {
             border: "hover:border-yellow-500/50",
             action: () => { }, // Placeholder
             comingSoon: true,
+            delay: 0.2,
         },
         {
             id: "resume-review",
@@ -48,91 +63,113 @@ const AIPage = () => {
             border: "hover:border-green-500/50",
             action: () => { }, // Placeholder
             comingSoon: true,
+            delay: 0.3,
         },
     ];
 
     return (
-        <div className="min-h-screen bg-black text-white overflow-hidden relative">
-            {/* Background Effects */}
-            <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/30 rounded-full blur-[100px]" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-900/30 rounded-full blur-[100px]" />
+        <div className="min-h-screen bg-black text-white overflow-hidden relative selection:bg-cyan-500/30">
+            {/* Dynamic Background */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute inset-0 bg-grid-pattern opacity-20" />
+                <motion.div
+                    animate={{
+                        x: mousePosition.x * 20,
+                        y: mousePosition.y * 20
+                    }}
+                    className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-600/20 rounded-full blur-[120px]"
+                />
+                <motion.div
+                    animate={{
+                        x: mousePosition.x * -20,
+                        y: mousePosition.y * -20
+                    }}
+                    className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-cyan-600/20 rounded-full blur-[120px]"
+                />
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.8)_100%)]" />
             </div>
 
-            <header className="relative z-10 p-4 flex items-center border-b border-white/10 bg-black/50 backdrop-blur-md">
+            <header className="relative z-10 p-4 flex items-center border-b border-white/10 bg-black/50 backdrop-blur-xl">
                 <Button
                     variant="ghost"
                     onClick={() => navigate("/feed")}
-                    className="text-gray-400 hover:text-white hover:bg-white/10"
+                    className="text-gray-400 hover:text-white hover:bg-white/10 transition-all duration-300 hover:scale-105"
                 >
                     <ArrowLeft className="w-5 h-5 mr-2" />
                     Back
                 </Button>
-                <h1 className="ml-4 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-400">
+                <h1 className="ml-4 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 animate-pulse">
                     Futora AI
                 </h1>
             </header>
 
-            <main className="relative z-10 max-w-4xl mx-auto px-4 py-12">
-                <div className="text-center mb-16">
+            <main className="relative z-10 max-w-6xl mx-auto px-4 py-12">
+                <div className="text-center mb-20 relative">
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.8, type: "spring" }}
+                        className="relative z-10"
                     >
-                        <div className="inline-flex items-center justify-center p-3 mb-6 rounded-full bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-white/10">
-                            <Bot className="w-6 h-6 text-cyan-400 mr-2" />
-                            <span className="text-sm font-medium text-cyan-200">AI-Powered Developer Tools</span>
+                        <div className="inline-flex items-center justify-center p-4 mb-8 rounded-full bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-white/10 backdrop-blur-md shadow-[0_0_30px_rgba(6,182,212,0.3)] animate-float">
+                            <Bot className="w-8 h-8 text-cyan-400 mr-3 animate-bounce" />
+                            <span className="text-lg font-medium text-cyan-200 tracking-wide">Next Gen AI Tools</span>
                         </div>
-                        <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400">
-                            Supercharge Your Workflow
+                        <h2 className="text-5xl md:text-7xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-white via-cyan-200 to-purple-200 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+                            Unleash Your Potential
                         </h2>
-                        <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-                            Access a suite of advanced AI tools designed to help you learn faster, code better, and build amazing projects.
+                        <p className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
+                            Experience the future of development with our suite of <span className="text-cyan-400 font-semibold">AI-powered</span> tools.
+                            Build faster, smarter, and more creatively.
                         </p>
                     </motion.div>
+
+                    {/* Decorative Elements */}
+                    <Cpu className="absolute top-0 left-[20%] w-12 h-12 text-purple-500/20 animate-spin-slow" />
+                    <Globe className="absolute bottom-0 right-[20%] w-16 h-16 text-cyan-500/20 animate-pulse" />
+                    <Network className="absolute top-[50%] right-[10%] w-10 h-10 text-pink-500/20 animate-bounce" />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {tools.map((tool, index) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 perspective-1000">
+                    {tools.map((tool) => (
                         <motion.div
                             key={tool.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.1 }}
+                            initial={{ opacity: 0, y: 50, rotateX: -10 }}
+                            animate={{ opacity: 1, y: 0, rotateX: 0 }}
+                            transition={{ delay: tool.delay, duration: 0.6 }}
                             onHoverStart={() => setHoveredCard(tool.id)}
                             onHoverEnd={() => setHoveredCard(null)}
+                            className="group"
                         >
                             <Card
-                                className={`h-full p-6 bg-gradient-to-br ${tool.color} border border-white/10 ${tool.border} transition-all duration-300 cursor-pointer group relative overflow-hidden`}
+                                className={`h-full p-8 bg-gradient-to-br ${tool.color} border border-white/10 ${tool.border} transition-all duration-500 cursor-pointer relative overflow-hidden backdrop-blur-sm hover:shadow-[0_0_50px_rgba(124,58,237,0.2)] hover:-translate-y-2`}
                                 onClick={tool.action}
                             >
                                 <div className="relative z-10">
-                                    <div className="mb-4 p-3 bg-black/40 rounded-xl w-fit backdrop-blur-sm border border-white/5 group-hover:scale-110 transition-transform duration-300">
+                                    <div className="mb-6 p-4 bg-black/40 rounded-2xl w-fit backdrop-blur-md border border-white/10 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-lg">
                                         {tool.icon}
                                     </div>
-                                    <h3 className="text-xl font-bold mb-2 text-white group-hover:text-cyan-300 transition-colors">
+                                    <h3 className="text-2xl font-bold mb-3 text-white group-hover:text-cyan-300 transition-colors">
                                         {tool.title}
                                     </h3>
-                                    <p className="text-gray-400 text-sm mb-4">
+                                    <p className="text-gray-400 text-base mb-6 leading-relaxed">
                                         {tool.description}
                                     </p>
 
                                     {tool.comingSoon ? (
-                                        <span className="inline-block px-3 py-1 text-xs font-medium bg-white/10 rounded-full text-gray-300 border border-white/5">
+                                        <span className="inline-flex items-center px-4 py-1.5 text-xs font-bold uppercase tracking-wider bg-white/5 rounded-full text-gray-400 border border-white/5 group-hover:bg-white/10 transition-colors">
                                             Coming Soon
                                         </span>
                                     ) : (
-                                        <div className="flex items-center text-cyan-400 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-[-10px] group-hover:translate-x-0">
-                                            Try Now <Zap className="w-4 h-4 ml-1" />
+                                        <div className="flex items-center text-cyan-400 font-semibold group-hover:translate-x-2 transition-transform duration-300">
+                                            Try Now <Zap className="w-5 h-5 ml-2 group-hover:text-yellow-400 transition-colors" />
                                         </div>
                                     )}
                                 </div>
 
-                                {/* Hover Glow Effect */}
-                                {hoveredCard === tool.id && (
-                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12 translate-x-[-100%] animate-shimmer" />
-                                )}
+                                {/* Hover Effects */}
+                                <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12 transition-transform duration-1000 ease-in-out ${hoveredCard === tool.id ? 'translate-x-[200%]' : 'translate-x-[-200%]'}`} />
+                                <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-white/5 rounded-full blur-3xl group-hover:bg-white/10 transition-colors duration-500" />
                             </Card>
                         </motion.div>
                     ))}

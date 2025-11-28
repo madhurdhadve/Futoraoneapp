@@ -8,6 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { PostSkeleton } from "@/components/PostSkeleton";
 import { BottomNav } from "@/components/BottomNav";
 import { CommentSection } from "@/components/CommentSection";
+import { Stories } from "@/components/Stories";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -254,8 +255,17 @@ const Feed = () => {
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold gradient-text">FutoraOne</h1>
           <div className="flex items-center gap-4">
-            <Button size="icon" variant="ghost" className="relative" onClick={() => navigate("/ai-tools")}>
-              <Bot className="w-6 h-6 text-primary" />
+            <Button
+              size="icon"
+              variant="ghost"
+              className="relative w-12 h-12 mr-2 animate-blink-glow bg-primary/10 rounded-full hover:bg-primary/20 transition-all"
+              onClick={() => navigate("/ai-tools")}
+            >
+              <Bot className="w-8 h-8 text-primary" />
+              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-sky-500"></span>
+              </span>
             </Button>
             <Button size="icon" variant="ghost" className="relative" onClick={() => navigate("/notifications")}>
               <Bell className="w-5 h-5" />
@@ -270,6 +280,11 @@ const Feed = () => {
 
       {/* Main Content */}
       <main className="max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-6 pb-24">
+        {/* Stories */}
+        <div className="mb-6">
+          <Stories />
+        </div>
+
         {/* Create Post Button */}
         <Card className="p-6 mb-6 shadow-lg">
           <div className="flex items-center gap-4">
