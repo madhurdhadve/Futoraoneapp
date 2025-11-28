@@ -25,6 +25,7 @@ interface Profile {
   linkedin_url: string | null;
   portfolio_url: string | null;
   tech_skills: string[] | null;
+  banner_url: string | null;
 }
 
 interface Project {
@@ -73,7 +74,7 @@ const Profile = () => {
         .eq("id", user.id)
         .single();
 
-      setProfile(profileData);
+      setProfile(profileData as unknown as Profile);
 
       // Fetch user's projects
       const { data: projectsData } = await supabase
@@ -129,7 +130,7 @@ const Profile = () => {
       .select("*")
       .eq("id", user.id)
       .single();
-    setProfile(profileData);
+    setProfile(profileData as unknown as Profile);
   };
 
   const handleLogout = async () => {
@@ -149,7 +150,16 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header with Cover */}
-      <div className="relative h-32 gradient-primary" />
+      <div
+        className="relative h-32 w-full bg-cover bg-center"
+        style={{
+          backgroundImage: profile?.banner_url
+            ? `url(${profile.banner_url})`
+            : undefined
+        }}
+      >
+        {!profile?.banner_url && <div className="absolute inset-0 gradient-primary" />}
+      </div>
 
       <div className="px-3 sm:px-4 -mt-12 sm:-mt-16 relative z-10">
         <motion.div

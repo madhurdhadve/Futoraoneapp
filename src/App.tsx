@@ -31,6 +31,7 @@ import Chat from "./pages/Chat";
 import CreateStory from "./pages/CreateStory";
 import StoryView from "./pages/StoryView";
 import ProfileViews from "./pages/ProfileViews";
+import AllPeople from "./pages/AllPeople";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -63,6 +64,7 @@ const App = () => {
             <Route path="/project/:projectId" element={<ProjectDetails />} />
             <Route path="/search" element={<SearchResults />} />
             <Route path="/messages" element={<Messages />} />
+            <Route path="/people" element={<AllPeople />} />
             <Route path="/chat/:conversationId" element={<Chat />} />
             <Route path="/create-story" element={<CreateStory />} />
             <Route path="/story/:userId" element={<StoryView />} />

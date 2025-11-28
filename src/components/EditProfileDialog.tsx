@@ -19,6 +19,7 @@ interface Profile {
   linkedin_url: string | null;
   portfolio_url: string | null;
   tech_skills: string[] | null;
+  banner_url: string | null;
 }
 
 interface EditProfileDialogProps {
@@ -41,6 +42,7 @@ export const EditProfileDialog = ({ open, onOpenChange, profile, onUpdate }: Edi
     tech_skills: profile?.tech_skills?.join(", ") || "",
   });
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -66,6 +68,27 @@ export const EditProfileDialog = ({ open, onOpenChange, profile, onUpdate }: Edi
           .getPublicUrl(fileName);
 
         avatarUrl = publicUrl;
+        avatarUrl = publicUrl;
+      }
+
+      let bannerUrl = profile?.banner_url;
+
+      // Upload banner if changed
+      if (bannerFile) {
+        const fileExt = bannerFile.name.split('.').pop();
+        const fileName = `${profile.id}/banner.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('post-images')
+          .upload(fileName, bannerFile, { upsert: true });
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('post-images')
+          .getPublicUrl(fileName);
+
+        bannerUrl = publicUrl;
       }
 
       const { error } = await supabase
@@ -80,6 +103,7 @@ export const EditProfileDialog = ({ open, onOpenChange, profile, onUpdate }: Edi
           portfolio_url: formData.portfolio_url,
           tech_skills: formData.tech_skills.split(',').map(s => s.trim()).filter(Boolean),
           avatar_url: avatarUrl,
+          banner_url: bannerUrl,
         })
         .eq('id', profile!.id);
 
@@ -117,6 +141,19 @@ export const EditProfileDialog = ({ open, onOpenChange, profile, onUpdate }: Edi
                 type="file"
                 accept="image/*"
                 onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
+                className="flex-1"
+              />
+              <Upload className="w-5 h-5 text-muted-foreground" />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Banner Image</Label>
+            <div className="flex items-center gap-4">
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setBannerFile(e.target.files?.[0] || null)}
                 className="flex-1"
               />
               <Upload className="w-5 h-5 text-muted-foreground" />

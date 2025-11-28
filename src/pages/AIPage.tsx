@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Bot, Sparkles, Code, FileText, Lightbulb, Zap, Cpu, Globe, Network } from "lucide-react";
+import { ArrowLeft, Bot, Sparkles, Code, FileText, Lightbulb, Zap, Cpu, Globe, Network, MessageSquare, BookOpen, ShieldAlert, Layers } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -67,6 +67,55 @@ const AIPage = () => {
         },
     ];
 
+    const comingSoonTools = [
+        {
+            id: "mock-interviewer",
+            title: "AI Mock Interviewer",
+            description: "Practice technical interviews with real-time AI feedback.",
+            icon: <MessageSquare className="w-8 h-8 text-pink-400" />,
+            color: "from-pink-500/20 to-rose-500/20",
+            border: "hover:border-pink-500/50",
+            action: () => { },
+            comingSoon: true,
+            delay: 0.4,
+        },
+        {
+            id: "auto-docs",
+            title: "Auto Documentation",
+            description: "Generate comprehensive documentation from your codebase instantly.",
+            icon: <BookOpen className="w-8 h-8 text-indigo-400" />,
+            color: "from-indigo-500/20 to-violet-500/20",
+            border: "hover:border-indigo-500/50",
+            action: () => { },
+            comingSoon: true,
+            delay: 0.5,
+        },
+        {
+            id: "bug-predictor",
+            title: "Bug Predictor",
+            description: "Analyze code patterns to predict and prevent potential bugs.",
+            icon: <ShieldAlert className="w-8 h-8 text-red-400" />,
+            color: "from-red-500/20 to-orange-500/20",
+            border: "hover:border-red-500/50",
+            action: () => { },
+            comingSoon: true,
+            delay: 0.6,
+        },
+        {
+            id: "stack-advisor",
+            title: "Tech Stack Advisor",
+            description: "Get personalized tech stack recommendations for your projects.",
+            icon: <Layers className="w-8 h-8 text-teal-400" />,
+            color: "from-teal-500/20 to-emerald-500/20",
+            border: "hover:border-teal-500/50",
+            action: () => { },
+            comingSoon: true,
+            delay: 0.7,
+        },
+    ];
+
+    const allTools = [...tools, ...comingSoonTools];
+
     return (
         <div className="min-h-screen bg-black text-white overflow-hidden relative selection:bg-cyan-500/30">
             {/* Dynamic Background */}
@@ -131,7 +180,7 @@ const AIPage = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 perspective-1000">
-                    {tools.map((tool) => (
+                    {allTools.map((tool) => (
                         <motion.div
                             key={tool.id}
                             initial={{ opacity: 0, y: 50, rotateX: -10 }}

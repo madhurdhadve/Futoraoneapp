@@ -1,17 +1,81 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, TrendingUp, Code, Brain, Shield, Cloud, Cpu, Blocks } from "lucide-react";
+import { Search, TrendingUp, Code, Brain, Shield, Cloud, Cpu, Blocks, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { FollowButton } from "@/components/FollowButton";
+import { StartChatButton } from "@/components/StartChatButton";
+import { OnlineIndicator } from "@/components/OnlineIndicator";
+import { Button } from "@/components/ui/button";
+import type { User } from "@supabase/supabase-js";
+
+interface UserProfile {
+  id: string;
+  username: string;
+  full_name: string;
+  avatar_url: string | null;
+  follower_count?: number;
+}
 
 const Explore = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [people, setPeople] = useState<UserProfile[]>([]);
+  const [loadingPeople, setLoadingPeople] = useState(true);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchCurrentUser();
+    fetchPeople();
+  }, []);
+
+  const fetchCurrentUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setCurrentUser(user);
+  };
+
+  const fetchPeople = async () => {
+    setLoadingPeople(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, username, full_name, avatar_url")
+        .neq("id", user?.id || "")
+        .order("created_at", { ascending: false })
+        .limit(4);
+
+      if (error) throw error;
+
+      const usersWithCounts = await Promise.all(
+        (data || []).map(async (profile) => {
+          const { count } = await supabase
+            .from("follows")
+            .select("*", { count: "exact", head: true })
+            .eq("following_id", profile.id);
+
+          return {
+            ...profile,
+            follower_count: count || 0,
+          };
+        })
+      );
+
+      setPeople(usersWithCounts);
+    } catch (error) {
+      console.error("Error fetching people:", error);
+    } finally {
+      setLoadingPeople(false);
+    }
+  };
 
   const categories = [
     { name: "AI & ML", icon: Brain, color: "bg-blue-500" },
@@ -56,7 +120,6 @@ const Explore = () => {
       title: `Exploring ${categoryName}`,
       description: `Showing posts and projects related to ${categoryName}`,
     });
-    // Navigate to the new category page
     navigate(`/category/${encodeURIComponent(categoryName)}`);
   };
 
@@ -107,6 +170,108 @@ const Explore = () => {
       </div>
 
       <div className="p-4 space-y-6">
+        {/* People to Follow - NOW AT THE TOP */}
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <Users className="text-primary" size={24} />
+            <h2 className="text-xl font-bold text-foreground">People to Follow</h2>
+          </div>
+
+          {loadingPeople ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {[1, 2, 3, 4].map((i) => (
+                <Card key={i} className="bg-card border-border animate-pulse">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-muted shrink-0" />
+                      <div className="flex-1 space-y-2 min-w-0">
+                        <div className="h-4 bg-muted rounded w-2/3" />
+                        <div className="h-3 bg-muted rounded w-1/2" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : people.length === 0 ? (
+            <Card className="bg-card border-border">
+              <CardContent className="p-8 text-center">
+                <Users className="w-12 h-12 mx-auto mb-2 text-muted-foreground" />
+                <p className="text-muted-foreground">No users found</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                {people.map((user, index) => (
+                  <motion.div
+                    key={user.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <Card className="bg-card border-border hover:border-primary transition-all hover:shadow-lg">
+                      <CardContent className="p-3 sm:p-4">
+                        <div className="flex items-start gap-3 mb-3">
+                          <div
+                            className="relative cursor-pointer shrink-0"
+                            onClick={() => navigate(`/user/${user.id}`)}
+                          >
+                            <Avatar className="h-12 w-12">
+                              <AvatarImage src={user.avatar_url || undefined} />
+                              <AvatarFallback className="bg-primary text-primary-foreground">
+                                {user.username[0]?.toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <OnlineIndicator userId={user.id} />
+                          </div>
+                          <div
+                            className="flex-1 min-w-0 cursor-pointer"
+                            onClick={() => navigate(`/user/${user.id}`)}
+                          >
+                            <p className="font-semibold text-foreground truncate">
+                              {user.full_name}
+                            </p>
+                            <p className="text-sm text-muted-foreground truncate">
+                              @{user.username}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              <span className="font-semibold text-foreground">
+                                {user.follower_count}
+                              </span>{" "}
+                              followers
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <FollowButton
+                            userId={user.id}
+                            currentUserId={currentUser?.id}
+                          />
+                          <StartChatButton
+                            userId={user.id}
+                            currentUserId={currentUser?.id}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+
+              <div className="flex justify-center">
+                <Button
+                  variant="outline"
+                  onClick={() => navigate("/people")}
+                  className="w-full sm:w-auto border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                >
+                  See All People
+                </Button>
+              </div>
+            </>
+          )}
+        </section>
+
         {/* Categories */}
         <section>
           <h2 className="text-xl font-bold text-foreground mb-4">Tech Categories</h2>

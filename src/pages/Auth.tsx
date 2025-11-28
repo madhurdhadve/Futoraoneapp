@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/Logo";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Camera, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -23,6 +24,8 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
+  const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showLoginErrorDialog, setShowLoginErrorDialog] = useState(false);
   const navigate = useNavigate();
@@ -47,6 +50,43 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProfilePhoto(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadProfilePhoto = async (userId: string): Promise<string | null> => {
+    if (!profilePhoto) return null;
+
+    try {
+      const fileExt = profilePhoto.name.split('.').pop();
+      const fileName = `${userId}-${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, profilePhoto);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+      return null;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -66,7 +106,7 @@ const Auth = () => {
         });
         navigate("/feed");
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -79,6 +119,20 @@ const Auth = () => {
         });
 
         if (error) throw error;
+
+        // Upload profile photo if provided
+        let avatarUrl = null;
+        if (data.user && profilePhoto) {
+          avatarUrl = await uploadProfilePhoto(data.user.id);
+
+          // Update profile with avatar URL
+          if (avatarUrl) {
+            await supabase
+              .from('profiles')
+              .update({ avatar_url: avatarUrl })
+              .eq('id', data.user.id);
+          }
+        }
 
         toast({
           title: "Account created!",
@@ -129,6 +183,33 @@ const Auth = () => {
               {isLogin ? "Sign in to continue" : "Create your account"}
             </p>
           </div>
+
+          {!isLogin && (
+            <div className="flex flex-col items-center mb-6">
+              <div className="relative">
+                <Avatar className="w-24 h-24 border-4 border-primary/20">
+                  <AvatarImage src={photoPreview || undefined} />
+                  <AvatarFallback className="bg-primary/10">
+                    <User className="w-12 h-12 text-primary/50" />
+                  </AvatarFallback>
+                </Avatar>
+                <label
+                  htmlFor="photo-upload"
+                  className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full cursor-pointer hover:bg-primary/90 transition-colors shadow-lg"
+                >
+                  <Camera className="w-4 h-4" />
+                  <input
+                    id="photo-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoChange}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">Optional: Add a profile photo</p>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {!isLogin && (
