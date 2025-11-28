@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Heart, MessageCircle, UserPlus } from "lucide-react";
+import { Heart, MessageCircle, UserPlus, Eye } from "lucide-react";
 import { motion } from "framer-motion";
 import { BottomNav } from "@/components/BottomNav";
 import { useEffect, useState } from "react";
@@ -70,6 +70,8 @@ const Notifications = () => {
         return MessageCircle;
       case "follow":
         return UserPlus;
+      case "profile_view":
+        return Eye;
       default:
         return Heart;
     }
@@ -83,6 +85,8 @@ const Notifications = () => {
         return "commented on your post";
       case "follow":
         return "started following you";
+      case "profile_view":
+        return "viewed your profile";
       default:
         return "interacted with you";
     }
@@ -96,6 +100,8 @@ const Notifications = () => {
         return "text-blue-500";
       case "follow":
         return "text-green-500";
+      case "profile_view":
+        return "text-purple-500";
       default:
         return "text-muted-foreground";
     }

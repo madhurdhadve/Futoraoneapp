@@ -8,6 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { PostSkeleton } from "@/components/PostSkeleton";
 import { BottomNav } from "@/components/BottomNav";
 import { CommentSection } from "@/components/CommentSection";
+import { StoriesBar } from "@/components/StoriesBar";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -270,6 +271,9 @@ const Feed = () => {
 
       {/* Main Content */}
       <main className="max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-6 pb-24">
+        {/* Stories Bar */}
+        <StoriesBar currentUserId={user?.id} />
+
         {/* Create Post Button */}
         <Card className="p-6 mb-6 shadow-lg">
           <div className="flex items-center gap-4">

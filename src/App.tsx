@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useOneSignal } from "@/hooks/useOneSignal";
+import { useCurrentUserPresence } from "@/hooks/useUserPresence";
 import Index from "./pages/Index";
 import Welcome from "./pages/Welcome";
 import Auth from "./pages/Auth";
@@ -25,11 +26,17 @@ import SearchResults from "./pages/SearchResults";
 import UserProfile from "./pages/UserProfile";
 import ChatPage from "./pages/ChatPage";
 import AIPage from "./pages/AIPage";
+import Messages from "./pages/Messages";
+import Chat from "./pages/Chat";
+import CreateStory from "./pages/CreateStory";
+import StoryView from "./pages/StoryView";
+import ProfileViews from "./pages/ProfileViews";
 
 const queryClient = new QueryClient();
 
 const App = () => {
   useOneSignal(); // Initialize OneSignal integration
+  useCurrentUserPresence(); // Track user online status
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -56,8 +63,11 @@ const App = () => {
             <Route path="/topic/:topic" element={<TopicPage />} />
             <Route path="/project/:projectId" element={<ProjectDetails />} />
             <Route path="/search" element={<SearchResults />} />
-            <Route path="/messages" element={<ChatPage />} />
-            <Route path="/messages/:id" element={<ChatPage />} />
+            <Route path="/messages" element={<Messages />} />
+            <Route path="/chat/:conversationId" element={<Chat />} />
+            <Route path="/create-story" element={<CreateStory />} />
+            <Route path="/story/:userId" element={<StoryView />} />
+            <Route path="/profile-views" element={<ProfileViews />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

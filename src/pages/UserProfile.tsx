@@ -14,6 +14,8 @@ import { BottomNav } from "@/components/BottomNav";
 import { FollowButton } from "@/components/FollowButton";
 import { FollowersModal } from "@/components/FollowersModal";
 import { StartChatButton } from "@/components/StartChatButton";
+import { useTrackProfileView } from "@/hooks/useProfileViews";
+import { OnlineIndicator } from "@/components/OnlineIndicator";
 
 interface Profile {
     id: string;
@@ -58,6 +60,8 @@ const UserProfile = () => {
     const [followingCount, setFollowingCount] = useState(0);
     const [followersModalOpen, setFollowersModalOpen] = useState(false);
     const [followersModalTab, setFollowersModalTab] = useState<"followers" | "following">("followers");
+
+    useTrackProfileView(userId, currentUser?.id);
 
     useEffect(() => {
         fetchData();
@@ -164,12 +168,15 @@ const UserProfile = () => {
                     <Card className="bg-card border-border">
                         <CardContent className="p-6">
                             <div className="flex items-start justify-between mb-4">
-                                <Avatar className="h-24 w-24 border-4 border-background">
-                                    <AvatarImage src={profile?.avatar_url || undefined} />
-                                    <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
-                                        {profile?.full_name?.[0] || profile?.username?.[0]?.toUpperCase()}
-                                    </AvatarFallback>
-                                </Avatar>
+                                <div className="relative">
+                                    <Avatar className="h-24 w-24 border-4 border-background">
+                                        <AvatarImage src={profile?.avatar_url || undefined} />
+                                        <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
+                                            {profile?.full_name?.[0] || profile?.username?.[0]?.toUpperCase()}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <OnlineIndicator userId={userId!} className="w-5 h-5" />
+                                </div>
                                 <div className="flex gap-2">
                                     <FollowButton
                                         userId={userId!}

@@ -345,6 +345,42 @@ export type Database = {
           },
         ]
       }
+      profile_views: {
+        Row: {
+          id: string
+          profile_id: string
+          viewed_at: string | null
+          viewer_id: string
+        }
+        Insert: {
+          id?: string
+          profile_id: string
+          viewed_at?: string | null
+          viewer_id: string
+        }
+        Update: {
+          id?: string
+          profile_id?: string
+          viewed_at?: string | null
+          viewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_views_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_views_viewer_id_fkey"
+            columns: ["viewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -490,6 +526,80 @@ export type Database = {
           },
         ]
       }
+      stories: {
+        Row: {
+          caption: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          media_type: string
+          media_url: string
+          user_id: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          media_type: string
+          media_url: string
+          user_id: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          media_type?: string
+          media_url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stories_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      story_views: {
+        Row: {
+          id: string
+          story_id: string
+          viewed_at: string | null
+          viewer_id: string
+        }
+        Insert: {
+          id?: string
+          story_id: string
+          viewed_at?: string | null
+          viewer_id: string
+        }
+        Update: {
+          id?: string
+          story_id?: string
+          viewed_at?: string | null
+          viewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_views_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "story_views_viewer_id_fkey"
+            columns: ["viewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tags: {
         Row: {
           created_at: string
@@ -547,12 +657,38 @@ export type Database = {
           },
         ]
       }
+      user_presence: {
+        Row: {
+          is_online: boolean | null
+          last_seen: string | null
+          user_id: string
+        }
+        Insert: {
+          is_online?: boolean | null
+          last_seen?: string | null
+          user_id: string
+        }
+        Update: {
+          is_online?: boolean | null
+          last_seen?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_presence_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      delete_expired_stories: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

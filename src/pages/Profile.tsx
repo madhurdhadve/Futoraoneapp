@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, Settings, Github, Linkedin, Globe, MapPin, Edit, Heart, MessageCircle } from "lucide-react";
+import { LogOut, Settings, Github, Linkedin, Globe, MapPin, Edit, Heart, MessageCircle, Eye } from "lucide-react";
 import { motion } from "framer-motion";
 import type { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
@@ -167,15 +167,33 @@ const Profile = () => {
                     {profile?.full_name?.[0] || user?.email?.[0]?.toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-border text-foreground"
-                  onClick={() => setEditDialogOpen(true)}
-                >
-                  <Edit size={16} className="mr-2" />
-                  Edit Profile
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-foreground"
+                    onClick={() => navigate("/settings")}
+                  >
+                    <Settings className="w-5 h-5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-foreground"
+                    onClick={() => navigate("/profile-views")}
+                  >
+                    <Eye className="w-5 h-5" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-border text-foreground"
+                    onClick={() => setEditDialogOpen(true)}
+                  >
+                    <Edit size={16} className="mr-2" />
+                    Edit
+                  </Button>
+                </div>
               </div>
 
               <h1 className="text-2xl font-bold text-foreground">{profile?.full_name}</h1>
