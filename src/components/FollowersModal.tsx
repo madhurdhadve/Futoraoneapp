@@ -40,6 +40,31 @@ export const FollowersModal = ({
         }
     }, [open, userId]);
 
+    useEffect(() => {
+        if (!open || !userId) return;
+
+        // Subscribe to realtime changes for follows
+        const channel = supabase
+            .channel('follows-changes')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'follows',
+                    filter: `following_id=eq.${userId},follower_id=eq.${userId}`
+                },
+                () => {
+                    fetchFollowData();
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [open, userId]);
+
     const fetchFollowData = async () => {
         setLoading(true);
 

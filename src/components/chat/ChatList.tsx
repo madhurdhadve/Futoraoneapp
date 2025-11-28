@@ -90,7 +90,7 @@ export function ChatList({ currentUserId }: { currentUserId: string }) {
         const conversationsWithMessages = await Promise.all(conversationsData.map(async (conv: any) => {
             const { data: messages } = await supabase
                 .from('messages')
-                .select('*')
+                .select('content, created_at, sender_id, read_at')
                 .eq('conversation_id', conv.id)
                 .order('created_at', { ascending: false })
                 .limit(1)
@@ -105,7 +105,12 @@ export function ChatList({ currentUserId }: { currentUserId: string }) {
                 id: conv.id,
                 updated_at: conv.updated_at,
                 participants: otherParticipants,
-                last_message: messages,
+                last_message: messages ? {
+                    content: messages.content,
+                    created_at: messages.created_at,
+                    sender_id: messages.sender_id,
+                    read_at: messages.read_at
+                } : undefined,
             };
         }));
 

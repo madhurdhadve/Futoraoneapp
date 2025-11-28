@@ -86,7 +86,7 @@ export function ChatWindow({ conversationId, currentUserId }: { conversationId: 
             .order('created_at', { ascending: true });
 
         if (data) {
-            setMessages(data);
+            setMessages(data as Message[]);
             // Mark unread messages as read
             const unreadMessages = data.filter(m => m.sender_id !== currentUserId && !m.read_at);
             unreadMessages.forEach(m => markAsRead(m.id));

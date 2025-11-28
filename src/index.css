@@ -149,6 +149,15 @@
   .premium-glow {
     box-shadow: 0 4px 24px rgba(96, 165, 250, 0.15);
   }
+
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @keyframes blink-glow {
