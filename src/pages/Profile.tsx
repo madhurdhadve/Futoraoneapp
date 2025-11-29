@@ -288,15 +288,22 @@ const Profile = () => {
           )}
 
           {/* Projects Tabs */}
-          <Tabs defaultValue="projects" className="w-full">
+          <Tabs defaultValue="posts" className="w-full">
             <TabsList className="grid w-full grid-cols-2 bg-muted">
-              <TabsTrigger value="projects" className="data-[state=active]:bg-background">
-                Projects
-              </TabsTrigger>
               <TabsTrigger value="posts" className="data-[state=active]:bg-background">
                 Posts
               </TabsTrigger>
+              <TabsTrigger value="projects" className="data-[state=active]:bg-background">
+                Projects
+              </TabsTrigger>
             </TabsList>
+            <TabsContent value="posts" className="space-y-4 mt-4">
+              {posts.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">No posts yet</p>
+              ) : (
+                <ProfilePosts posts={posts} profile={profile} />
+              )}
+            </TabsContent>
             <TabsContent value="projects" className="space-y-3 mt-4">
               {projects.length === 0 ? (
                 <Card className="bg-card border-border">
@@ -312,13 +319,6 @@ const Profile = () => {
                 </Card>
               ) : (
                 <ProfileProjects projects={projects} />
-              )}
-            </TabsContent>
-            <TabsContent value="posts" className="space-y-4 mt-4">
-              {posts.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">No posts yet</p>
-              ) : (
-                <ProfilePosts posts={posts} profile={profile} />
               )}
             </TabsContent>
           </Tabs>
