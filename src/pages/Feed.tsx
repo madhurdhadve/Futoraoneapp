@@ -334,7 +334,7 @@ const Feed = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-muted/30 to-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 glass-card border-b">
+      <header className="sticky top-0 z-50 bg-card border-b border-black/20 dark:border-border shadow-sm">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold gradient-text">FutoraOne</h1>
           <div className="flex items-center gap-4">
@@ -402,7 +402,6 @@ const Feed = () => {
                 onSave={toggleSave}
                 onShare={handleShare}
                 onDelete={handleDeletePost}
-                onReactionChange={fetchPosts}
                 index={index}
               />
             ))

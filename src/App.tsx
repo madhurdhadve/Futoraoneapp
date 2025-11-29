@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useOneSignal } from "@/hooks/useOneSignal";
 import { useCurrentUserPresence } from "@/hooks/useUserPresence";
 import { ThemeProvider } from "@/components/theme-provider";
+import ScrollToTop from "@/components/ScrollToTop";
 
 // Lazy load all page components for code splitting
 const Index = lazy(() => import("./pages/Index"));
@@ -60,6 +61,7 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <ScrollToTop />
             <Suspense fallback={<LoadingFallback />}>
               <Routes>
                 <Route path="/" element={<Welcome />} />

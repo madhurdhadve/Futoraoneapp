@@ -6,7 +6,6 @@ import { Heart, MessageCircle, Share2, Bookmark, MoreVertical, Edit, Trash } fro
 import { motion } from "framer-motion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { CommentSection } from "@/components/CommentSection";
-import { ReactionPicker } from "@/components/ReactionPicker";
 import type { User } from "@supabase/supabase-js";
 import { useNavigate } from "react-router-dom";
 
@@ -25,16 +24,6 @@ interface Post {
   likes: { id: string; user_id: string }[];
   comments: { id: string }[];
   saves?: { id: string; user_id: string }[];
-  post_reactions?: {
-    id: string;
-    emoji: string;
-    user_id: string;
-    profiles?: {
-      username: string;
-      full_name: string;
-      avatar_url: string | null;
-    };
-  }[];
 }
 
 interface FeedPostProps {
@@ -44,11 +33,10 @@ interface FeedPostProps {
   onSave: (postId: string, isSaved: boolean) => void;
   onShare: (post: Post) => void;
   onDelete: (postId: string) => void;
-  onReactionChange: () => void;
   index: number;
 }
 
-export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDelete, onReactionChange, index }: FeedPostProps) => {
+export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDelete, index }: FeedPostProps) => {
   const navigate = useNavigate();
   const isLiked = post.likes.some(like => like.user_id === currentUser?.id);
   const isSaved = post.saves?.some(save => save.user_id === currentUser?.id);
@@ -60,7 +48,7 @@ export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDe
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 }}
     >
-      <Card className="overflow-hidden shadow-lg border-black/20 dark:border-border">
+      <Card className="overflow-hidden shadow-lg border-2 border-black/30 dark:border-border">
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate(`/user/${post.user_id}`)}>
@@ -150,15 +138,7 @@ export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDe
             </Button>
           </div>
 
-          {/* Reactions */}
-          <div className="mt-3 pt-3 border-t">
-            <ReactionPicker
-              postId={post.id}
-              currentUserId={currentUser?.id}
-              reactions={post.post_reactions || []}
-              onReactionChange={onReactionChange}
-            />
-          </div>
+
 
           {/* Comments Section */}
           <div className="mt-4 pt-4 border-t">

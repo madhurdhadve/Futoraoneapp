@@ -21,36 +21,36 @@ export const BottomNav = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 glass-card border-t z-50">
-      <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-around">
+    <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-black/20 dark:border-border z-50 shadow-lg">
+      <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-around">
         <Button
-          variant="ghost"
+          variant={isActive("/feed") ? "default" : "ghost"}
           size="icon"
-          className={isActive("/feed") ? "text-primary" : ""}
+          className={`rounded-xl transition-all ${isActive("/feed") ? "bg-primary text-primary-foreground shadow-md" : "hover:bg-muted"}`}
           onClick={() => navigate("/feed")}
         >
           <Home className="w-6 h-6" />
         </Button>
         <Button
-          variant="ghost"
+          variant={isActive("/explore") ? "default" : "ghost"}
           size="icon"
-          className={isActive("/explore") ? "text-primary" : ""}
+          className={`rounded-xl transition-all ${isActive("/explore") ? "bg-primary text-primary-foreground shadow-md" : "hover:bg-muted"}`}
           onClick={() => navigate("/explore")}
         >
           <Search className="w-6 h-6" />
         </Button>
         <Button
           size="icon"
-          className="gradient-primary text-white rounded-full"
+          className="gradient-primary text-white rounded-full shadow-lg scale-110"
           onClick={() => navigate("/create-post")}
         >
           <Plus className="w-6 h-6" />
         </Button>
         <div className="relative">
           <Button
-            variant="ghost"
+            variant={isActive("/messages") ? "default" : "ghost"}
             size="icon"
-            className={isActive("/messages") ? "text-primary" : ""}
+            className={`rounded-xl transition-all ${isActive("/messages") ? "bg-primary text-primary-foreground shadow-md" : "hover:bg-muted"}`}
             onClick={() => navigate("/messages")}
           >
             <MessageCircle className="w-6 h-6" />
@@ -62,9 +62,9 @@ export const BottomNav = () => {
           )}
         </div>
         <Button
-          variant="ghost"
+          variant={isActive("/profile") ? "default" : "ghost"}
           size="icon"
-          className={isActive("/profile") ? "text-primary" : ""}
+          className={`rounded-xl transition-all ${isActive("/profile") ? "bg-primary text-primary-foreground shadow-md" : "hover:bg-muted"}`}
           onClick={() => navigate("/profile")}
         >
           <UserIcon className="w-6 h-6" />

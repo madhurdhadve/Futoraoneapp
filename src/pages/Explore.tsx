@@ -214,7 +214,7 @@ const Explore = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <Card className="bg-card border-border hover:border-primary transition-all hover:shadow-lg">
+                    <Card className="bg-card border-2 border-black/30 dark:border-border hover:border-primary transition-all hover:shadow-lg">
                       <CardContent className="p-3 sm:p-4">
                         <div className="flex items-start gap-3 mb-3">
                           <div
@@ -288,7 +288,7 @@ const Explore = () => {
                 transition={{ delay: index * 0.1 }}
               >
                 <Card
-                  className="cursor-pointer hover:border-primary transition-all bg-card border-border hover:shadow-lg"
+                  className="cursor-pointer border-2 border-black/30 dark:border-border hover:border-primary transition-all bg-card hover:shadow-lg"
                   onClick={() => handleCategoryClick(category.name)}
                 >
                   <CardContent className="p-3 flex items-center gap-2">
@@ -320,7 +320,7 @@ const Explore = () => {
                 transition={{ delay: index * 0.1 }}
               >
                 <Card
-                  className="cursor-pointer hover:border-primary transition-all bg-card border-border hover:shadow-lg"
+                  className="cursor-pointer border-2 border-black/30 dark:border-border hover:border-primary transition-all bg-card hover:shadow-lg"
                   onClick={() => handleTopicClick(topic.tag)}
                 >
                   <CardContent className="p-4 flex items-center justify-between">
@@ -350,7 +350,7 @@ const Explore = () => {
                 transition={{ delay: index * 0.1 }}
               >
                 <Card
-                  className="cursor-pointer hover:border-primary transition-all bg-card border-border hover:shadow-lg"
+                  className="cursor-pointer border-2 border-black/30 dark:border-border hover:border-primary transition-all bg-card hover:shadow-lg"
                   onClick={() => handleProjectClick(project.title)}
                 >
                   <CardContent className="p-4">
