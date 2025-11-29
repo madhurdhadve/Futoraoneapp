@@ -32,9 +32,6 @@ import CreateStory from "./pages/CreateStory";
 import StoryView from "./pages/StoryView";
 import ProfileViews from "./pages/ProfileViews";
 import AllPeople from "./pages/AllPeople";
-import Highlights from "./pages/Highlights";
-import Collections from "./pages/Collections";
-import Recommendations from "./pages/Recommendations";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -72,9 +69,6 @@ const App = () => {
             <Route path="/create-story" element={<CreateStory />} />
             <Route path="/story/:userId" element={<StoryView />} />
             <Route path="/profile-views" element={<ProfileViews />} />
-            <Route path="/highlights" element={<Highlights />} />
-            <Route path="/collections" element={<Collections />} />
-            <Route path="/recommendations" element={<Recommendations />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

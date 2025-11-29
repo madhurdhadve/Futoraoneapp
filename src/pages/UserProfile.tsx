@@ -16,7 +16,6 @@ import { FollowersModal } from "@/components/FollowersModal";
 import { StartChatButton } from "@/components/StartChatButton";
 import { useTrackProfileView } from "@/hooks/useProfileViews";
 import { OnlineIndicator } from "@/components/OnlineIndicator";
-import { VideoCallButton } from "@/components/VideoCallButton";
 
 interface Profile {
     id: string;
@@ -183,10 +182,6 @@ const UserProfile = () => {
                                         userId={userId!}
                                         currentUserId={currentUser?.id}
                                         onFollowChange={fetchFollowerCounts}
-                                    />
-                                    <VideoCallButton
-                                        userId={userId!}
-                                        currentUserId={currentUser?.id}
                                     />
                                     <StartChatButton
                                         userId={userId!}
