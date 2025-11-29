@@ -120,8 +120,7 @@ const Feed = () => {
           profiles(username, full_name, avatar_url),
           likes(id, user_id),
           comments(id),
-          saves(id, user_id),
-          post_reactions(id, emoji, user_id)
+          saves(id, user_id)
         `)
         .order('created_at', { ascending: false });
 
