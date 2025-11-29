@@ -6,13 +6,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, Settings, Github, Linkedin, Globe, MapPin, Edit, Heart, MessageCircle, Eye } from "lucide-react";
+import { LogOut, Github, Linkedin, Globe, MapPin, Edit, Eye } from "lucide-react";
 import { motion } from "framer-motion";
 import type { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
 import { EditProfileDialog } from "@/components/EditProfileDialog";
 import { BottomNav } from "@/components/BottomNav";
 import { FollowersModal } from "@/components/FollowersModal";
+import { ProfileProjects } from "@/components/ProfileProjects";
+import { ProfilePosts } from "@/components/ProfilePosts";
 
 interface Profile {
   id: string;
@@ -172,20 +174,12 @@ const Profile = () => {
             <CardContent className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <Avatar className="h-24 w-24 border-4 border-background">
-                  <AvatarImage src={profile?.avatar_url} />
+                  <AvatarImage src={profile?.avatar_url} loading="lazy" />
                   <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
                     {profile?.full_name?.[0] || user?.email?.[0]?.toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-foreground"
-                    onClick={() => navigate("/settings")}
-                  >
-                    <Settings className="w-5 h-5" />
-                  </Button>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -317,64 +311,14 @@ const Profile = () => {
                   </CardContent>
                 </Card>
               ) : (
-                projects.map((project, index) => (
-                  <Card key={index} className="bg-card border-border">
-                    <CardContent className="p-4">
-                      <h4 className="font-semibold text-foreground">{project.title}</h4>
-                      <p className="text-sm text-muted-foreground mt-1">{project.description}</p>
-                      <div className="flex items-center justify-between mt-2">
-                        <div className="flex gap-2">
-                          {project.tech_stack?.slice(0, 3).map((tech: string) => (
-                            <Badge key={tech} variant="outline" className="text-xs border-primary text-primary">
-                              {tech}
-                            </Badge>
-                          ))}
-                        </div>
-                        <span className="text-sm text-muted-foreground">{project.project_likes?.length || 0} likes</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
+                <ProfileProjects projects={projects} />
               )}
             </TabsContent>
             <TabsContent value="posts" className="space-y-4 mt-4">
               {posts.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">No posts yet</p>
               ) : (
-                posts.map((post) => (
-                  <Card key={post.id} className="bg-card border-border">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3 mb-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={profile?.avatar_url || undefined} />
-                          <AvatarFallback>{profile?.username?.[0]}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-semibold text-foreground">{profile?.full_name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(post.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      <p className="text-foreground mb-3">{post.content}</p>
-                      {post.image_url && (
-                        <img
-                          src={post.image_url}
-                          alt="Post"
-                          className="w-full rounded-lg object-cover mb-3 max-h-64"
-                        />
-                      )}
-                      <div className="flex items-center gap-4 text-muted-foreground text-sm">
-                        <span className="flex items-center gap-1">
-                          <Heart size={16} /> {post.likes?.length || 0}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <MessageCircle size={16} /> {post.comments?.length || 0}
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
+                <ProfilePosts posts={posts} profile={profile} />
               )}
             </TabsContent>
           </Tabs>

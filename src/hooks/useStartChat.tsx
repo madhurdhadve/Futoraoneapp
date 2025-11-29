@@ -14,26 +14,31 @@ export const useStartChat = () => {
         setLoading(true);
 
         try {
-            // Check if conversation already exists
-            const { data: existingParticipations } = await supabase
+            // Check if conversation already exists using a more efficient query
+            // We want to find a conversation where both users are participants
+            // This is still tricky with Supabase simple queries, but we can optimize.
+
+            // First, get all conversation IDs for the current user
+            const { data: myConversations } = await supabase
                 .from("conversation_participants")
                 .select("conversation_id")
                 .eq("user_id", currentUserId);
 
-            if (existingParticipations) {
-                for (const participation of existingParticipations) {
-                    const { data: otherParticipant } = await supabase
-                        .from("conversation_participants")
-                        .select("user_id")
-                        .eq("conversation_id", participation.conversation_id)
-                        .eq("user_id", userId)
-                        .single();
+            if (myConversations && myConversations.length > 0) {
+                const conversationIds = myConversations.map(c => c.conversation_id);
 
-                    if (otherParticipant) {
-                        navigate(`/messages/${participation.conversation_id}`);
-                        setLoading(false);
-                        return;
-                    }
+                // Then check if the target user is in any of these conversations
+                const { data: existingConversation } = await supabase
+                    .from("conversation_participants")
+                    .select("conversation_id")
+                    .in("conversation_id", conversationIds)
+                    .eq("user_id", userId)
+                    .maybeSingle(); // Use maybeSingle instead of loop
+
+                if (existingConversation) {
+                    navigate(`/chat/${existingConversation.conversation_id}`);
+                    setLoading(false);
+                    return;
                 }
             }
 
@@ -56,7 +61,7 @@ export const useStartChat = () => {
 
             if (participantsError) throw participantsError;
 
-            navigate(`/messages/${newConversationId}`);
+            navigate(`/chat/${newConversationId}`);
         } catch (error) {
             console.error("Error starting chat:", error);
             toast({
