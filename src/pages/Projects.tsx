@@ -63,17 +63,42 @@ const Projects = () => {
 
   const fetchProjects = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch projects with likes
+      const { data: projectsData, error: projectsError } = await supabase
         .from('projects')
         .select(`
           *,
-          profiles!projects_user_id_fkey(username, full_name, avatar_url),
           project_likes(id, user_id)
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setProjects((data as unknown as Project[]) || []);
+      if (projectsError) throw projectsError;
+
+      // Get unique user IDs
+      const userIds = [...new Set(projectsData?.map(p => p.user_id) || [])];
+
+      // Fetch profiles for those users
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, username, full_name, avatar_url')
+        .in('id', userIds);
+
+      if (profilesError) throw profilesError;
+
+      // Create a map of profiles by user ID
+      const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
+
+      // Combine projects with their profiles
+      const projectsWithProfiles = projectsData?.map(project => ({
+        ...project,
+        profiles: profilesMap.get(project.user_id) || {
+          username: 'Unknown',
+          full_name: 'Unknown User',
+          avatar_url: null
+        }
+      })) || [];
+
+      setProjects(projectsWithProfiles as unknown as Project[]);
     } catch (error) {
       toast({
         title: "Error loading projects",
