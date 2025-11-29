@@ -67,7 +67,7 @@ const Projects = () => {
         .from('projects')
         .select(`
           *,
-          profiles(username, full_name, avatar_url),
+          profiles!projects_user_id_fkey(username, full_name, avatar_url),
           project_likes(id, user_id)
         `)
         .order('created_at', { ascending: false });
