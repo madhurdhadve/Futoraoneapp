@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, Settings, Github, Linkedin, Globe, MapPin, Edit, Heart, MessageCircle, Eye } from "lucide-react";
+import { LogOut, Settings, Github, Linkedin, Globe, MapPin, Edit, Heart, MessageCircle, Eye, Bookmark, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import type { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
@@ -193,6 +193,22 @@ const Profile = () => {
                     onClick={() => navigate("/profile-views")}
                   >
                     <Eye className="w-5 h-5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-foreground"
+                    onClick={() => navigate("/collections")}
+                  >
+                    <Bookmark className="w-5 h-5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-foreground"
+                    onClick={() => navigate("/recommendations")}
+                  >
+                    <Users className="w-5 h-5" />
                   </Button>
                   <Button
                     variant="outline"
