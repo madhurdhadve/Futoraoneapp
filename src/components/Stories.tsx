@@ -191,7 +191,7 @@ export const Stories = () => {
             demoStoriesGrouped[story.user_id].push({
                 id: story.id,
                 url: story.media_url,
-                type: story.media_type,
+                type: story.media_type as 'image' | 'video',
                 createdAt: new Date().toISOString(),
                 user: {
                     id: story.user_id,
