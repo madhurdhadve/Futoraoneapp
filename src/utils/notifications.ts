@@ -1,8 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
-// REPLACE WITH YOUR ACTUAL ONESIGNAL REST API KEY
-const ONESIGNAL_REST_API_KEY = "YOUR_ONESIGNAL_REST_API_KEY";
-const ONESIGNAL_APP_ID = "a6328661-2398-4fc6-8a72-10b29809bd5b";
+const ONESIGNAL_REST_API_KEY = import.meta.env.VITE_ONESIGNAL_REST_API_KEY;
+const ONESIGNAL_APP_ID = import.meta.env.VITE_ONESIGNAL_APP_ID;
 
 export const sendPushNotification = async (userId: string, message: string) => {
     try {

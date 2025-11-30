@@ -13,8 +13,10 @@ export const useOneSignal = () => {
             // Wait for OneSignal to be available
             if (window.OneSignal) {
                 try {
-                    // Get the player ID (device ID)
-                    const playerId = await window.OneSignal.getUserId();
+                    // Get the player ID (device ID) using the helper function
+                    // We need to dynamically import the helper to avoid circular dependencies or initialization issues
+                    const { getOneSignalUserId } = await import('@/lib/onesignal');
+                    const playerId = await getOneSignalUserId();
 
                     if (playerId) {
                         console.log('OneSignal Player ID:', playerId);

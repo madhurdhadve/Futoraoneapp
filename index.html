@@ -1,27 +1,41 @@
 <!doctype html>
 <html lang="en" class="dark">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FutoraOne - Tech Community Social Platform</title>
-    <meta name="description" content="Where tech enthusiasts share ideas, projects, and innovations. Join the FutoraOne community today!" />
-    <meta name="author" content="FutoraOne" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <meta property="og:title" content="FutoraOne Tech Community" />
-    <meta property="og:description" content="Where tech enthusiasts share ideas, projects, and innovations" />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FutoraOne - Tech Community Social Platform</title>
+  <meta name="description"
+    content="Where tech enthusiasts share ideas, projects, and innovations. Join the FutoraOne community today!" />
+  <meta name="author" content="FutoraOne" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@FutoraOne" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-  </head>
+  <meta property="og:title" content="FutoraOne Tech Community" />
+  <meta property="og:description" content="Where tech enthusiasts share ideas, projects, and innovations" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@FutoraOne" />
+  <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+
+  <!-- OneSignal SDK -->
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script defer>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function (OneSignal) {
+      await OneSignal.init({
+        appId: "a6328661-2398-4fc6-8a72-10b29809bd5b",
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>
