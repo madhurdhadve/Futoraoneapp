@@ -51,11 +51,19 @@ export const FollowersModal = ({
                 {
                     event: '*',
                     schema: 'public',
-                    table: 'follows',
-                    filter: `following_id=eq.${userId},follower_id=eq.${userId}`
+                    table: 'follows'
                 },
-                () => {
-                    fetchFollowData();
+                (payload) => {
+                    // Only refresh if the change involves the user we're viewing
+                    const isRelevant = 
+                        (payload.new as any)?.following_id === userId ||
+                        (payload.new as any)?.follower_id === userId ||
+                        (payload.old as any)?.following_id === userId ||
+                        (payload.old as any)?.follower_id === userId;
+                    
+                    if (isRelevant) {
+                        fetchFollowData();
+                    }
                 }
             )
             .subscribe();
