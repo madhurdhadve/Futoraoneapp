@@ -243,7 +243,7 @@ Remember: Consistency is key! Code every day! 💪`;
                 </Card>
 
                 {/* Chat History */}
-                <div className="space-y-4 mb-6 pb-96">
+                <div className="space-y-4 mb-6">
                     {chatHistory.map((message, index) => (
                         <Card
                             key={index}
@@ -271,65 +271,82 @@ Remember: Consistency is key! Code every day! 💪`;
                     ))}
                 </div>
 
-                {/* Input Area */}
-                <Card className="p-8 sticky bottom-24 shadow-2xl border-2 border-primary/30 bg-gradient-to-br from-card via-card/95 to-card/80 backdrop-blur-md">
-                    <div className="space-y-4">
-                        <div>
-                            <label className="text-sm font-semibold mb-3 block flex items-center gap-2">
-                                <Sparkles className="w-4 h-4 text-primary" />
-                                What do you want to learn?
-                            </label>
-                            <Textarea
-                                placeholder="e.g., React, Python, Machine Learning, Web Development, Full Stack Development..."
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                                onKeyPress={(e) => e.key === "Enter" && !e.shiftKey && !loading && (e.preventDefault(), generateRoadmap())}
-                                className="text-base min-h-[100px] resize-y border-2 border-primary/40 focus:border-primary/70 bg-background/50 rounded-lg p-4 transition-all"
-                                rows={4}
-                            />
-                            <p className="text-xs text-muted-foreground mt-2">
-                                💡 Tip: Be specific! Try "React with TypeScript" or "Python for Data Science"
-                            </p>
-                        </div>
-                        <Button
-                            onClick={generateRoadmap}
-                            disabled={loading || !query.trim()}
-                            className="w-full gradient-primary text-white shadow-lg hover:shadow-2xl transition-all transform hover:scale-[1.02] active:scale-[0.98]"
-                            size="lg"
-                        >
-                            {loading ? (
-                                <>
-                                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                    Generating Your Roadmap...
-                                </>
-                            ) : (
-                                <>
-                                    <Sparkles className="w-5 h-5 mr-2" />
-                                    Generate Roadmap
-                                </>
-                            )}
-                        </Button>
-                    </div>
-                </Card>
-
-                {/* Quick Suggestions */}
+                {/* Input Area - Only show if no roadmap generated */}
                 {chatHistory.length === 0 && (
-                    <div className="mt-6">
-                        <p className="text-sm text-muted-foreground mb-3">Popular topics:</p>
-                        <div className="flex flex-wrap gap-2">
-                            {["React Development", "Python Backend", "Machine Learning", "DevOps", "Mobile Development"].map((topic) => (
+                    <>
+                        <Card className="p-8 shadow-2xl border-2 border-primary/30 bg-gradient-to-br from-card via-card/95 to-card/80 backdrop-blur-md">
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-sm font-semibold mb-3 block flex items-center gap-2">
+                                        <Sparkles className="w-4 h-4 text-primary" />
+                                        What do you want to learn?
+                                    </label>
+                                    <Textarea
+                                        placeholder="e.g., React, Python, Machine Learning, Web Development, Full Stack Development..."
+                                        value={query}
+                                        onChange={(e) => setQuery(e.target.value)}
+                                        onKeyPress={(e) => e.key === "Enter" && !e.shiftKey && !loading && (e.preventDefault(), generateRoadmap())}
+                                        className="text-base min-h-[100px] resize-y border-2 border-primary/40 focus:border-primary/70 bg-background/50 rounded-lg p-4 transition-all"
+                                        rows={4}
+                                    />
+                                    <p className="text-xs text-muted-foreground mt-2">
+                                        💡 Tip: Be specific! Try "React with TypeScript" or "Python for Data Science"
+                                    </p>
+                                </div>
                                 <Button
-                                    key={topic}
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setQuery(topic)}
-                                    className="text-xs"
+                                    onClick={generateRoadmap}
+                                    disabled={loading || !query.trim()}
+                                    className="w-full gradient-primary text-white shadow-lg hover:shadow-2xl transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+                                    size="lg"
                                 >
-                                    {topic}
+                                    {loading ? (
+                                        <>
+                                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                            Generating Your Roadmap...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Sparkles className="w-5 h-5 mr-2" />
+                                            Generate Roadmap
+                                        </>
+                                    )}
                                 </Button>
-                            ))}
+                            </div>
+                        </Card>
+
+                        {/* Quick Suggestions */}
+                        <div className="mt-6">
+                            <p className="text-sm text-muted-foreground mb-3">Popular topics:</p>
+                            <div className="flex flex-wrap gap-2">
+                                {["React Development", "Python Backend", "Machine Learning", "DevOps", "Mobile Development"].map((topic) => (
+                                    <Button
+                                        key={topic}
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setQuery(topic)}
+                                        className="text-xs"
+                                    >
+                                        {topic}
+                                    </Button>
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    </>
+                )}
+
+                {/* Floating "New Roadmap" Button - Only show after roadmap is generated */}
+                {chatHistory.length > 0 && (
+                    <Button
+                        onClick={() => {
+                            setChatHistory([]);
+                            setRoadmap("");
+                            setQuery("");
+                        }}
+                        className="fixed bottom-28 right-6 rounded-full shadow-2xl gradient-primary text-white w-14 h-14 flex items-center justify-center hover:scale-110 transition-transform z-40"
+                        size="icon"
+                    >
+                        <Sparkles className="w-6 h-6" />
+                    </Button>
                 )}
             </main>
 
