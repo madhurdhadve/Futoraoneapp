@@ -1,49 +1,50 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const useMutualFollowers = (currentUserId: string | undefined, profileUserId: string | undefined) => {
   const [mutualCount, setMutualCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchMutualFollowers = async () => {
-      if (!currentUserId || !profileUserId || currentUserId === profileUserId) {
-        setLoading(false);
-        return;
-      }
+  const fetchMutualFollowers = useCallback(async () => {
+    if (!currentUserId || !profileUserId || currentUserId === profileUserId) {
+      setMutualCount(0);
+      setLoading(false);
+      return;
+    }
 
-      // Find followers who follow both the current user and the profile user
-      const { data, error } = await supabase
+    // Optimize: Fetch both in parallel and filter client-side
+    const [currentUserFollowersResult, profileUserFollowersResult] = await Promise.all([
+      supabase
         .from("follows")
         .select("follower_id")
-        .eq("following_id", currentUserId);
-
-      if (error || !data) {
-        setLoading(false);
-        return;
-      }
-
-      const currentUserFollowerIds = data.map(f => f.follower_id);
-
-      if (currentUserFollowerIds.length === 0) {
-        setMutualCount(0);
-        setLoading(false);
-        return;
-      }
-
-      // Count how many of these followers also follow the profile user
-      const { count } = await supabase
+        .eq("following_id", currentUserId),
+      supabase
         .from("follows")
-        .select("*", { count: "exact", head: true })
+        .select("follower_id")
         .eq("following_id", profileUserId)
-        .in("follower_id", currentUserFollowerIds);
+    ]);
 
-      setMutualCount(count || 0);
+    if (currentUserFollowersResult.error || profileUserFollowersResult.error) {
       setLoading(false);
-    };
+      return;
+    }
 
-    fetchMutualFollowers();
+    const currentUserFollowerIds = new Set(
+      currentUserFollowersResult.data?.map(f => f.follower_id) || []
+    );
+    
+    const profileUserFollowerIds = profileUserFollowersResult.data?.map(f => f.follower_id) || [];
+    
+    // Count mutual followers
+    const mutuals = profileUserFollowerIds.filter(id => currentUserFollowerIds.has(id));
+    
+    setMutualCount(mutuals.length);
+    setLoading(false);
   }, [currentUserId, profileUserId]);
+
+  useEffect(() => {
+    fetchMutualFollowers();
+  }, [fetchMutualFollowers]);
 
   return { mutualCount, loading };
 };

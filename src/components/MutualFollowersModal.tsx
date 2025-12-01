@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,7 +19,7 @@ interface MutualFollowersModalProps {
   profileUserId: string;
 }
 
-export const MutualFollowersModal = ({
+export const MutualFollowersModal = memo(({
   open,
   onOpenChange,
   currentUserId,
@@ -29,13 +29,7 @@ export const MutualFollowersModal = ({
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (open) {
-      fetchMutualFollowers();
-    }
-  }, [open, currentUserId, profileUserId]);
-
-  const fetchMutualFollowers = async () => {
+  const fetchMutualFollowers = useCallback(async () => {
     setLoading(true);
 
     // Get followers of current user
@@ -71,12 +65,18 @@ export const MutualFollowersModal = ({
     }
 
     setLoading(false);
-  };
+  }, [currentUserId, profileUserId]);
 
-  const handleUserClick = (userId: string) => {
+  useEffect(() => {
+    if (open) {
+      fetchMutualFollowers();
+    }
+  }, [open, fetchMutualFollowers]);
+
+  const handleUserClick = useCallback((userId: string) => {
     onOpenChange(false);
     navigate(`/user/${userId}`);
-  };
+  }, [navigate, onOpenChange]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -115,4 +115,4 @@ export const MutualFollowersModal = ({
       </DialogContent>
     </Dialog>
   );
-};
+});

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -68,11 +68,25 @@ const UserProfile = () => {
     useTrackProfileView(userId, currentUser?.id);
     const { mutualCount } = useMutualFollowers(currentUser?.id, userId);
 
-    useEffect(() => {
-        fetchData();
+    const fetchFollowerCounts = useCallback(async () => {
+        if (!userId) return;
+
+        const [followersResult, followingResult] = await Promise.all([
+            supabase
+                .from("follows")
+                .select("*", { count: "exact", head: true })
+                .eq("following_id", userId),
+            supabase
+                .from("follows")
+                .select("*", { count: "exact", head: true })
+                .eq("follower_id", userId)
+        ]);
+
+        setFollowerCount(followersResult.count || 0);
+        setFollowingCount(followingResult.count || 0);
     }, [userId]);
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         const { data: { user } } = await supabase.auth.getUser();
         setCurrentUser(user);
 
@@ -99,49 +113,37 @@ const UserProfile = () => {
 
         setProfile(profileData);
 
-        const { data: projectsData } = await supabase
-            .from("projects")
-            .select(`
-        *,
-        project_likes(id)
-      `)
-            .eq("user_id", userId)
-            .order('created_at', { ascending: false });
+        // Fetch all data in parallel for better performance
+        const [projectsResult, postsResult] = await Promise.all([
+            supabase
+                .from("projects")
+                .select(`
+                    *,
+                    project_likes(id)
+                `)
+                .eq("user_id", userId)
+                .order('created_at', { ascending: false }),
+            supabase
+                .from("posts")
+                .select(`
+                    *,
+                    likes(id),
+                    comments(id)
+                `)
+                .eq("user_id", userId)
+                .order('created_at', { ascending: false })
+        ]);
 
-        setProjects((projectsData as unknown as Project[]) || []);
-
-        const { data: postsData } = await supabase
-            .from("posts")
-            .select(`
-        *,
-        likes(id),
-        comments(id)
-      `)
-            .eq("user_id", userId)
-            .order('created_at', { ascending: false });
-
-        setPosts((postsData as unknown as Post[]) || []);
+        setProjects((projectsResult.data as unknown as Project[]) || []);
+        setPosts((postsResult.data as unknown as Post[]) || []);
 
         await fetchFollowerCounts();
         setLoading(false);
-    };
+    }, [userId, navigate, toast, fetchFollowerCounts]);
 
-    const fetchFollowerCounts = async () => {
-        if (!userId) return;
-
-        const { count: followers } = await supabase
-            .from("follows")
-            .select("*", { count: "exact", head: true })
-            .eq("following_id", userId);
-
-        const { count: following } = await supabase
-            .from("follows")
-            .select("*", { count: "exact", head: true })
-            .eq("follower_id", userId);
-
-        setFollowerCount(followers || 0);
-        setFollowingCount(following || 0);
-    };
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
     if (loading) {
         return (
