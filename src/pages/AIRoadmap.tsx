@@ -243,7 +243,7 @@ Remember: Consistency is key! Code every day! 💪`;
                 </Card>
 
                 {/* Chat History */}
-                <div className="space-y-4 mb-6">
+                <div className="space-y-4 mb-6 pb-96">
                     {chatHistory.map((message, index) => (
                         <Card
                             key={index}
