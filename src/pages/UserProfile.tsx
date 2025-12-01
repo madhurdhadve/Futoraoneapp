@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,9 @@ import { FollowersModal } from "@/components/FollowersModal";
 import { StartChatButton } from "@/components/StartChatButton";
 import { useTrackProfileView } from "@/hooks/useProfileViews";
 import { OnlineIndicator } from "@/components/OnlineIndicator";
+import { useMutualFollowers } from "@/hooks/useMutualFollowers";
+import { MutualFollowersModal } from "@/components/MutualFollowersModal";
+import { Users } from "lucide-react";
 
 interface Profile {
     id: string;
@@ -66,15 +69,32 @@ const UserProfile = () => {
     const [followingCount, setFollowingCount] = useState(0);
     const [followersModalOpen, setFollowersModalOpen] = useState(false);
     const [followersModalTab, setFollowersModalTab] = useState<"followers" | "following">("followers");
+    const [mutualModalOpen, setMutualModalOpen] = useState(false);
 
     const [isBlocked, setIsBlocked] = useState(false);
 
     useTrackProfileView(userId, currentUser?.id);
+    const { mutualCount } = useMutualFollowers(currentUser?.id, userId);
 
-    useEffect(() => {
-        fetchData();
+    const fetchFollowerCounts = useCallback(async () => {
+        if (!userId) return;
+
+        const [followersResult, followingResult] = await Promise.all([
+            supabase
+                .from("follows")
+                .select("*", { count: "exact", head: true })
+                .eq("following_id", userId),
+            supabase
+                .from("follows")
+                .select("*", { count: "exact", head: true })
+                .eq("follower_id", userId)
+        ]);
+
+        setFollowerCount(followersResult.count || 0);
+        setFollowingCount(followingResult.count || 0);
     }, [userId]);
 
+<<<<<<< HEAD
     useEffect(() => {
         if (currentUser && userId) {
             checkBlockStatus();
@@ -144,6 +164,9 @@ const UserProfile = () => {
     };
 
     const fetchData = async () => {
+=======
+    const fetchData = useCallback(async () => {
+>>>>>>> e939c1242966380021d486bc976d63d0bef9edda
         const { data: { user } } = await supabase.auth.getUser();
         setCurrentUser(user);
 
@@ -170,49 +193,37 @@ const UserProfile = () => {
 
         setProfile(profileData);
 
-        const { data: projectsData } = await supabase
-            .from("projects")
-            .select(`
-        *,
-        project_likes(id)
-      `)
-            .eq("user_id", userId)
-            .order('created_at', { ascending: false });
+        // Fetch all data in parallel for better performance
+        const [projectsResult, postsResult] = await Promise.all([
+            supabase
+                .from("projects")
+                .select(`
+                    *,
+                    project_likes(id)
+                `)
+                .eq("user_id", userId)
+                .order('created_at', { ascending: false }),
+            supabase
+                .from("posts")
+                .select(`
+                    *,
+                    likes(id),
+                    comments(id)
+                `)
+                .eq("user_id", userId)
+                .order('created_at', { ascending: false })
+        ]);
 
-        setProjects((projectsData as unknown as Project[]) || []);
-
-        const { data: postsData } = await supabase
-            .from("posts")
-            .select(`
-        *,
-        likes(id),
-        comments(id)
-      `)
-            .eq("user_id", userId)
-            .order('created_at', { ascending: false });
-
-        setPosts((postsData as unknown as Post[]) || []);
+        setProjects((projectsResult.data as unknown as Project[]) || []);
+        setPosts((postsResult.data as unknown as Post[]) || []);
 
         await fetchFollowerCounts();
         setLoading(false);
-    };
+    }, [userId, navigate, toast, fetchFollowerCounts]);
 
-    const fetchFollowerCounts = async () => {
-        if (!userId) return;
-
-        const { count: followers } = await supabase
-            .from("follows")
-            .select("*", { count: "exact", head: true })
-            .eq("following_id", userId);
-
-        const { count: following } = await supabase
-            .from("follows")
-            .select("*", { count: "exact", head: true })
-            .eq("follower_id", userId);
-
-        setFollowerCount(followers || 0);
-        setFollowingCount(following || 0);
-    };
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
     if (loading) {
         return (
@@ -287,7 +298,19 @@ const UserProfile = () => {
                             </div>
 
                             <h1 className="text-2xl font-bold text-foreground">{profile?.full_name}</h1>
-                            <p className="text-muted-foreground">@{profile?.username}</p>
+                            <div className="flex items-center gap-2">
+                                <p className="text-muted-foreground">@{profile?.username}</p>
+                                {mutualCount > 0 && currentUser?.id !== userId && (
+                                    <Badge 
+                                        variant="secondary" 
+                                        className="flex items-center gap-1 bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer transition-colors"
+                                        onClick={() => setMutualModalOpen(true)}
+                                    >
+                                        <Users size={12} />
+                                        {mutualCount} mutual
+                                    </Badge>
+                                )}
+                            </div>
 
                             {profile?.bio && (
                                 <p className="text-foreground mt-3">{profile.bio}</p>
@@ -434,6 +457,15 @@ const UserProfile = () => {
                 currentUserId={currentUser?.id}
                 defaultTab={followersModalTab}
             />
+
+            {currentUser?.id && userId && currentUser.id !== userId && (
+                <MutualFollowersModal
+                    open={mutualModalOpen}
+                    onOpenChange={setMutualModalOpen}
+                    currentUserId={currentUser.id}
+                    profileUserId={userId}
+                />
+            )}
 
             <BottomNav />
         </div >

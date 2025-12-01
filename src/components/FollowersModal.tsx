@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -22,7 +22,7 @@ interface FollowersModalProps {
     defaultTab?: "followers" | "following";
 }
 
-export const FollowersModal = ({
+export const FollowersModal = memo(({
     open,
     onOpenChange,
     userId,
@@ -34,11 +34,51 @@ export const FollowersModal = ({
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
+    const fetchFollowData = useCallback(async () => {
+        setLoading(true);
+
+        // Fetch both followers and following in parallel
+        const [followersResult, followingResult] = await Promise.all([
+            supabase
+                .from("follows")
+                .select(`
+                    follower_id,
+                    profiles!follows_follower_id_fkey(id, username, full_name, avatar_url)
+                `)
+                .eq("following_id", userId),
+            supabase
+                .from("follows")
+                .select(`
+                    following_id,
+                    profiles!follows_following_id_fkey(id, username, full_name, avatar_url)
+                `)
+                .eq("follower_id", userId)
+        ]);
+
+        if (followersResult.data) {
+            setFollowers(
+                followersResult.data
+                    .map((f: any) => f.profiles)
+                    .filter(Boolean)
+            );
+        }
+
+        if (followingResult.data) {
+            setFollowing(
+                followingResult.data
+                    .map((f: any) => f.profiles)
+                    .filter(Boolean)
+            );
+        }
+
+        setLoading(false);
+    }, [userId]);
+
     useEffect(() => {
         if (open) {
             fetchFollowData();
         }
-    }, [open, userId]);
+    }, [open, fetchFollowData]);
 
     useEffect(() => {
         if (!open || !userId) return;
@@ -71,52 +111,12 @@ export const FollowersModal = ({
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [open, userId]);
+    }, [open, userId, fetchFollowData]);
 
-    const fetchFollowData = async () => {
-        setLoading(true);
-
-        // Fetch followers
-        const { data: followersData } = await supabase
-            .from("follows")
-            .select(`
-        follower_id,
-        profiles!follows_follower_id_fkey(id, username, full_name, avatar_url)
-      `)
-            .eq("following_id", userId);
-
-        // Fetch following
-        const { data: followingData } = await supabase
-            .from("follows")
-            .select(`
-        following_id,
-        profiles!follows_following_id_fkey(id, username, full_name, avatar_url)
-      `)
-            .eq("follower_id", userId);
-
-        if (followersData) {
-            setFollowers(
-                followersData
-                    .map((f: any) => f.profiles)
-                    .filter(Boolean)
-            );
-        }
-
-        if (followingData) {
-            setFollowing(
-                followingData
-                    .map((f: any) => f.profiles)
-                    .filter(Boolean)
-            );
-        }
-
-        setLoading(false);
-    };
-
-    const handleUserClick = (userId: string) => {
+    const handleUserClick = useCallback((userId: string) => {
         onOpenChange(false);
         navigate(`/user/${userId}`);
-    };
+    }, [navigate, onOpenChange]);
 
     const renderUserList = (users: FollowUser[]) => {
         if (loading) {
@@ -183,4 +183,4 @@ export const FollowersModal = ({
             </DialogContent>
         </Dialog>
     );
-};
+});
