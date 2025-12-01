@@ -17,6 +17,7 @@ import { StartChatButton } from "@/components/StartChatButton";
 import { useTrackProfileView } from "@/hooks/useProfileViews";
 import { OnlineIndicator } from "@/components/OnlineIndicator";
 import { useMutualFollowers } from "@/hooks/useMutualFollowers";
+import { MutualFollowersModal } from "@/components/MutualFollowersModal";
 import { Users } from "lucide-react";
 
 interface Profile {
@@ -62,6 +63,7 @@ const UserProfile = () => {
     const [followingCount, setFollowingCount] = useState(0);
     const [followersModalOpen, setFollowersModalOpen] = useState(false);
     const [followersModalTab, setFollowersModalTab] = useState<"followers" | "following">("followers");
+    const [mutualModalOpen, setMutualModalOpen] = useState(false);
 
     useTrackProfileView(userId, currentUser?.id);
     const { mutualCount } = useMutualFollowers(currentUser?.id, userId);
@@ -197,7 +199,11 @@ const UserProfile = () => {
                             <div className="flex items-center gap-2">
                                 <p className="text-muted-foreground">@{profile?.username}</p>
                                 {mutualCount > 0 && currentUser?.id !== userId && (
-                                    <Badge variant="secondary" className="flex items-center gap-1 bg-primary/10 text-primary hover:bg-primary/20">
+                                    <Badge 
+                                        variant="secondary" 
+                                        className="flex items-center gap-1 bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer transition-colors"
+                                        onClick={() => setMutualModalOpen(true)}
+                                    >
                                         <Users size={12} />
                                         {mutualCount} mutual
                                     </Badge>
@@ -351,6 +357,15 @@ const UserProfile = () => {
                 currentUserId={currentUser?.id}
                 defaultTab={followersModalTab}
             />
+
+            {currentUser?.id && userId && currentUser.id !== userId && (
+                <MutualFollowersModal
+                    open={mutualModalOpen}
+                    onOpenChange={setMutualModalOpen}
+                    currentUserId={currentUser.id}
+                    profileUserId={userId}
+                />
+            )}
 
             <BottomNav />
         </div >
