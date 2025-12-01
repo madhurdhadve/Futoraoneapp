@@ -16,6 +16,8 @@ import { FollowersModal } from "@/components/FollowersModal";
 import { StartChatButton } from "@/components/StartChatButton";
 import { useTrackProfileView } from "@/hooks/useProfileViews";
 import { OnlineIndicator } from "@/components/OnlineIndicator";
+import { useMutualFollowers } from "@/hooks/useMutualFollowers";
+import { Users } from "lucide-react";
 
 interface Profile {
     id: string;
@@ -62,6 +64,7 @@ const UserProfile = () => {
     const [followersModalTab, setFollowersModalTab] = useState<"followers" | "following">("followers");
 
     useTrackProfileView(userId, currentUser?.id);
+    const { mutualCount } = useMutualFollowers(currentUser?.id, userId);
 
     useEffect(() => {
         fetchData();
@@ -191,7 +194,15 @@ const UserProfile = () => {
                             </div>
 
                             <h1 className="text-2xl font-bold text-foreground">{profile?.full_name}</h1>
-                            <p className="text-muted-foreground">@{profile?.username}</p>
+                            <div className="flex items-center gap-2">
+                                <p className="text-muted-foreground">@{profile?.username}</p>
+                                {mutualCount > 0 && currentUser?.id !== userId && (
+                                    <Badge variant="secondary" className="flex items-center gap-1 bg-primary/10 text-primary hover:bg-primary/20">
+                                        <Users size={12} />
+                                        {mutualCount} mutual
+                                    </Badge>
+                                )}
+                            </div>
 
                             {profile?.bio && (
                                 <p className="text-foreground mt-3">{profile.bio}</p>
