@@ -2,6 +2,7 @@ import { memo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Heart, MessageCircle } from "lucide-react";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 
 interface Post {
     id: string;
@@ -16,6 +17,7 @@ interface Profile {
     username: string;
     full_name: string;
     avatar_url: string | null;
+    is_verified?: boolean | null;
 }
 
 interface ProfilePostsProps {
@@ -35,7 +37,10 @@ export const ProfilePosts = memo(({ posts, profile }: ProfilePostsProps) => {
                                 <AvatarFallback>{profile?.username?.[0]}</AvatarFallback>
                             </Avatar>
                             <div>
-                                <p className="font-semibold text-foreground">{profile?.full_name}</p>
+                                <div className="flex items-center gap-1">
+                                    <p className="font-semibold text-foreground">{profile?.full_name}</p>
+                                    <VerifiedBadge isVerified={profile?.is_verified} size={14} />
+                                </div>
                                 <p className="text-xs text-muted-foreground">
                                     {new Date(post.created_at).toLocaleDateString()}
                                 </p>

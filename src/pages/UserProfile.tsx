@@ -26,6 +26,7 @@ import { useMutualFollowers } from "@/hooks/useMutualFollowers";
 import { MutualFollowersModal } from "@/components/MutualFollowersModal";
 import { Users } from "lucide-react";
 import { BlockUserDialog } from "@/components/BlockUserDialog";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 
 interface Profile {
     id: string;
@@ -38,6 +39,7 @@ interface Profile {
     linkedin_url: string | null;
     portfolio_url: string | null;
     tech_skills: string[] | null;
+    is_verified?: boolean | null;
 }
 
 interface Project {
@@ -74,6 +76,7 @@ const UserProfile = () => {
 
     const [isBlocked, setIsBlocked] = useState(false);
     const [showBlockDialog, setShowBlockDialog] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useTrackProfileView(userId, currentUser?.id);
     const { mutualCount } = useMutualFollowers(currentUser?.id, userId);
@@ -164,9 +167,70 @@ const UserProfile = () => {
         }
     };
 
+    const handleVerify = async () => {
+        if (!currentUser || !userId) return;
+
+        const { error } = await supabase
+            .from('profiles')
+            .update({ is_verified: true })
+            .eq('id', userId);
+
+        if (error) {
+            console.error("Verification error:", error);
+            toast({
+                title: "Error",
+                description: `Failed to verify user: ${error.message}`,
+                variant: "destructive",
+            });
+        } else {
+            setProfile(prev => prev ? { ...prev, is_verified: true } : null);
+            toast({
+                title: "Success",
+                description: "User verified successfully",
+            });
+        }
+    };
+
+    const handleUnverify = async () => {
+        if (!currentUser || !userId) return;
+
+        const { error } = await supabase
+            .from('profiles')
+            .update({ is_verified: false })
+            .eq('id', userId);
+
+        if (error) {
+            console.error("Unverification error:", error);
+            toast({
+                title: "Error",
+                description: `Failed to remove verification: ${error.message}`,
+                variant: "destructive",
+            });
+        } else {
+            setProfile(prev => prev ? { ...prev, is_verified: false } : null);
+            toast({
+                title: "Success",
+                description: "Verification removed successfully",
+            });
+        }
+    };
+
     const fetchData = useCallback(async () => {
         const { data: { user } } = await supabase.auth.getUser();
         setCurrentUser(user);
+
+        if (user) {
+            const { data: currentUserProfile } = await supabase
+                .from("profiles")
+                .select("is_admin")
+                .eq("id", user.id)
+                .single();
+
+            if (currentUserProfile) {
+                // @ts-ignore
+                setIsAdmin(!!currentUserProfile.is_admin);
+            }
+        }
 
         if (!userId) {
             navigate("/feed");
@@ -280,6 +344,17 @@ const UserProfile = () => {
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
+                                                {isAdmin ? (
+                                                    <DropdownMenuItem
+                                                        className="cursor-pointer"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            profile?.is_verified ? handleUnverify() : handleVerify();
+                                                        }}
+                                                    >
+                                                        {profile?.is_verified ? "Remove Verification" : "Verify this User"}
+                                                    </DropdownMenuItem>
+                                                ) : null}
                                                 <DropdownMenuItem
                                                     className="text-destructive focus:text-destructive cursor-pointer"
                                                     onClick={(e) => {
@@ -295,7 +370,10 @@ const UserProfile = () => {
                                 </div>
                             </div>
 
-                            <h1 className="text-2xl font-bold text-foreground">{profile?.full_name}</h1>
+                            <div className="flex items-center gap-2">
+                                <h1 className="text-2xl font-bold text-foreground">{profile?.full_name}</h1>
+                                <VerifiedBadge isVerified={profile?.is_verified} size={20} />
+                            </div>
                             <div className="flex items-center gap-2">
                                 <p className="text-muted-foreground">@{profile?.username}</p>
                                 {mutualCount > 0 && currentUser?.id !== userId && (

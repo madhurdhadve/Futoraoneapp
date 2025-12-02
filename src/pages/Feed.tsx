@@ -87,7 +87,8 @@ const DEMO_POSTS = Array.from({ length: 30 }, (_, i) => ({
   profiles: {
     username: `Testing ${(i % 30) + 1}`,
     full_name: `Testing ${(i % 30) + 1}`,
-    avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=Testing${(i % 30) + 1}`
+    avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=Testing${(i % 30) + 1}`,
+    is_verified: false
   },
   likes: [],
   comments: [],
@@ -105,6 +106,7 @@ interface Post {
     username: string;
     full_name: string;
     avatar_url: string | null;
+    is_verified?: boolean | null;
   };
   likes: { id: string; user_id: string }[];
   comments: { id: string }[];
@@ -197,7 +199,7 @@ const Feed = () => {
         .from('posts')
         .select(`
           *,
-          profiles(username, full_name, avatar_url),
+          profiles(username, full_name, avatar_url, is_verified),
           likes(id, user_id),
           comments(id),
           saves(id, user_id)

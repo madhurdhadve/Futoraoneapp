@@ -17,6 +17,7 @@ interface UserProfile {
     bio: string | null;
     follower_count?: number;
     following_count?: number;
+    is_verified?: boolean | null;
 }
 
 const AllPeople = () => {
@@ -57,7 +58,7 @@ const AllPeople = () => {
 
             const { data, error } = await supabase
                 .from("profiles")
-                .select("id, username, full_name, avatar_url, bio")
+                .select("id, username, full_name, avatar_url, bio, is_verified")
                 .neq("id", user?.id || "")
                 .order("created_at", { ascending: false });
 

@@ -8,6 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { CommentSection } from "@/components/CommentSection";
 import type { User } from "@supabase/supabase-js";
 import { useNavigate } from "react-router-dom";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 
 interface Post {
   id: string;
@@ -20,6 +21,7 @@ interface Post {
     username: string;
     full_name: string;
     avatar_url: string | null;
+    is_verified?: boolean | null;
   };
   likes: { id: string; user_id: string }[];
   comments: { id: string }[];
@@ -57,7 +59,10 @@ export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDe
                 <AvatarFallback>{post.profiles.username[0]}</AvatarFallback>
               </Avatar>
               <div>
-                <h3 className="font-semibold hover:text-primary transition-colors">{post.profiles.full_name}</h3>
+                <div className="flex items-center gap-1">
+                  <h3 className="font-semibold hover:text-primary transition-colors">{post.profiles.full_name}</h3>
+                  <VerifiedBadge isVerified={post.profiles.is_verified} size={14} />
+                </div>
                 <p className="text-sm text-muted-foreground">
                   @{post.profiles.username} · {new Date(post.created_at).toLocaleDateString()}
                 </p>

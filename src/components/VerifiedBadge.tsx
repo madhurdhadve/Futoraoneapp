@@ -20,7 +20,7 @@ export const VerifiedBadge = ({ isVerified, size = 16, className = "" }: Verifie
             <Tooltip>
                 <TooltipTrigger asChild>
                     <BadgeCheck
-                        className={`text-blue-500 fill-blue-500 inline-block ${className}`}
+                        className={`fill-blue-500 text-white inline-block ${className}`}
                         size={size}
                         aria-label="Verified account"
                     />

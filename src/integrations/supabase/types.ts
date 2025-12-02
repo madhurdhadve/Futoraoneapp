@@ -484,6 +484,8 @@ export type Database = {
           tech_skills: string[] | null
           updated_at: string
           username: string
+          is_verified?: boolean | null
+          is_admin?: boolean | null
         }
         Insert: {
           avatar_url?: string | null
@@ -500,6 +502,8 @@ export type Database = {
           tech_skills?: string[] | null
           updated_at?: string
           username: string
+          is_verified?: boolean | null
+          is_admin?: boolean | null
         }
         Update: {
           avatar_url?: string | null
@@ -516,6 +520,8 @@ export type Database = {
           tech_skills?: string[] | null
           updated_at?: string
           username?: string
+          is_verified?: boolean | null
+          is_admin?: boolean | null
         }
         Relationships: []
       }
