@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { FollowButton } from "@/components/FollowButton";
 import { StartChatButton } from "@/components/StartChatButton";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import type { User } from "@supabase/supabase-js";
 
 interface SearchUser {
@@ -17,6 +18,7 @@ interface SearchUser {
     full_name: string;
     avatar_url: string | null;
     bio: string | null;
+    is_verified?: boolean | null;
 }
 
 const SearchResults = () => {
@@ -47,7 +49,7 @@ const SearchResults = () => {
         setLoading(true);
         const { data, error } = await supabase
             .from("profiles")
-            .select("id, username, full_name, avatar_url, bio")
+            .select("id, username, full_name, avatar_url, bio, is_verified")
             .or(`username.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`)
             .limit(20);
 
@@ -122,7 +124,10 @@ const SearchResults = () => {
                                                 </AvatarFallback>
                                             </Avatar>
                                             <div className="min-w-0 flex-1">
-                                                <p className="font-semibold text-foreground truncate">{user.full_name}</p>
+                                                <p className="font-semibold text-foreground truncate flex items-center gap-1">
+                                                    {user.full_name}
+                                                    <VerifiedBadge isVerified={user.is_verified} size={14} />
+                                                </p>
                                                 <p className="text-sm text-muted-foreground truncate">@{user.username}</p>
                                                 {user.bio && (
                                                     <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{user.bio}</p>
