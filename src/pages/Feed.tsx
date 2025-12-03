@@ -123,7 +123,7 @@ const Feed = () => {
   const [user, setUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(0);
+  const pageRef = React.useRef(0);
   const [hasMore, setHasMore] = useState(true);
   const { ref, inView } = useInView();
   const POSTS_PER_PAGE = 10;
@@ -155,7 +155,8 @@ const Feed = () => {
 
   useEffect(() => {
     if (inView && hasMore && !loading) {
-      setPage((prev) => prev + 1);
+      pageRef.current += 1;
+      fetchPosts();
     }
   }, [inView, hasMore, loading]);
 
@@ -189,7 +190,7 @@ const Feed = () => {
           },
           () => {
             // Reset pagination on new post
-            setPage(0);
+            pageRef.current = 0;
             fetchPosts(true);
           }
         )
@@ -226,19 +227,15 @@ const Feed = () => {
     }
   }, [user]);
 
-  useEffect(() => {
-    if (page > 0) {
-      fetchPosts();
-    }
-  }, [page]);
-
   const fetchPosts = useCallback(async (reset = false) => {
     try {
       if (reset) {
         setLoading(true);
+        pageRef.current = 0;
       }
 
-      const from = (reset ? 0 : page) * POSTS_PER_PAGE;
+      const currentPage = pageRef.current;
+      const from = currentPage * POSTS_PER_PAGE;
       const to = from + POSTS_PER_PAGE - 1;
 
       const { data, error } = await supabase
@@ -257,7 +254,7 @@ const Feed = () => {
 
       const newPosts = data || [];
 
-      if (reset || page === 0) {
+      if (reset || currentPage === 0) {
         const combinedPosts = [...newPosts, ...DEMO_POSTS];
         combinedPosts.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         setPosts(combinedPosts);
@@ -268,7 +265,7 @@ const Feed = () => {
           setHasMore(true);
         }
 
-        if (page === 0) {
+        if (currentPage === 0) {
           savePostsToCache(combinedPosts);
         }
       } else {
@@ -287,7 +284,7 @@ const Feed = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast, page]);
+  }, [toast]);
 
   const fetchUnreadCount = async () => {
     if (!user) return;

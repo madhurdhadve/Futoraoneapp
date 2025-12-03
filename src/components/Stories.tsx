@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Plus } from "lucide-react";
 import { StoryViewer, Story } from "./StoryViewer";
@@ -175,7 +175,7 @@ export const Stories = () => {
     };
 
     // Get demo stories formatted as Story objects
-    const getDemoStories = () => {
+    const { demoStoriesGrouped, demoUsers } = useMemo(() => {
         const demoStoriesGrouped: Record<string, Story[]> = {};
         const demoUsers: any[] = [];
 
@@ -203,20 +203,19 @@ export const Stories = () => {
         });
 
         return { demoStoriesGrouped, demoUsers };
-    };
+    }, []);
 
     // Merge real and demo stories
-    const { demoStoriesGrouped, demoUsers } = getDemoStories();
-    const allStories = { ...demoStoriesGrouped, ...storiesByUser };
-    const allUsers = [...demoUsers, ...usersWithStories];
+    const allStories = useMemo(() => ({ ...demoStoriesGrouped, ...storiesByUser }), [demoStoriesGrouped, storiesByUser]);
+    const allUsers = useMemo(() => [...demoUsers, ...usersWithStories], [demoUsers, usersWithStories]);
 
-    const handleUserClick = (userId: string) => {
+    const handleUserClick = useCallback((userId: string) => {
         if (allStories[userId]) {
             setSelectedUser(userId);
         }
-    };
+    }, [allStories]);
 
-    const handleNextUser = () => {
+    const handleNextUser = useCallback(() => {
         const userIds = Object.keys(allStories);
         const currentIndex = userIds.indexOf(selectedUser!);
         if (currentIndex < userIds.length - 1) {
@@ -224,9 +223,9 @@ export const Stories = () => {
         } else {
             setSelectedUser(null);
         }
-    };
+    }, [allStories, selectedUser]);
 
-    const handlePrevUser = () => {
+    const handlePrevUser = useCallback(() => {
         const userIds = Object.keys(allStories);
         const currentIndex = userIds.indexOf(selectedUser!);
         if (currentIndex > 0) {
@@ -234,7 +233,7 @@ export const Stories = () => {
         } else {
             setSelectedUser(null);
         }
-    };
+    }, [allStories, selectedUser]);
 
     // Function to handle file upload for new story
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
