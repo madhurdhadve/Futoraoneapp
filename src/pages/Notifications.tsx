@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
 import { formatDistanceToNow } from "date-fns";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 
 interface Notification {
   id: string;
@@ -20,6 +21,7 @@ interface Notification {
     username: string;
     full_name: string;
     avatar_url: string | null;
+    is_verified?: boolean | null;
   } | null;
   post?: {
     content: string;
@@ -49,7 +51,7 @@ const Notifications = () => {
       .from("notifications")
       .select(`
         *,
-        actor:profiles!notifications_actor_id_fkey(id, username, full_name, avatar_url),
+        actor:profiles!notifications_actor_id_fkey(id, username, full_name, avatar_url, is_verified),
         post:posts(content)
       `)
       .eq("user_id", userId)
@@ -172,7 +174,10 @@ const Notifications = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm sm:text-base text-foreground">
-                          <span className="font-semibold">{notification.actor?.full_name || "Someone"}</span>{" "}
+                          <span className="font-semibold inline-flex items-center gap-1">
+                            {notification.actor?.full_name || "Someone"}
+                            <VerifiedBadge isVerified={notification.actor?.is_verified} size={14} />
+                          </span>{" "}
                           <span className="text-muted-foreground">{getNotificationText(notification)}</span>
                         </p>
                         {notification.post?.content && (

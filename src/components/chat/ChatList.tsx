@@ -6,12 +6,14 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { UserSearchDialog } from "./UserSearchDialog";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 
 interface Profile {
     id: string;
     username: string;
     full_name: string;
     avatar_url: string | null;
+    is_verified?: boolean | null;
 }
 
 interface Conversation {
@@ -77,7 +79,8 @@ export function ChatList({ currentUserId }: { currentUserId: string }) {
             id,
             username,
             full_name,
-            avatar_url
+            avatar_url,
+            is_verified
           )
         )
       `)
@@ -147,7 +150,10 @@ export function ChatList({ currentUserId }: { currentUserId: string }) {
                         </Avatar>
                         <div className="flex-1 min-w-0">
                             <div className="flex justify-between items-baseline">
-                                <h3 className="font-semibold truncate">{conv.participants[0]?.full_name || conv.participants[0]?.username}</h3>
+                                <h3 className="font-semibold truncate flex items-center gap-1">
+                                    {conv.participants[0]?.full_name || conv.participants[0]?.username}
+                                    <VerifiedBadge isVerified={conv.participants[0]?.is_verified} size={14} />
+                                </h3>
                                 {conv.last_message && (
                                     <span className="text-xs text-muted-foreground">
                                         {formatDistanceToNow(new Date(conv.last_message.created_at), { addSuffix: true })}
