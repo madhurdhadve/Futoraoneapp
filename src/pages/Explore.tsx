@@ -14,6 +14,7 @@ import { StartChatButton } from "@/components/StartChatButton";
 import { OnlineIndicator } from "@/components/OnlineIndicator";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/mode-toggle";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import type { User } from "@supabase/supabase-js";
 
 interface UserProfile {
@@ -21,6 +22,7 @@ interface UserProfile {
   username: string;
   full_name: string;
   avatar_url: string | null;
+  is_verified?: boolean | null;
   follower_count?: number;
 }
 
@@ -49,7 +51,7 @@ const Explore = () => {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, username, full_name, avatar_url")
+        .select("id, username, full_name, avatar_url, is_verified")
         .neq("id", user?.id || "")
         .order("created_at", { ascending: false })
         .limit(4);
@@ -65,6 +67,7 @@ const Explore = () => {
 
           return {
             ...profile,
+            is_verified: profile.is_verified,
             follower_count: count || 0,
           };
         })
@@ -233,8 +236,9 @@ const Explore = () => {
                             className="flex-1 min-w-0 cursor-pointer"
                             onClick={() => navigate(`/user/${user.id}`)}
                           >
-                            <p className="font-semibold text-foreground truncate">
+                            <p className="font-semibold text-foreground truncate flex items-center gap-1">
                               {user.full_name}
+                              <VerifiedBadge isVerified={user.is_verified} size={14} />
                             </p>
                             <p className="text-sm text-muted-foreground truncate">
                               @{user.username}
