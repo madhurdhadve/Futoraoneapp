@@ -105,6 +105,9 @@ interface Post {
   video_url: string | null;
   user_id: string;
   created_at: string;
+  updated_at?: string;
+  is_project_update?: boolean;
+  project_id?: string | null;
   profiles: {
     username: string;
     full_name: string;
@@ -252,32 +255,26 @@ const Feed = () => {
 
       if (error) throw error;
 
-      // Real posts first, then demo posts (only append demo posts if we run out of real posts, or just mix them in initially? 
-      // For infinite scroll, let's stick to real posts for now, or handle demo posts separately.
-      // The original code mixed them. Let's keep it simple: if no real posts, show demo posts.
-
       const newPosts = data || [];
 
-      if (newPosts.length < POSTS_PER_PAGE) {
-        setHasMore(false);
-      } else {
-        setHasMore(true);
-      }
-
       if (reset || page === 0) {
-        // If it's the first page and we have very few posts, maybe append demo posts?
-        // For now, let's just set posts.
-        if (newPosts.length === 0 && page === 0) {
-          setPosts(DEMO_POSTS);
-          setHasMore(false); // Demo posts are static
+        const combinedPosts = [...newPosts, ...DEMO_POSTS];
+        combinedPosts.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        setPosts(combinedPosts);
+
+        if (newPosts.length < POSTS_PER_PAGE) {
+          setHasMore(false);
         } else {
-          setPosts(newPosts);
-          // Cache the first page of fresh posts
-          if (page === 0) {
-            savePostsToCache(newPosts);
-          }
+          setHasMore(true);
+        }
+
+        if (page === 0) {
+          savePostsToCache(combinedPosts);
         }
       } else {
+        if (newPosts.length < POSTS_PER_PAGE) {
+          setHasMore(false);
+        }
         setPosts(prev => [...prev, ...newPosts]);
       }
 
