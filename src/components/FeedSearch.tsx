@@ -3,26 +3,17 @@ import { Input } from '@/components/ui/input';
 import { Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-interface Post {
-    id: string;
-    content: string;
-    profiles: {
-        username: string;
-        full_name: string;
-    };
+interface FeedSearchProps<T extends { id: string; content: string; profiles: { username: string; full_name: string } }> {
+    posts: T[];
+    onFilteredPostsChange: (filteredPosts: T[] | null) => void;
 }
 
-interface FeedSearchProps {
-    posts: Post[];
-    onFilteredPostsChange: (filteredPosts: Post[]) => void;
-}
-
-export const FeedSearch = ({ posts, onFilteredPostsChange }: FeedSearchProps) => {
+export function FeedSearch<T extends { id: string; content: string; profiles: { username: string; full_name: string } }>({ posts, onFilteredPostsChange }: FeedSearchProps<T>) {
     const [searchQuery, setSearchQuery] = useState('');
 
     const filteredPosts = useMemo(() => {
         if (!searchQuery.trim()) {
-            return posts;
+            return null;
         }
 
         const query = searchQuery.toLowerCase();
@@ -34,7 +25,6 @@ export const FeedSearch = ({ posts, onFilteredPostsChange }: FeedSearchProps) =>
         });
     }, [posts, searchQuery]);
 
-    // Update parent component whenever filtered posts change
     useEffect(() => {
         onFilteredPostsChange(filteredPosts);
     }, [filteredPosts, onFilteredPostsChange]);
@@ -63,11 +53,11 @@ export const FeedSearch = ({ posts, onFilteredPostsChange }: FeedSearchProps) =>
                     <X className="w-4 h-4" />
                 </Button>
             )}
-            {searchQuery && (
+            {searchQuery && filteredPosts && (
                 <p className="text-xs text-muted-foreground mt-2">
                     Found {filteredPosts.length} {filteredPosts.length === 1 ? 'post' : 'posts'}
                 </p>
             )}
         </div>
     );
-};
+}
