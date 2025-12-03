@@ -27,10 +27,8 @@ export const savePostsToCache = async (posts: any[]) => {
 
     // We can choose to clear old cache or just upsert.
     // For a feed, clearing and rewriting the top posts is often safer to avoid stale deletions.
-    // But for now, let's just put all new posts in.
-    for (const post of posts) {
-        await store.put(post);
-    }
+    // Optimized: Use Promise.all for parallel batch operations
+    await Promise.all(posts.map(post => store.put(post)));
     await tx.done;
 };
 

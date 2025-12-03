@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -126,7 +126,7 @@ const Profile = () => {
     fetchUserData();
   }, [navigate]);
 
-  const fetchFollowerCounts = async (userId: string) => {
+  const fetchFollowerCounts = useCallback(async (userId: string) => {
     const { count: followers } = await supabase
       .from("follows")
       .select("*", { count: "exact", head: true })
@@ -139,9 +139,9 @@ const Profile = () => {
 
     setFollowerCount(followers || 0);
     setFollowingCount(following || 0);
-  };
+  }, []);
 
-  const refreshProfile = async () => {
+  const refreshProfile = useCallback(async () => {
     if (!user) return;
     const { data: profileData } = await supabase
       .from("profiles")
@@ -149,17 +149,17 @@ const Profile = () => {
       .eq("id", user.id)
       .single();
     setProfile(profileData as unknown as Profile);
-  };
+  }, [user]);
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     setLogoutDialogOpen(true);
-  };
+  }, []);
 
-  const confirmLogout = async () => {
+  const confirmLogout = useCallback(async () => {
     await supabase.auth.signOut();
     toast({ title: "Logged out successfully", description: "See you next time! 👋" });
     navigate("/");
-  };
+  }, [toast, navigate]);
 
   if (loading) {
     return (
@@ -412,4 +412,4 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+export default React.memo(Profile);

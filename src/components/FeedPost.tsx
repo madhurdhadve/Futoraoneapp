@@ -1,4 +1,4 @@
-import { memo, useState } from "react";
+import { memo, useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -45,16 +45,30 @@ interface FeedPostProps {
 export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDelete, index }: FeedPostProps) => {
   const navigate = useNavigate();
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const isLiked = post.likes.some(like => like.user_id === currentUser?.id);
-  const isSaved = post.saves?.some(save => save.user_id === currentUser?.id);
-  const isOwner = post.user_id === currentUser?.id;
 
-  const handleLikeClick = () => {
+  // Memoize computed values to prevent recalculation on every render
+  const isLiked = useMemo(
+    () => post.likes.some(like => like.user_id === currentUser?.id),
+    [post.likes, currentUser?.id]
+  );
+
+  const isSaved = useMemo(
+    () => post.saves?.some(save => save.user_id === currentUser?.id),
+    [post.saves, currentUser?.id]
+  );
+
+  const isOwner = useMemo(
+    () => post.user_id === currentUser?.id,
+    [post.user_id, currentUser?.id]
+  );
+
+  // Memoize event handler to prevent recreation
+  const handleLikeClick = useCallback(() => {
     if (!isLiked) {
       triggerHeartConfetti();
     }
     onLike(post.id, isLiked);
-  };
+  }, [isLiked, onLike, post.id]);
 
   return (
     <motion.div

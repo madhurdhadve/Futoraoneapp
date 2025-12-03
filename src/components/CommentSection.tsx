@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -60,7 +60,7 @@ export const CommentSection = ({ postId, postAuthorId, currentUser }: CommentSec
 
     const [isFetching, setIsFetching] = useState(true);
 
-    const fetchComments = async () => {
+    const fetchComments = useCallback(async () => {
         setIsFetching(true);
         const { data, error } = await supabase
             .from("comments")
@@ -75,10 +75,10 @@ export const CommentSection = ({ postId, postAuthorId, currentUser }: CommentSec
             setComments(data as unknown as Comment[]);
         }
         setIsFetching(false);
-    };
+    }, [postId]);
 
 
-    const handleSubmitComment = async (e: React.FormEvent) => {
+    const handleSubmitComment = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
         if (!currentUser || !newComment.trim()) return;
 
@@ -125,9 +125,9 @@ export const CommentSection = ({ postId, postAuthorId, currentUser }: CommentSec
         } finally {
             setLoading(false);
         }
-    };
+    }, [currentUser, newComment, postId, fetchComments, toast]);
 
-    const handleDeleteComment = async (commentId: string) => {
+    const handleDeleteComment = useCallback(async (commentId: string) => {
         try {
             const { error } = await supabase.from("comments").delete().eq("id", commentId);
 
@@ -144,7 +144,7 @@ export const CommentSection = ({ postId, postAuthorId, currentUser }: CommentSec
                 variant: "destructive",
             });
         }
-    };
+    }, [toast]);
 
     return (
         <div className="space-y-4">
@@ -214,3 +214,5 @@ export const CommentSection = ({ postId, postAuthorId, currentUser }: CommentSec
         </div>
     );
 };
+
+export default React.memo(CommentSection);
