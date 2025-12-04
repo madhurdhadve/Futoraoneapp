@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,6 +25,45 @@ interface UserProfile {
   is_verified?: boolean | null;
   follower_count?: number;
 }
+
+// Static data moved outside component to prevent recreation on every render
+const CATEGORIES = [
+  { name: "AI & ML", icon: Brain, color: "bg-blue-500" },
+  { name: "Web Dev", icon: Code, color: "bg-green-500" },
+  { name: "Cybersecurity", icon: Shield, color: "bg-red-500" },
+  { name: "Cloud", icon: Cloud, color: "bg-purple-500" },
+  { name: "Robotics", icon: Cpu, color: "bg-yellow-500" },
+  { name: "Blockchain", icon: Blocks, color: "bg-orange-500" },
+];
+
+const TRENDING_TOPICS = [
+  { tag: "ChatGPT-5", posts: "2.4K" },
+  { tag: "ReactJS", posts: "1.8K" },
+  { tag: "Python", posts: "3.2K" },
+  { tag: "DevOps", posts: "1.5K" },
+  { tag: "MachineLearning", posts: "2.9K" },
+];
+
+const TRENDING_PROJECTS = [
+  {
+    title: "AI Image Generator",
+    author: "Sarah Chen",
+    likes: 342,
+    tech: ["Python", "TensorFlow", "React"],
+  },
+  {
+    title: "Blockchain Voting System",
+    author: "Mike Johnson",
+    likes: 289,
+    tech: ["Solidity", "Web3", "Node.js"],
+  },
+  {
+    title: "Real-time Chat App",
+    author: "Emma Davis",
+    likes: 456,
+    tech: ["WebSocket", "React", "Express"],
+  },
+];
 
 const Explore = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -81,69 +120,35 @@ const Explore = () => {
     }
   };
 
-  const categories = [
-    { name: "AI & ML", icon: Brain, color: "bg-blue-500" },
-    { name: "Web Dev", icon: Code, color: "bg-green-500" },
-    { name: "Cybersecurity", icon: Shield, color: "bg-red-500" },
-    { name: "Cloud", icon: Cloud, color: "bg-purple-500" },
-    { name: "Robotics", icon: Cpu, color: "bg-yellow-500" },
-    { name: "Blockchain", icon: Blocks, color: "bg-orange-500" },
-  ];
+  const handleCategoryClick = useCallback((categoryName: string) => {
 
-  const trendingTopics = [
-    { tag: "ChatGPT-5", posts: "2.4K" },
-    { tag: "ReactJS", posts: "1.8K" },
-    { tag: "Python", posts: "3.2K" },
-    { tag: "DevOps", posts: "1.5K" },
-    { tag: "MachineLearning", posts: "2.9K" },
-  ];
-
-  const trendingProjects = [
-    {
-      title: "AI Image Generator",
-      author: "Sarah Chen",
-      likes: 342,
-      tech: ["Python", "TensorFlow", "React"],
-    },
-    {
-      title: "Blockchain Voting System",
-      author: "Mike Johnson",
-      likes: 289,
-      tech: ["Solidity", "Web3", "Node.js"],
-    },
-    {
-      title: "Real-time Chat App",
-      author: "Emma Davis",
-      likes: 456,
-      tech: ["WebSocket", "React", "Express"],
-    },
-  ];
-
-  const handleCategoryClick = (categoryName: string) => {
     toast({
       title: `Exploring ${categoryName}`,
       description: `Showing posts and projects related to ${categoryName}`,
     });
     navigate(`/category/${encodeURIComponent(categoryName)}`);
-  };
+  }, [navigate, toast]);
 
-  const handleTopicClick = (tag: string) => {
+  const handleTopicClick = useCallback((tag: string) => {
+
     toast({
       title: `#${tag}`,
       description: `Viewing all posts with #${tag}`,
     });
     navigate(`/topic/${encodeURIComponent(tag)}`);
-  };
+  }, [navigate, toast]);
 
-  const handleProjectClick = (projectTitle: string) => {
+  const handleProjectClick = useCallback((projectTitle: string) => {
+
     toast({
       title: projectTitle,
       description: "Opening project details...",
     });
     navigate(`/project/${encodeURIComponent(projectTitle)}`);
-  };
+  }, [navigate, toast]);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = useCallback((e: React.FormEvent) => {
+
     e.preventDefault();
     if (searchQuery.trim()) {
       toast({
@@ -152,7 +157,7 @@ const Explore = () => {
       });
       navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
     }
-  };
+  }, [searchQuery, navigate, toast]);
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -284,7 +289,8 @@ const Explore = () => {
         <section>
           <h2 className="text-xl font-bold text-foreground mb-4">Tech Categories</h2>
           <div className="grid grid-cols-2 gap-3">
-            {categories.map((category, index) => (
+            {CATEGORIES.map((category, index) => (
+
               <motion.div
                 key={category.name}
                 initial={{ opacity: 0, y: 20 }}
@@ -316,7 +322,7 @@ const Explore = () => {
             <h2 className="text-xl font-bold text-foreground">Trending Topics</h2>
           </div>
           <div className="space-y-3">
-            {trendingTopics.map((topic, index) => (
+            {TRENDING_TOPICS.map((topic, index) => (
               <motion.div
                 key={topic.tag}
                 initial={{ opacity: 0, x: -20 }}
@@ -346,7 +352,7 @@ const Explore = () => {
         <section>
           <h2 className="text-xl font-bold text-foreground mb-4">Top Projects</h2>
           <div className="space-y-3">
-            {trendingProjects.map((project, index) => (
+            {TRENDING_PROJECTS.map((project, index) => (
               <motion.div
                 key={project.title}
                 initial={{ opacity: 0, y: 20 }}
@@ -382,4 +388,4 @@ const Explore = () => {
   );
 };
 
-export default Explore;
+export default React.memo(Explore);

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ import { Users } from "lucide-react";
 import { BlockUserDialog } from "@/components/BlockUserDialog";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { CartoonLoader } from "@/components/CartoonLoader";
 
 interface Profile {
     id: string;
@@ -42,6 +43,7 @@ interface Profile {
     tech_skills: string[] | null;
     is_verified?: boolean | null;
     verification_category?: string | null;
+    theme_color?: string | null;
 }
 
 interface Project {
@@ -272,6 +274,11 @@ const UserProfile = () => {
             return;
         }
 
+        if (profileData.username?.toLowerCase() === 'sanu') {
+            profileData.verification_category = 'creator';
+            profileData.theme_color = '#FFE6EA'; // Light pink
+            profileData.is_verified = true;
+        }
         setProfile(profileData);
 
         // Fetch all data in parallel for better performance
@@ -307,20 +314,23 @@ const UserProfile = () => {
     }, [fetchData]);
 
     if (loading) {
-        return (
-            <div className="min-h-screen bg-background flex items-center justify-center pb-20">
-                <p className="text-muted-foreground">Loading profile...</p>
-            </div>
-        );
+        return <CartoonLoader />;
     }
 
     return (
-        <div className="min-h-screen bg-background pb-24">
-            <div className="relative h-32 gradient-primary">
+        <div
+            className="min-h-screen pb-24 transition-colors duration-300"
+            style={{
+                backgroundColor: profile?.theme_color || 'hsl(var(--background))'
+            }}
+        >
+            <div className="relative h-32 w-full">
+                {!profile?.theme_color && <div className="absolute inset-0 gradient-primary" />}
+                {profile?.theme_color && <div className="absolute inset-0 bg-black/5" />}
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="absolute top-4 left-4 text-white hover:bg-white/20"
+                    className="absolute top-4 left-4 text-foreground hover:bg-black/10"
                     onClick={() => navigate(-1)}
                 >
                     <ArrowLeft className="w-6 h-6" />
@@ -333,17 +343,23 @@ const UserProfile = () => {
                     animate={{ opacity: 1, y: 0 }}
                     className="space-y-4"
                 >
-                    <Card className="bg-card border-border">
+                    <Card className="bg-card/80 backdrop-blur-sm border-border">
                         <CardContent className="p-6">
                             <div className="flex items-start justify-between mb-4">
                                 <div className="relative">
-                                    <Avatar className="h-24 w-24 border-4 border-background">
-                                        <AvatarImage src={profile?.avatar_url || undefined} />
-                                        <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
-                                            {profile?.full_name?.[0] || profile?.username?.[0]?.toUpperCase()}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <OnlineIndicator userId={userId!} className="w-5 h-5" />
+                                    <div className={`rounded-full ${profile?.verification_category === 'creator'
+                                        ? "p-[3px] bg-gradient-to-tr from-[#FFD700] via-[#FDB931] to-[#C0B283] shadow-[0_0_15px_rgba(255,215,0,0.5)]"
+                                        : ""
+                                        }`}>
+                                        <Avatar className={`h-24 w-24 border-4 ${profile?.verification_category === 'creator' ? "border-white" : "border-background"
+                                            }`}>
+                                            <AvatarImage src={profile?.avatar_url || undefined} loading="lazy" />
+                                            <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
+                                                {profile?.full_name?.[0] || currentUser?.email?.[0]?.toUpperCase()}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                    </div>
+                                    <OnlineIndicator userId={userId!} className="w-5 h-5 absolute bottom-0 right-0 border-4 border-background rounded-full" />
                                 </div>
                                 <div className="flex flex-wrap gap-2 justify-end">
                                     <FollowButton
@@ -429,7 +445,7 @@ const UserProfile = () => {
                             <div className="flex items-center gap-2 mt-3 text-muted-foreground text-sm">
                                 <>
                                     <MapPin size={16} />
-                                    <span>{profile.location || "Pune"}</span>
+                                    <span>{profile?.location || "Pune"}</span>
                                 </>
                             </div>
 
@@ -487,7 +503,7 @@ const UserProfile = () => {
                     </Card>
 
                     {profile?.tech_skills && profile.tech_skills.length > 0 && (
-                        <Card className="bg-card border-border">
+                        <Card className="bg-card/80 backdrop-blur-sm border-border">
                             <CardContent className="p-4">
                                 <h3 className="font-semibold text-foreground mb-3">Tech Skills</h3>
                                 <div className="flex flex-wrap gap-2">
@@ -502,7 +518,7 @@ const UserProfile = () => {
                     )}
 
                     <Tabs defaultValue="projects" className="w-full">
-                        <TabsList className="grid w-full grid-cols-2 bg-muted">
+                        <TabsList className="grid w-full grid-cols-2 bg-muted/80 backdrop-blur-sm">
                             <TabsTrigger value="projects" className="data-[state=active]:bg-background">
                                 Projects
                             </TabsTrigger>
@@ -512,14 +528,14 @@ const UserProfile = () => {
                         </TabsList>
                         <TabsContent value="projects" className="space-y-3 mt-4">
                             {projects.length === 0 ? (
-                                <Card className="bg-card border-border">
+                                <Card className="bg-card/80 backdrop-blur-sm border-border">
                                     <CardContent className="p-8 text-center">
                                         <p className="text-muted-foreground">No projects yet</p>
                                     </CardContent>
                                 </Card>
                             ) : (
                                 projects.map((project, index) => (
-                                    <Card key={index} className="bg-card border-border">
+                                    <Card key={index} className="bg-card/80 backdrop-blur-sm border-border">
                                         <CardContent className="p-4">
                                             <h4 className="font-semibold text-foreground">{project.title}</h4>
                                             <p className="text-sm text-muted-foreground mt-1">{project.description}</p>
@@ -543,7 +559,7 @@ const UserProfile = () => {
                                 <p className="text-center text-muted-foreground py-8">No posts yet</p>
                             ) : (
                                 posts.map((post) => (
-                                    <Card key={post.id} className="bg-card border-border">
+                                    <Card key={post.id} className="bg-card/80 backdrop-blur-sm border-border">
                                         <CardContent className="p-4">
                                             <div className="flex items-center gap-3 mb-3">
                                                 <Avatar className="h-10 w-10">
@@ -588,8 +604,8 @@ const UserProfile = () => {
             />
 
             <BottomNav />
-        </div >
+        </div>
     );
 };
 
-export default UserProfile;
+export default React.memo(UserProfile);

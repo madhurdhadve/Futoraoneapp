@@ -1,3 +1,4 @@
+import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Heart, MessageCircle, UserPlus, Eye } from "lucide-react";
@@ -9,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
 import { formatDistanceToNow } from "date-fns";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { CartoonLoader } from "@/components/CartoonLoader";
 
 interface Notification {
   id: string;
@@ -134,9 +136,7 @@ const Notifications = () => {
 
       <div className="p-3 sm:p-4 space-y-3">
         {loading ? (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">Loading notifications...</p>
-          </div>
+          <CartoonLoader />
         ) : notifications.length === 0 ? (
           <Card className="bg-card border-border">
             <CardContent className="p-8 text-center">
@@ -154,9 +154,8 @@ const Notifications = () => {
                 transition={{ delay: index * 0.05 }}
               >
                 <Card
-                  className={`cursor-pointer hover:border-primary transition-all bg-card border-border ${
-                    !notification.is_read ? "bg-primary/5" : ""
-                  }`}
+                  className={`cursor-pointer hover:border-primary transition-all bg-card border-border ${!notification.is_read ? "bg-primary/5" : ""
+                    }`}
                   onClick={() => handleNotificationClick(notification)}
                 >
                   <CardContent className="p-3 sm:p-4">
@@ -203,4 +202,4 @@ const Notifications = () => {
   );
 };
 
-export default Notifications;
+export default React.memo(Notifications);

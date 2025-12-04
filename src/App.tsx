@@ -8,6 +8,7 @@ import { useOneSignal } from "@/hooks/useOneSignal";
 import { useCurrentUserPresence } from "@/hooks/useUserPresence";
 import { ThemeProvider } from "@/components/theme-provider";
 import ScrollToTop from "@/components/ScrollToTop";
+import { CartoonLoader } from "@/components/CartoonLoader";
 
 // Lazy load all page components for code splitting
 const Index = lazy(() => import("./pages/Index"));
@@ -42,16 +43,6 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 
 const queryClient = new QueryClient();
 
-// Loading fallback component
-const LoadingFallback = () => (
-  <div className="min-h-screen bg-background flex items-center justify-center">
-    <div className="text-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-      <p className="text-muted-foreground">Loading...</p>
-    </div>
-  </div>
-);
-
 const App = () => {
   useOneSignal(); // Initialize OneSignal integration
   useCurrentUserPresence(); // Track user online status
@@ -64,7 +55,7 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <ScrollToTop />
-            <Suspense fallback={<LoadingFallback />}>
+            <Suspense fallback={<CartoonLoader />}>
               <Routes>
                 <Route path="/" element={<Welcome />} />
                 <Route path="/auth" element={<Auth />} />

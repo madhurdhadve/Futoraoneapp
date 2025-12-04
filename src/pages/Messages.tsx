@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { formatDistanceToNow } from "date-fns";
 import type { User } from "@supabase/supabase-js";
 import { Badge } from "@/components/ui/badge";
+import { CartoonLoader } from "@/components/CartoonLoader";
 
 interface ConversationWithDetails {
   id: string;
@@ -180,9 +181,7 @@ const Messages = () => {
 
       <div className="p-3 sm:p-4">
         {loading ? (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">Loading conversations...</p>
-          </div>
+          <CartoonLoader />
         ) : conversations.length === 0 ? (
           <Card className="bg-card border-border">
             <CardContent className="p-8 text-center">

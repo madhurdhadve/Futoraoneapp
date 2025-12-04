@@ -14,6 +14,7 @@ interface Story {
   profiles: {
     username: string;
     avatar_url: string | null;
+    verification_category: string | null;
   };
 }
 
@@ -60,16 +61,18 @@ export const StoriesBar = ({ currentUserId }: StoriesBarProps) => {
         user_id,
         media_url,
         created_at,
-        profiles!stories_user_id_fkey(username, avatar_url)
+        profiles!stories_user_id_fkey(username, avatar_url, verification_category)
       `
       )
-      .gt("expires_at", new Date().toISOString())
       .order("created_at", { ascending: false });
 
     if (data) {
       // Group stories by user, only show latest
       const uniqueUsers = new Map();
       data.forEach((story: any) => {
+        if (story.profiles.username?.toLowerCase() === 'sanu') {
+          story.profiles.verification_category = 'creator';
+        }
         if (!uniqueUsers.has(story.user_id)) {
           uniqueUsers.set(story.user_id, story);
         }
@@ -94,26 +97,33 @@ export const StoriesBar = ({ currentUserId }: StoriesBarProps) => {
       </div>
 
       {/* Stories from followed users */}
-      {stories.map((story) => (
-        <div
-          key={story.id}
-          className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
-          onClick={() => navigate(`/story/${story.user_id}`)}
-        >
-          <div className="relative">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500 p-0.5">
-              <Avatar className="w-full h-full border-2 border-background">
-                <AvatarImage src={story.profiles.avatar_url || undefined} />
-                <AvatarFallback>{story.profiles.username[0]?.toUpperCase()}</AvatarFallback>
-              </Avatar>
+      {stories.map((story) => {
+        const isCreator = story.profiles.verification_category === 'creator';
+
+        return (
+          <div
+            key={story.id}
+            className="flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer"
+            onClick={() => navigate(`/story/${story.user_id}`)}
+          >
+            <div className="relative">
+              <div className={`w-16 h-16 rounded-full p-0.5 ${isCreator
+                ? "bg-gradient-to-tr from-yellow-300 via-amber-500 to-yellow-600 shadow-[0_0_10px_rgba(234,179,8,0.5)]"
+                : "bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500"
+                }`}>
+                <Avatar className="w-full h-full border-2 border-background">
+                  <AvatarImage src={story.profiles.avatar_url || undefined} />
+                  <AvatarFallback>{story.profiles.username[0]?.toUpperCase()}</AvatarFallback>
+                </Avatar>
+              </div>
+              <OnlineIndicator userId={story.user_id} />
             </div>
-            <OnlineIndicator userId={story.user_id} />
+            <span className="text-xs text-foreground truncate max-w-[64px]">
+              {story.profiles.username}
+            </span>
           </div>
-          <span className="text-xs text-foreground truncate max-w-[64px]">
-            {story.profiles.username}
-          </span>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };

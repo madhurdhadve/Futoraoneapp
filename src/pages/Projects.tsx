@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BottomNav } from "@/components/BottomNav";
 import type { User } from "@supabase/supabase-js";
+import { CartoonLoader } from "@/components/CartoonLoader";
 
 interface Project {
   id: string;
@@ -170,9 +171,7 @@ const Projects = () => {
   };
 
   if (loading) {
-    return <div className="min-h-screen gradient-primary flex items-center justify-center">
-      <div className="text-white text-xl">Loading...</div>
-    </div>;
+    return <CartoonLoader />;
   }
 
   return (
@@ -339,4 +338,4 @@ const Projects = () => {
   );
 };
 
-export default Projects;
+export default React.memo(Projects);

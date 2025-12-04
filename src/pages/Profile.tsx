@@ -20,6 +20,7 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { QRCodeDialog } from "@/components/QRCodeDialog";
+import { CartoonLoader } from "@/components/CartoonLoader";
 
 interface Profile {
   id: string;
@@ -34,6 +35,8 @@ interface Profile {
   tech_skills: string[] | null;
   banner_url: string | null;
   is_verified?: boolean | null;
+  verification_category?: string | null;
+  theme_color?: string | null;
 }
 
 interface Project {
@@ -114,7 +117,15 @@ const Profile = () => {
             .eq("follower_id", user.id)
         ]);
 
-      setProfile(profileResult.data as unknown as Profile);
+      // Apply custom theme for @sanu
+      const profileData = profileResult.data as unknown as Profile;
+      if (profileData?.username?.toLowerCase() === 'sanu') {
+        profileData.verification_category = 'creator';
+        profileData.theme_color = '#FFE6EA'; // Light pink
+        profileData.is_verified = true;
+      }
+
+      setProfile(profileData);
       setProjects((projectsResult.data as unknown as Project[]) || []);
       setPosts((postsResult.data as unknown as Post[]) || []);
       setFollowerCount(followersResult.count || 0);
@@ -148,7 +159,16 @@ const Profile = () => {
       .select("*")
       .eq("id", user.id)
       .single();
-    setProfile(profileData as unknown as Profile);
+
+    // Apply custom theme for @sanu
+    const updatedProfile = profileData as unknown as Profile;
+    if (updatedProfile?.username?.toLowerCase() === 'sanu') {
+      updatedProfile.verification_category = 'creator';
+      updatedProfile.theme_color = '#FFE6EA'; // Light pink
+      updatedProfile.is_verified = true;
+    }
+
+    setProfile(updatedProfile);
   }, [user]);
 
   const handleLogout = useCallback(async () => {
@@ -162,11 +182,7 @@ const Profile = () => {
   }, [toast, navigate]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center pb-20">
-        <p className="text-muted-foreground">Loading profile...</p>
-      </div>
-    );
+    return <CartoonLoader />;
   }
 
   return (
@@ -177,10 +193,11 @@ const Profile = () => {
         style={{
           backgroundImage: profile?.banner_url
             ? `url(${profile.banner_url})`
-            : undefined
+            : undefined,
+          backgroundColor: profile?.theme_color || undefined
         }}
       >
-        {!profile?.banner_url && <div className="absolute inset-0 gradient-primary" />}
+        {!profile?.banner_url && !profile?.theme_color && <div className="absolute inset-0 gradient-primary" />}
       </div>
 
       <div className="px-3 sm:px-4 -mt-12 sm:-mt-16 relative z-10">
@@ -193,12 +210,20 @@ const Profile = () => {
           <Card className="bg-card border-border">
             <CardContent className="p-6">
               <div className="flex items-start justify-between mb-4">
-                <Avatar className="h-24 w-24 border-4 border-background">
-                  <AvatarImage src={profile?.avatar_url} loading="lazy" />
-                  <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
-                    {profile?.full_name?.[0] || user?.email?.[0]?.toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="relative">
+                  <div className={`rounded-full ${profile?.verification_category === 'creator'
+                    ? "p-[3px] bg-gradient-to-tr from-[#FFD700] via-[#FDB931] to-[#C0B283] shadow-[0_0_15px_rgba(255,215,0,0.5)]"
+                    : ""
+                    }`}>
+                    <Avatar className={`h-24 w-24 border-4 ${profile?.verification_category === 'creator' ? "border-white" : "border-background"}
+                      }`}>
+                      <AvatarImage src={profile?.avatar_url || undefined} loading="lazy" />
+                      <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
+                        {profile?.full_name?.[0] || user?.email?.[0]?.toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                </div>
                 <div className="flex gap-2">
                   <ModeToggle />
                   <Button

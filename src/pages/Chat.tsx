@@ -8,6 +8,7 @@ import { ArrowLeft, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { User } from "@supabase/supabase-js";
 import { formatDistanceToNow } from "date-fns";
+import { CartoonLoader } from "@/components/CartoonLoader";
 
 interface Message {
   id: string;
@@ -120,7 +121,7 @@ const Chat = () => {
           filter: `conversation_id=eq.${conversationId}`
         },
         (payload) => {
-          setMessages(prev => 
+          setMessages(prev =>
             prev.map(msg => msg.id === payload.new.id ? payload.new as Message : msg)
           );
         }
@@ -248,11 +249,7 @@ const Chat = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Loading chat...</p>
-      </div>
-    );
+    return <CartoonLoader />;
   }
 
   return (
@@ -300,11 +297,10 @@ const Chat = () => {
               className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`max-w-[70%] sm:max-w-[60%] rounded-2xl px-4 py-2 ${
-                  isOwn
+                className={`max-w-[70%] sm:max-w-[60%] rounded-2xl px-4 py-2 ${isOwn
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted text-foreground"
-                }`}
+                  }`}
               >
                 <p className="text-sm sm:text-base break-words">{message.content}</p>
                 <div className="flex items-center justify-end gap-1 mt-1">
