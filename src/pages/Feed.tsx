@@ -266,6 +266,9 @@ const Feed = () => {
   const toggleLike = useCallback(async (postId: string, isLiked: boolean) => {
     if (!user) return;
 
+    // Skip database operations for demo posts (they have non-UUID IDs)
+    const isDemoPost = postId.startsWith('demo-post-');
+
     // Optimistic update
     setPosts(currentPosts => currentPosts.map(post => {
       if (post.id === postId) {
@@ -278,6 +281,9 @@ const Feed = () => {
       return post;
     }));
 
+    // Don't persist demo post interactions
+    if (isDemoPost) return;
+
     try {
       if (isLiked) {
         const { data: likeData } = await supabase
@@ -285,7 +291,7 @@ const Feed = () => {
           .select('id')
           .eq('user_id', user.id)
           .eq('post_id', postId)
-          .single();
+          .maybeSingle();
 
         if (likeData) {
           await supabase.from('likes').delete().eq('id', likeData.id);
@@ -320,6 +326,9 @@ const Feed = () => {
   const toggleSave = useCallback(async (postId: string, isSaved: boolean) => {
     if (!user) return;
 
+    // Skip database operations for demo posts
+    const isDemoPost = postId.startsWith('demo-post-');
+
     // Optimistic update
     setPosts(currentPosts => currentPosts.map(post => {
       if (post.id === postId) {
@@ -334,6 +343,9 @@ const Feed = () => {
       return post;
     }));
 
+    // Don't persist demo post interactions
+    if (isDemoPost) return;
+
     try {
       if (isSaved) {
         const { data: saveData } = await supabase
@@ -341,7 +353,7 @@ const Feed = () => {
           .select('id')
           .eq('user_id', user.id)
           .eq('post_id', postId)
-          .single();
+          .maybeSingle();
 
         if (saveData) {
           await supabase.from('saves').delete().eq('id', saveData.id);
@@ -356,7 +368,7 @@ const Feed = () => {
           .from('posts')
           .select('user_id')
           .eq('id', postId)
-          .single();
+          .maybeSingle();
 
         if (postData && postData.user_id !== user.id) {
           const actorName = user.user_metadata.full_name || user.email?.split('@')[0] || "Someone";

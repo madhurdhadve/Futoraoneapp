@@ -12,13 +12,15 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft, CheckCircle, XCircle, Clock, Shield, AlertCircle, 
   Users, FileText, BarChart3, Eye, Trash2, BadgeCheck, MessageSquare,
-  Heart, Image, Video
+  Heart, Image, Video, Ban, RefreshCw, TrendingUp, Activity,
+  UserX, Download, Settings, Bell
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface VerificationRequest {
   id: string;
@@ -71,7 +73,10 @@ interface Stats {
   verifiedUsers: number;
   totalPosts: number;
   totalComments: number;
+  totalLikes: number;
+  totalFollows: number;
   pendingVerifications: number;
+  activeToday: number;
 }
 
 const AdminDashboard = () => {
@@ -109,7 +114,10 @@ const AdminDashboard = () => {
     verifiedUsers: 0,
     totalPosts: 0,
     totalComments: 0,
+    totalLikes: 0,
+    totalFollows: 0,
     pendingVerifications: 0,
+    activeToday: 0,
   });
   
   const [loading, setLoading] = useState(true);
@@ -118,11 +126,17 @@ const AdminDashboard = () => {
   // Fetch stats
   const fetchStats = useCallback(async () => {
     try {
-      const [usersRes, postsRes, commentsRes, verificationsRes] = await Promise.all([
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const [usersRes, postsRes, commentsRes, verificationsRes, likesRes, followsRes, activeTodayRes] = await Promise.all([
         supabase.from('profiles').select('id, is_verified'),
         supabase.from('posts').select('id', { count: 'exact', head: true }),
         supabase.from('comments').select('id', { count: 'exact', head: true }),
         supabase.from('verification_requests').select('id').eq('status', 'pending'),
+        supabase.from('likes').select('id', { count: 'exact', head: true }),
+        supabase.from('follows').select('id', { count: 'exact', head: true }),
+        supabase.from('user_presence').select('user_id', { count: 'exact', head: true }).eq('is_online', true),
       ]);
 
       const usersData = usersRes.data || [];
@@ -131,7 +145,10 @@ const AdminDashboard = () => {
         verifiedUsers: usersData.filter(u => u.is_verified).length,
         totalPosts: postsRes.count || 0,
         totalComments: commentsRes.count || 0,
+        totalLikes: likesRes.count || 0,
+        totalFollows: followsRes.count || 0,
         pendingVerifications: verificationsRes.data?.length || 0,
+        activeToday: activeTodayRes.count || 0,
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -410,6 +427,37 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleDeleteUser = async (userId: string, username: string) => {
+    try {
+      // Delete user's posts first
+      await supabase.from('posts').delete().eq('user_id', userId);
+      // Delete user's comments
+      await supabase.from('comments').delete().eq('user_id', userId);
+      // Delete user's likes
+      await supabase.from('likes').delete().eq('user_id', userId);
+      // Delete follows
+      await supabase.from('follows').delete().or(`follower_id.eq.${userId},following_id.eq.${userId}`);
+      // Delete profile
+      const { error } = await supabase.from('profiles').delete().eq('id', userId);
+      
+      if (error) throw error;
+      
+      toast({ title: `User @${username} deleted successfully` });
+      fetchUsers();
+      fetchStats();
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast({ title: "Error deleting user", variant: "destructive" });
+    }
+  };
+
+  const handleRefreshData = async () => {
+    setLoading(true);
+    await Promise.all([fetchStats(), fetchUsers(), fetchPosts(), fetchRequests()]);
+    setLoading(false);
+    toast({ title: "Data refreshed successfully" });
+  };
+
   if (adminLoading || loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -443,6 +491,10 @@ const AdminDashboard = () => {
             </div>
             <p className="text-muted-foreground">Manage users, posts, and verification requests</p>
           </div>
+          <Button variant="outline" onClick={handleRefreshData} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
         </div>
 
         {/* Main Navigation */}
@@ -471,7 +523,7 @@ const AdminDashboard = () => {
 
           {/* Overview Tab */}
           <TabsContent value="overview">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">Total Users</CardTitle>
@@ -519,9 +571,57 @@ const AdminDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Total Likes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-2">
+                    <Heart className="h-5 w-5 text-red-500" />
+                    <span className="text-3xl font-bold">{stats.totalLikes}</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Total Comments</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5 text-purple-500" />
+                    <span className="text-3xl font-bold">{stats.totalComments}</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Total Follows</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-emerald-500" />
+                    <span className="text-3xl font-bold">{stats.totalFollows}</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Online Now</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-green-400" />
+                    <span className="text-3xl font-bold">{stats.activeToday}</span>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
               {/* Recent Users */}
               <Card>
                 <CardHeader>
@@ -655,6 +755,30 @@ const AdminDashboard = () => {
                             <BadgeCheck className="h-4 w-4 mr-1" />
                             {user.is_verified ? 'Unverify' : 'Verify'}
                           </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="outline" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50">
+                                <UserX className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete User</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete @{user.username}? This will permanently remove their profile, posts, comments, likes, and all related data. This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  className="bg-red-600 hover:bg-red-700"
+                                  onClick={() => handleDeleteUser(user.id, user.username)}
+                                >
+                                  Delete User
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </div>
                     </CardContent>

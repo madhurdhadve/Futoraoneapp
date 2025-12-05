@@ -274,11 +274,15 @@ const UserProfile = () => {
             return;
         }
 
-        if (profileData.username?.toLowerCase() === 'sanu') {
-            profileData.verification_category = 'creator';
-            profileData.is_verified = true;
-        }
-        setProfile(profileData);
+        // Sanu's special profile customization
+        const isSanu = profileData.username?.toLowerCase() === 'sanu';
+        const enhancedProfile: Profile = {
+            ...profileData,
+            verification_category: isSanu ? 'creator' : profileData.verification_category,
+            is_verified: isSanu ? true : profileData.is_verified,
+            theme_color: isSanu ? '#FFE6EA' : null, // Light pink theme for Sanu
+        };
+        setProfile(enhancedProfile);
 
         // Fetch all data in parallel for better performance
         const [projectsResult, postsResult] = await Promise.all([
