@@ -1,3 +1,4 @@
+import React from "react";
 import { motion } from "framer-motion";
 
 /**
@@ -21,10 +22,10 @@ export const CartoonLoader = () => {
                                         ? "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
                                         : "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
                                 boxShadow: `0 4px 12px ${index === 0
-                                        ? "rgba(102, 126, 234, 0.4)"
-                                        : index === 1
-                                            ? "rgba(245, 87, 108, 0.4)"
-                                            : "rgba(0, 242, 254, 0.4)"
+                                    ? "rgba(102, 126, 234, 0.4)"
+                                    : index === 1
+                                        ? "rgba(245, 87, 108, 0.4)"
+                                        : "rgba(0, 242, 254, 0.4)"
                                     }`,
                             }}
                             animate={{
@@ -68,19 +69,7 @@ export const CartoonLoader = () => {
                             .
                         </motion.span>
                     </h2>
-                    <motion.p
-                        className="text-sm text-muted-foreground"
-                        animate={{
-                            opacity: [0.5, 1, 0.5],
-                        }}
-                        transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                        }}
-                    >
-                        Just a moment
-                    </motion.p>
+                    <FunFact />
                 </motion.div>
 
                 {/* Decorative pulse effect */}
@@ -105,6 +94,40 @@ export const CartoonLoader = () => {
                 </motion.div>
             </div>
         </div>
+    );
+};
+
+const FACTS = [
+    "The first computer bug was an actual moth.",
+    "Python is named after Monty Python, not the snake.",
+    "JavaScript was created in just 10 days.",
+    "The first website is still online.",
+    "GIT stands for Global Information Tracker (maybe).",
+    "There are over 700 programming languages.",
+    "SpaceX runs on Linux.",
+    "Minecraft was coded in Java."
+];
+
+const FunFact = () => {
+    const [fact, setFact] = React.useState(FACTS[0]);
+
+    React.useEffect(() => {
+        const interval = setInterval(() => {
+            setFact(FACTS[Math.floor(Math.random() * FACTS.length)]);
+        }, 3000);
+        return () => clearInterval(interval);
+    }, []);
+
+    return (
+        <motion.p
+            key={fact}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto italic"
+        >
+            "{fact}"
+        </motion.p>
     );
 };
 

@@ -21,6 +21,7 @@ import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { QRCodeDialog } from "@/components/QRCodeDialog";
 import { CartoonLoader } from "@/components/CartoonLoader";
+import { AchievementShowcase } from "@/components/AchievementShowcase";
 
 interface Profile {
   id: string;
@@ -343,6 +344,9 @@ const Profile = () => {
               </CardContent>
             </Card>
           )}
+
+          {/* Achievement Showcase */}
+          <AchievementShowcase userId={user?.id} />
 
           {/* Projects Tabs */}
           <Tabs defaultValue="posts" className="w-full">
