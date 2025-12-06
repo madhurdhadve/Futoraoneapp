@@ -13,7 +13,7 @@ import { FollowButton } from "@/components/FollowButton";
 import { StartChatButton } from "@/components/StartChatButton";
 import { OnlineIndicator } from "@/components/OnlineIndicator";
 import { Button } from "@/components/ui/button";
-import { ModeToggle } from "@/components/mode-toggle";
+
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import type { User } from "@supabase/supabase-js";
 
@@ -182,7 +182,7 @@ const Explore = () => {
       <div className="sticky top-0 z-10 bg-card border-b border-border p-4">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold text-foreground">Explore</h1>
-          <ModeToggle />
+
         </div>
         <form onSubmit={handleSearch}>
           <div className="relative">

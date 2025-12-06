@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { User } from "@supabase/supabase-js";
 import { sendPushNotification } from "@/utils/notifications";
 import { FeedPost } from "@/components/FeedPost";
-import { ModeToggle } from "@/components/mode-toggle";
+
 import { useInView } from "react-intersection-observer";
 
 import { getPostsFromCache, savePostsToCache } from "@/utils/cache";
@@ -460,7 +460,7 @@ const Feed = () => {
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold gradient-text">FutoraOne</h1>
           <div className="flex items-center gap-4">
-            <ModeToggle />
+
             <Button
               size="icon"
               variant="ghost"
