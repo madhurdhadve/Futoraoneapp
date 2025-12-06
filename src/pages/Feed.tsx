@@ -15,6 +15,8 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { useInView } from "react-intersection-observer";
 import { FeedSearch } from "@/components/FeedSearch";
 import { getPostsFromCache, savePostsToCache } from "@/utils/cache";
+import GamificationWidget from "@/components/GamificationWidget";
+import AIMentor from "@/components/AIMentor";
 
 // Lazy load Stories component for better initial load
 const Stories = lazy(() => import("@/components/Stories").then(m => ({ default: m.Stories })));
@@ -488,6 +490,11 @@ const Feed = () => {
           </Suspense>
         </div>
 
+        {/* Gamification Widget */}
+        <div className="mb-6">
+          <GamificationWidget />
+        </div>
+
         {/* Create Post Button */}
         <Card className="p-6 mb-6 shadow-lg">
           <div className="flex items-center gap-4">
@@ -539,6 +546,9 @@ const Feed = () => {
       </main>
 
       <BottomNav />
+      
+      {/* AI Mentor Floating Button */}
+      <AIMentor />
     </div>
   );
 };

@@ -2,3 +2,6 @@ project_id = "forxnefbbsqwhdfadvkk"
 
 [functions.manage-verification]
 verify_jwt = true
+
+[functions.ai-mentor]
+verify_jwt = false

@@ -40,6 +40,9 @@ const ProfileViews = lazy(() => import("./pages/ProfileViews"));
 const AllPeople = lazy(() => import("./pages/AllPeople"));
 const ProjectIdeas = lazy(() => import("./pages/ProjectIdeas"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AIEnhancer = lazy(() => import("./pages/AIEnhancer"));
+const AudioRooms = lazy(() => import("./pages/AudioRooms"));
+const LiveCoding = lazy(() => import("./pages/LiveCoding"));
 
 const queryClient = new QueryClient();
 
@@ -83,6 +86,9 @@ const App = () => {
                 <Route path="/profile-views" element={<ProfileViews />} />
                 <Route path="/project-ideas" element={<ProjectIdeas />} />
                 <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/ai-enhancer" element={<AIEnhancer />} />
+                <Route path="/audio-rooms" element={<AudioRooms />} />
+                <Route path="/live-coding" element={<LiveCoding />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
