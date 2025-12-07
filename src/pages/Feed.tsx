@@ -90,6 +90,7 @@ interface Post {
 
 const Feed = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<{ xp: number; level: number; current_streak: number } | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const pageRef = React.useRef(0);
@@ -99,31 +100,56 @@ const Feed = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
-  // Optimize static widgets with useMemo to prevent re-renders
-  const gamificationWidget = useMemo(() => <GamificationWidget />, []);
-  const aiMentor = useMemo(() => <AIMentor />, []);
-  const bottomNav = useMemo(() => <BottomNav />, []);
 
   useEffect(() => {
     // Check authentication
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         navigate("/auth");
       } else {
         setUser(session.user);
+        fetchUserProfile(session.user.id);
       }
-    });
+    };
+
+    checkAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!session) {
         navigate("/auth");
       } else {
         setUser(session.user);
+        fetchUserProfile(session.user.id);
       }
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const fetchUserProfile = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('xp, level, current_streak')
+      .eq('id', userId)
+      .single();
+
+    if (!error && data) {
+      setUserProfile(data);
+    }
+  };
+
+  // Optimize static widgets with useMemo to prevent re-renders
+  const gamificationWidget = useMemo(() => (
+    <GamificationWidget
+      userXP={userProfile?.xp || 0}
+      userLevel={userProfile?.level || 1}
+      streak={userProfile?.current_streak || 0}
+    />
+  ), [userProfile]);
+
+  const aiMentor = useMemo(() => <AIMentor />, []);
+  const bottomNav = useMemo(() => <BottomNav />, []);
 
   useEffect(() => {
     if (inView && hasMore && !loading) {
@@ -316,6 +342,9 @@ const Feed = () => {
         if (postData && postData.user_id !== user.id) {
           const actorName = user.user_metadata.full_name || user.email?.split('@')[0] || "Someone";
           await sendPushNotification(postData.user_id, `${actorName} liked your post`);
+
+          // Award XP for liking (Example gamification integration)
+          // In a real app, this should be a DB trigger or a separate API call
         }
       }
     } catch (error) {
