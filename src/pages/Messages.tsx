@@ -30,6 +30,48 @@ interface ConversationWithDetails {
   unreadCount: number;
 }
 
+const ConversationItem = React.memo(({ conv, onClick }: { conv: ConversationWithDetails, onClick: (id: string) => void }) => (
+  <Card
+    className="bg-card border-border hover:border-primary transition-all cursor-pointer"
+    onClick={() => onClick(conv.id)}
+  >
+    <CardContent className="p-3 sm:p-4">
+      <div className="flex items-center gap-3">
+        <Avatar className="h-12 w-12 shrink-0">
+          <AvatarImage src={conv.otherUser.avatar_url || undefined} />
+          <AvatarFallback className="bg-primary text-primary-foreground">
+            {conv.otherUser.username[0]?.toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2">
+            <p className="font-semibold text-foreground truncate">
+              {conv.otherUser.full_name}
+            </p>
+            {conv.lastMessage && (
+              <span className="text-xs text-muted-foreground shrink-0">
+                {formatDistanceToNow(new Date(conv.lastMessage.created_at), {
+                  addSuffix: true
+                })}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm text-muted-foreground truncate">
+              {conv.lastMessage?.content || "Start a conversation"}
+            </p>
+            {conv.unreadCount > 0 && (
+              <Badge className="bg-primary text-primary-foreground shrink-0">
+                {conv.unreadCount}
+              </Badge>
+            )}
+          </div>
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+));
+
 const Messages = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
@@ -178,8 +220,8 @@ const Messages = () => {
         <div className="flex p-1 bg-muted/50 rounded-lg">
           <button
             className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-all ${activeTab === 'direct'
-                ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground hover:bg-background/50'
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:bg-background/50'
               }`}
             onClick={() => setActiveTab('direct')}
           >
@@ -188,8 +230,8 @@ const Messages = () => {
           </button>
           <button
             className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-all ${activeTab === 'groups'
-                ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground hover:bg-background/50'
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:bg-background/50'
               }`}
             onClick={() => setActiveTab('groups')}
           >
@@ -229,46 +271,11 @@ const Messages = () => {
           ) : (
             <div className="space-y-2">
               {conversations.map((conv) => (
-                <Card
+                <ConversationItem
                   key={conv.id}
-                  className="bg-card border-border hover:border-primary transition-all cursor-pointer"
-                  onClick={() => navigate(`/chat/${conv.id}`)}
-                >
-                  <CardContent className="p-3 sm:p-4">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-12 w-12 shrink-0">
-                        <AvatarImage src={conv.otherUser.avatar_url || undefined} />
-                        <AvatarFallback className="bg-primary text-primary-foreground">
-                          {conv.otherUser.username[0]?.toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="font-semibold text-foreground truncate">
-                            {conv.otherUser.full_name}
-                          </p>
-                          {conv.lastMessage && (
-                            <span className="text-xs text-muted-foreground shrink-0">
-                              {formatDistanceToNow(new Date(conv.lastMessage.created_at), {
-                                addSuffix: true
-                              })}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-sm text-muted-foreground truncate">
-                            {conv.lastMessage?.content || "Start a conversation"}
-                          </p>
-                          {conv.unreadCount > 0 && (
-                            <Badge className="bg-primary text-primary-foreground shrink-0">
-                              {conv.unreadCount}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                  conv={conv}
+                  onClick={(id) => navigate(`/chat/${id}`)}
+                />
               ))}
             </div>
           )

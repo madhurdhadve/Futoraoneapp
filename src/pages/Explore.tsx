@@ -176,6 +176,10 @@ const Explore = () => {
     }
   }, [searchQuery, navigate, toast]);
 
+  const handleUserClick = useCallback((userId: string) => {
+    navigate(`/user/${userId}`);
+  }, [navigate]);
+
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
@@ -313,7 +317,7 @@ const Explore = () => {
                         <div className="flex items-start gap-3 mb-3">
                           <div
                             className="relative cursor-pointer shrink-0"
-                            onClick={() => navigate(`/user/${user.id}`)}
+                            onClick={() => handleUserClick(user.id)}
                           >
                             <Avatar className="h-12 w-12">
                               <AvatarImage src={user.avatar_url || undefined} />
@@ -325,7 +329,7 @@ const Explore = () => {
                           </div>
                           <div
                             className="flex-1 min-w-0 cursor-pointer"
-                            onClick={() => navigate(`/user/${user.id}`)}
+                            onClick={() => handleUserClick(user.id)}
                           >
                             <p className="font-semibold text-foreground truncate flex items-center gap-1">
                               {user.full_name}
