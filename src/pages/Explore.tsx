@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, TrendingUp, Code, Brain, Shield, Cloud, Cpu, Blocks, Users, Smartphone, Database } from "lucide-react";
+import { Search, TrendingUp, Code, Brain, Shield, Cloud, Cpu, Blocks, Users, Smartphone, Database, Rocket, ExternalLink, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
@@ -179,7 +179,7 @@ const Explore = () => {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-card border-b border-border p-4">
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border p-4 supports-[backdrop-filter]:bg-background/60">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold text-foreground">Explore</h1>
 
@@ -199,7 +199,76 @@ const Explore = () => {
       </div>
 
       <div className="p-4 space-y-6">
-        {/* People to Follow - NOW AT THE TOP */}
+
+        {/* Opportunities Hub */}
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="text-xl font-bold bg-gradient-to-r from-orange-500 to-green-600 bg-clip-text text-transparent">
+              Opportunities Hub
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Founders Corner Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <Card
+                className="bg-gradient-to-r from-orange-500 to-pink-600 text-white border-0 cursor-pointer overflow-hidden relative h-full hover:scale-[1.02] transition-transform duration-300"
+                onClick={() => navigate('/founders-corner')}
+              >
+                <div className="absolute top-0 right-0 p-8 opacity-10">
+                  <Rocket size={120} />
+                </div>
+                <CardContent className="p-6 relative z-10 flex flex-col h-full justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
+                      <Rocket className="fill-white" /> Founders Corner
+                    </h2>
+                    <p className="text-white/90">
+                      Find your perfect co-founder or join the next unicorn.
+                    </p>
+                  </div>
+                  <Button variant="secondary" className="mt-4 w-fit font-semibold text-pink-600 hover:text-pink-700">
+                    Find Co-Founders
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Gig Marketplace Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <Card
+                className="bg-gradient-to-r from-yellow-400 to-green-500 text-black border-0 cursor-pointer overflow-hidden relative h-full hover:scale-[1.02] transition-transform duration-300"
+                onClick={() => navigate('/gig-marketplace')}
+              >
+                <div className="absolute top-0 right-0 p-8 opacity-10">
+                  <Zap size={120} />
+                </div>
+                <CardContent className="p-6 relative z-10 flex flex-col h-full justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
+                      <Zap className="fill-black" /> Gig Marketplace
+                    </h2>
+                    <p className="text-black/80 font-medium">
+                      Find micro-gigs, freelance tasks, and earn while you learn.
+                    </p>
+                  </div>
+                  <Button className="mt-4 w-fit font-bold bg-white text-green-700 hover:bg-white/90 border-0">
+                    Find Gigs
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* People to Follow */}
         <section>
           <div className="flex items-center gap-2 mb-4">
             <Users className="text-primary" size={24} />
@@ -399,9 +468,9 @@ const Explore = () => {
             ))}
           </div>
         </section>
-      </div>
+      </div >
       <BottomNav />
-    </div>
+    </div >
   );
 };
 

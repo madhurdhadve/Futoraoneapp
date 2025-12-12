@@ -2,7 +2,9 @@ import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useOneSignal } from "@/hooks/useOneSignal";
 import { useCurrentUserPresence } from "@/hooks/useUserPresence";
@@ -43,15 +45,32 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AIEnhancer = lazy(() => import("./pages/AIEnhancer"));
 const AudioRooms = lazy(() => import("./pages/AudioRooms"));
 const LiveCoding = lazy(() => import("./pages/LiveCoding"));
+const FoundersCorner = lazy(() => import("./pages/FoundersCorner"));
+const GigMarketplace = lazy(() => import("./pages/GigMarketplace"));
+const TechReels = lazy(() => import("./pages/TechReels"));
+const GroupChat = lazy(() => import("./pages/GroupChat"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      gcTime: 1000 * 60 * 60 * 24, // 24 hours
+    },
+  },
+});
+
+const persister = createSyncStoragePersister({
+  storage: window.localStorage,
+});
 
 const App = () => {
   useOneSignal(); // Initialize OneSignal integration
   useCurrentUserPresence(); // Track user online status
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{ persister }}
+    >
       <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
         <TooltipProvider>
           <Toaster />
@@ -89,6 +108,10 @@ const App = () => {
                 <Route path="/ai-enhancer" element={<AIEnhancer />} />
                 <Route path="/audio-rooms" element={<AudioRooms />} />
                 <Route path="/live-coding" element={<LiveCoding />} />
+                <Route path="/founders-corner" element={<FoundersCorner />} />
+                <Route path="/gig-marketplace" element={<GigMarketplace />} />
+                <Route path="/tech-reels" element={<TechReels />} />
+                <Route path="/messages/group/:groupId" element={<GroupChat />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
@@ -96,7 +119,7 @@ const App = () => {
           </BrowserRouter>
         </TooltipProvider>
       </ThemeProvider>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   );
 };
 

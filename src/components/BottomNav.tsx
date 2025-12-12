@@ -6,6 +6,12 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const BottomNav = React.memo(() => {
   const navigate = useNavigate();
@@ -42,13 +48,24 @@ export const BottomNav = React.memo(() => {
         >
           <Search className="w-6 h-6" />
         </Button>
-        <Button
-          size="icon"
-          className="gradient-primary text-white rounded-full shadow-lg scale-110"
-          onClick={() => handleNavigate("/create-post")}
-        >
-          <Plus className="w-6 h-6" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              size="icon"
+              className="gradient-primary text-white rounded-full shadow-lg scale-110"
+            >
+              <Plus className="w-6 h-6" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="center" className="mb-4">
+            <DropdownMenuItem onClick={() => handleNavigate("/create-post")} className="gap-2 cursor-pointer">
+              <span className="font-medium">Create Post</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleNavigate("/create-story")} className="gap-2 cursor-pointer">
+              <span className="font-medium">Create Reel</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <div className="relative">
           <Button
             variant={isActive("/messages") ? "default" : "ghost"}

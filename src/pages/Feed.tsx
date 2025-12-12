@@ -2,11 +2,12 @@ import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense } from
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bell, Bot, Zap } from "lucide-react";
+import { Bell, Bot, Zap, Film } from "lucide-react";
 import { PostSkeleton } from "@/components/PostSkeleton";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { User } from "@supabase/supabase-js";
 import { sendPushNotification } from "@/utils/notifications";
@@ -468,9 +469,20 @@ const Feed = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-muted/30 to-background">
-        <header className="sticky top-0 z-50 glass-card border-b">
-          <div className="max-w-2xl mx-auto px-4 py-4">
+        <header className="sticky top-0 z-50 bg-card border-b border-black/20 dark:border-border shadow-sm">
+          <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
             <h1 className="text-2xl font-bold gradient-text">FutoraOne</h1>
+            <div className="flex items-center gap-4">
+              <Button size="icon" variant="ghost" className="relative w-12 h-12 mr-2 bg-primary/5 rounded-full" disabled>
+                <Zap className="w-8 h-8 text-primary/50" />
+              </Button>
+              <Button size="icon" variant="ghost" className="relative w-10 h-10 mr-2" disabled>
+                <Film className="w-6 h-6 text-muted-foreground" />
+              </Button>
+              <Button size="icon" variant="ghost" className="relative" disabled>
+                <Bell className="w-5 h-5 text-muted-foreground" />
+              </Button>
+            </div>
           </div>
         </header>
         <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
@@ -501,6 +513,14 @@ const Feed = () => {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-sky-500"></span>
               </span>
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="relative w-10 h-10 mr-2 hover:bg-muted transition-all"
+              onClick={() => navigate("/tech-reels")}
+            >
+              <Film className="w-6 h-6 text-foreground" />
             </Button>
             <Button size="icon" variant="ghost" className="relative" onClick={() => navigate("/notifications")}>
               <Bell className="w-5 h-5" />
@@ -556,9 +576,7 @@ const Feed = () => {
         </div>
       </main>
 
-      {bottomNav}
-
-      {/* AI Mentor Floating Button */}
+      <BottomNav />
       {aiMentor}
     </div>
   );

@@ -5,12 +5,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { BottomNav } from "@/components/BottomNav";
-import { MessageCircle, Search } from "lucide-react";
+import { MessageCircle, Search, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { formatDistanceToNow } from "date-fns";
 import type { User } from "@supabase/supabase-js";
 import { Badge } from "@/components/ui/badge";
 import { CartoonLoader } from "@/components/CartoonLoader";
+import { CreateGroupDialog } from "@/components/chat/CreateGroupDialog";
+import { GroupsList } from "@/components/chat/GroupsList";
 
 interface ConversationWithDetails {
   id: string;
@@ -34,17 +36,18 @@ const Messages = () => {
   const [conversations, setConversations] = useState<ConversationWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<'direct' | 'groups'>('direct');
 
   useEffect(() => {
     checkAuth();
   }, []);
 
   useEffect(() => {
-    if (user) {
+    if (user && activeTab === 'direct') {
       fetchConversations();
       subscribeToConversations();
     }
-  }, [user]);
+  }, [user, activeTab]);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -165,78 +168,112 @@ const Messages = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <div className="sticky top-0 z-10 bg-card border-b border-border p-3 sm:p-4">
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-4">Messages</h1>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-          <Input
-            placeholder="Search users to message..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearchUsers()}
-            className="pl-10 bg-background border-border"
-          />
+      <div className="sticky top-0 z-10 bg-card border-b border-border p-3 sm:p-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Messages</h1>
+          {activeTab === 'groups' && <CreateGroupDialog onGroupCreated={() => { }} />}
         </div>
+
+        {/* Tabs */}
+        <div className="flex p-1 bg-muted/50 rounded-lg">
+          <button
+            className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-all ${activeTab === 'direct'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:bg-background/50'
+              }`}
+            onClick={() => setActiveTab('direct')}
+          >
+            <MessageCircle className="w-4 h-4" />
+            Direct
+          </button>
+          <button
+            className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-all ${activeTab === 'groups'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:bg-background/50'
+              }`}
+            onClick={() => setActiveTab('groups')}
+          >
+            <Users className="w-4 h-4" />
+            Communities
+          </button>
+        </div>
+
+        {activeTab === 'direct' && (
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+            <Input
+              placeholder="Search users to message..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearchUsers()}
+              className="pl-10 bg-background border-border"
+            />
+          </div>
+        )}
       </div>
 
       <div className="p-3 sm:p-4">
-        {loading ? (
-          <CartoonLoader />
-        ) : conversations.length === 0 ? (
-          <Card className="bg-card border-border">
-            <CardContent className="p-8 text-center">
-              <MessageCircle className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground mb-4">No conversations yet</p>
-              <Button onClick={() => navigate("/search")}>
-                Find people to message
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-2">
-            {conversations.map((conv) => (
-              <Card
-                key={conv.id}
-                className="bg-card border-border hover:border-primary transition-all cursor-pointer"
-                onClick={() => navigate(`/chat/${conv.id}`)}
-              >
-                <CardContent className="p-3 sm:p-4">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-12 w-12 shrink-0">
-                      <AvatarImage src={conv.otherUser.avatar_url || undefined} />
-                      <AvatarFallback className="bg-primary text-primary-foreground">
-                        {conv.otherUser.username[0]?.toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="font-semibold text-foreground truncate">
-                          {conv.otherUser.full_name}
-                        </p>
-                        {conv.lastMessage && (
-                          <span className="text-xs text-muted-foreground shrink-0">
-                            {formatDistanceToNow(new Date(conv.lastMessage.created_at), {
-                              addSuffix: true
-                            })}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="text-sm text-muted-foreground truncate">
-                          {conv.lastMessage?.content || "Start a conversation"}
-                        </p>
-                        {conv.unreadCount > 0 && (
-                          <Badge className="bg-primary text-primary-foreground shrink-0">
-                            {conv.unreadCount}
-                          </Badge>
-                        )}
+        {activeTab === 'direct' ? (
+          loading ? (
+            <CartoonLoader />
+          ) : conversations.length === 0 ? (
+            <Card className="bg-card border-border">
+              <CardContent className="p-8 text-center">
+                <MessageCircle className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+                <p className="text-muted-foreground mb-4">No conversations yet</p>
+                <Button onClick={() => navigate("/search")}>
+                  Find people to message
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-2">
+              {conversations.map((conv) => (
+                <Card
+                  key={conv.id}
+                  className="bg-card border-border hover:border-primary transition-all cursor-pointer"
+                  onClick={() => navigate(`/chat/${conv.id}`)}
+                >
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-12 w-12 shrink-0">
+                        <AvatarImage src={conv.otherUser.avatar_url || undefined} />
+                        <AvatarFallback className="bg-primary text-primary-foreground">
+                          {conv.otherUser.username[0]?.toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="font-semibold text-foreground truncate">
+                            {conv.otherUser.full_name}
+                          </p>
+                          {conv.lastMessage && (
+                            <span className="text-xs text-muted-foreground shrink-0">
+                              {formatDistanceToNow(new Date(conv.lastMessage.created_at), {
+                                addSuffix: true
+                              })}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm text-muted-foreground truncate">
+                            {conv.lastMessage?.content || "Start a conversation"}
+                          </p>
+                          {conv.unreadCount > 0 && (
+                            <Badge className="bg-primary text-primary-foreground shrink-0">
+                              {conv.unreadCount}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )
+        ) : (
+          <GroupsList currentUserId={user?.id || ""} />
         )}
       </div>
 
