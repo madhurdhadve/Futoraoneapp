@@ -269,6 +269,8 @@ const Explore = () => {
                 </CardContent>
               </Card>
             </motion.div>
+
+
           </div>
         </section>
 
