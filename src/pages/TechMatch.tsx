@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Heart, Code, Coffee, Gamepad2, Rocket, Sparkles, ChevronRight, Send, User, Bot, Video, Cuboid as Cube } from "lucide-react";
-import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -29,26 +29,6 @@ const TechMatch = () => {
     ]);
     const [inputValue, setInputValue] = useState("");
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const [is3DMode, setIs3DMode] = useState(true);
-
-    // 3D Parallax Logic
-    const x = useMotionValue(0);
-    const y = useMotionValue(0);
-    const rotateX = useTransform(y, [-100, 100], [10, -10]);
-    const rotateY = useTransform(x, [-100, 100], [-10, 10]);
-
-    const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
-        const rect = event.currentTarget.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        x.set(event.clientX - centerX);
-        y.set(event.clientY - centerY);
-    };
-
-    const handleMouseLeave = () => {
-        x.set(0);
-        y.set(0);
-    };
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -238,8 +218,8 @@ const TechMatch = () => {
                                             )}
                                             <div
                                                 className={`max-w-[80%] px-5 py-3 rounded-2xl text-sm backdrop-blur-md shadow-lg ${msg.sender === 'user'
-                                                        ? 'bg-gradient-to-r from-pink-600/90 to-purple-600/90 text-white rounded-tr-sm border border-pink-500/30'
-                                                        : 'bg-black/40 text-white rounded-tl-sm border border-white/10'
+                                                    ? 'bg-gradient-to-r from-pink-600/90 to-purple-600/90 text-white rounded-tr-sm border border-pink-500/30'
+                                                    : 'bg-black/40 text-white rounded-tl-sm border border-white/10'
                                                     }`}
                                             >
                                                 {msg.text}

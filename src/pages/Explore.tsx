@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, TrendingUp, Code, Brain, Shield, Cloud, Cpu, Blocks, Users, Smartphone, Database, Rocket, ExternalLink, Zap } from "lucide-react";
+import { Search, TrendingUp, Code, Brain, Shield, Cloud, Cpu, Blocks, Users, Smartphone, Database, Rocket, ExternalLink, Zap, Heart } from "lucide-react";
 import { motion } from "framer-motion";
 import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
