@@ -83,6 +83,190 @@ const CATEGORY_DEMO_POSTS: { [key: string]: any[] } = {
             likes: 267,
             comments: 41
         }
+    ],
+    "Founder's Corner": [
+        {
+            id: "found-1",
+            title: "0 to 1 Million Users: My Journey",
+            content: "Scaling a SaaS product is never a straight line. Here are the 5 biggest mistakes I made so you don't have to. #Startups #SaaS",
+            author: "Vikram Malhotra",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Vikram",
+            likes: 1205,
+            comments: 342
+        },
+        {
+            id: "found-2",
+            title: "Raising Seed Funding in 2024",
+            content: "The VC landscape has changed. Profitability > Growth at all costs. What I learned pitching to 50 investors.",
+            author: "Sneha Kapoor",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sneha",
+            likes: 892,
+            comments: 156
+        },
+        {
+            id: "found-3",
+            title: "Finding Product-Market Fit",
+            content: "If you have to ask if you have PMF, you probably don't. How to use customer feedback to pivot effectively.",
+            author: "Rahul Verma",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Rahul",
+            likes: 670,
+            comments: 98
+        },
+        {
+            id: "found-4",
+            title: "Building a Remote-First Team",
+            content: "Hiring the best talent regardless of location changed our trajectory. Here's our async work playbook.",
+            author: "Amit Patel",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Amit",
+            likes: 540,
+            comments: 89
+        },
+        {
+            id: "found-5",
+            title: "Bootstrapping vs VC",
+            content: "Why I turned down a term sheet to stay independent. Freedom is the ultimate currency.",
+            author: "Meera Das",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Meera",
+            likes: 980,
+            comments: 210
+        },
+        {
+            id: "found-6",
+            title: "The Art of the Pivot",
+            content: "We started as a food delivery app and ended up as a logistics software. Here's the story.",
+            author: "Karan Johar",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Karan",
+            likes: 450,
+            comments: 76
+        },
+        {
+            id: "found-7",
+            title: "Marketing for Developers",
+            content: "Technical founders often ignore distribution. Build it and they will NOT come. You have to sell.",
+            author: "Zoya Akhtar",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Zoya",
+            likes: 1100,
+            comments: 230
+        },
+        {
+            id: "found-8",
+            title: "Mental Health for Founders",
+            content: "Burnout is real. How I manage stress while running a 24/7 business.",
+            author: "Arjun Rampal",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Arjun",
+            likes: 1500,
+            comments: 400
+        },
+        {
+            id: "found-9",
+            title: "Legal Basics for Startups",
+            content: "Don't ignore the paperwork. Incorporation, IP assignment, and vesting schedules explained simply.",
+            author: "Simran Kaur",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Simran",
+            likes: 340,
+            comments: 45
+        },
+        {
+            id: "found-10",
+            title: "Exit Strategy",
+            content: "Building to sell vs building to last. How to align your company vision with your personal goals.",
+            author: "Rajiv Bajaj",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Rajiv",
+            likes: 780,
+            comments: 120
+        }
+    ],
+    "GitG": [
+        {
+            id: "gitg-1",
+            title: "Mastering Git Rebase",
+            content: "Stop fearing `git rebase`. It keeps your history clean and makes code reviews easier. A defined guide.",
+            author: "Linus T",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Linus",
+            likes: 560,
+            comments: 120
+        },
+        {
+            id: "gitg-2",
+            title: "Open Source Etiquette",
+            content: "How to contribute to major repos without getting your PR closed immediately. Read CONTRIBUTING.md!",
+            author: "Sarah Drasner",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
+            likes: 890,
+            comments: 230
+        },
+        {
+            id: "gitg-3",
+            title: "GitHub Actions CI/CD",
+            content: "Automate your testing and deployment pipeline for free with GitHub Actions. My workflow config.",
+            author: "Dev DevOps",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Dev",
+            likes: 450,
+            comments: 56
+        },
+        {
+            id: "gitg-4",
+            title: "Understanding Git Internals",
+            content: "Blobs, trees, and commits. How Git actually stores your data under the hood.",
+            author: "Scott Chacon",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Scott",
+            likes: 670,
+            comments: 89
+        },
+        {
+            id: "gitg-5",
+            title: "Semantic Versioning",
+            content: "Why breaking changes in patch versions is a crime against humanity. SemVer explained.",
+            author: "Tom Preston",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Tom",
+            likes: 340,
+            comments: 67
+        },
+        {
+            id: "gitg-6",
+            title: "Monorepos: Yay or Nay?",
+            content: "Managing multiple packages in a single repo. Tools like Turborepo and Nx make it easy.",
+            author: "Jared Palmer",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Jared",
+            likes: 560,
+            comments: 90
+        },
+        {
+            id: "gitg-7",
+            title: "Git Hooks for Code Quality",
+            content: "Using Husky to run lint-staged before commits. Never push bad code again.",
+            author: "Kent C. Dodds",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Kent",
+            likes: 780,
+            comments: 110
+        },
+        {
+            id: "gitg-8",
+            title: "Writing Good Commit Messages",
+            content: "Conventional Commits standard. `feat:`, `fix:`, `chore:`. Make your log readable.",
+            author: "Angie Jones",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Angie",
+            likes: 900,
+            comments: 140
+        },
+        {
+            id: "gitg-9",
+            title: "Handling Merge Conflicts",
+            content: "Don't panic. Use a 3-way merge tool. Resolving conflicts is a skill every dev needs.",
+            author: "Martin Fowler",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Martin",
+            likes: 430,
+            comments: 78
+        },
+        {
+            id: "gitg-10",
+            title: "Git Blame vs Git Praise",
+            content: "Use `git blame` to find who wrote the code, not to shame them, but to ask for context.",
+            author: "Grace Hopper",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Grace",
+            likes: 1200,
+            comments: 300
+        }
     ]
 };
 
@@ -153,11 +337,7 @@ const CategoryPage = () => {
     };
 
     const handlePostClick = (postId: string) => {
-        // Navigate to post detail or show expanded view
-        toast({
-            title: "Opening post",
-            description: "Post details coming soon!",
-        });
+        navigate(`/post/${postId}`);
     };
 
     // Get demo posts for current category

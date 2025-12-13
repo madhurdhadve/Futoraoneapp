@@ -1,8 +1,8 @@
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Zap, Clock, Banknote } from "lucide-react";
+import { MapPin, Clock } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ApplyGigDialog } from "./ApplyGigDialog";
 
 export interface GigListing {
     id: string;
@@ -78,10 +78,11 @@ export const GigCard = ({ gig }: GigCardProps) => {
             </CardContent>
 
             <CardFooter className="pt-0 pb-4">
-                <Button className="w-full gap-2 bg-yellow-400 hover:bg-yellow-500 text-black font-semibold shadow-sm">
-                    <Zap className="w-4 h-4" />
-                    Apply for Gig
-                </Button>
+                <ApplyGigDialog
+                    gigId={gig.id}
+                    gigTitle={gig.title}
+                    gigBudget={gig.price}
+                />
             </CardFooter>
         </Card>
     );

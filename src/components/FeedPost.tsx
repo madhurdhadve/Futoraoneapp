@@ -119,7 +119,8 @@ export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDe
           </div>
 
           <div
-            className="mb-4 prose dark:prose-invert max-w-none"
+            className="mb-4 prose dark:prose-invert max-w-none cursor-pointer hover:opacity-95 transition-opacity"
+            onClick={() => navigate(`/post/${post.id}`)}
             dangerouslySetInnerHTML={{
               __html: DOMPurify.sanitize(post.content.replace(/\n/g, '<br />'))
             }}

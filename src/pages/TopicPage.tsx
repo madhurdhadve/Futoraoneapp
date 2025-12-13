@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Hash, TrendingUp } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -30,10 +29,84 @@ const TopicPage = () => {
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
     const [postCount, setPostCount] = useState(0);
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [loadingFollow, setLoadingFollow] = useState(false);
 
     useEffect(() => {
         fetchTopicPosts();
+        checkFollowStatus();
     }, [tag]);
+
+    const checkFollowStatus = async () => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user || !tag) return;
+
+            const { data } = await supabase
+                .from('topic_follows' as any)
+                .select('id')
+                .eq('user_id', user.id)
+                .eq('topic_tag', tag)
+                .maybeSingle();
+
+            setIsFollowing(!!data);
+        } catch (error) {
+            console.error("Error checking follow status:", error);
+        }
+    };
+
+    const handleFollow = async () => {
+        try {
+            setLoadingFollow(true);
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (!user) {
+                toast({
+                    title: "Authentication required",
+                    description: "Please sign in to follow topics",
+                    variant: "destructive"
+                });
+                return;
+            }
+
+            if (!tag) return;
+
+            if (isFollowing) {
+                const { error } = await supabase
+                    .from('topic_follows' as any)
+                    .delete()
+                    .eq('user_id', user.id)
+                    .eq('topic_tag', tag);
+
+                if (error) throw error;
+                setIsFollowing(false);
+                toast({
+                    title: "Unfollowed",
+                    description: `You are no longer following #${tag}`,
+                });
+            } else {
+                const { error } = await supabase
+                    .from('topic_follows' as any)
+                    .insert({ user_id: user.id, topic_tag: tag });
+
+                if (error) throw error;
+                setIsFollowing(true);
+                toast({
+                    title: "Following",
+                    description: `You are now following #${tag}`,
+                });
+            }
+        } catch (error) {
+            console.error("Error toggling follow:", error);
+            toast({
+                title: "Error",
+                description: "Failed to update follow status",
+                variant: "destructive"
+            });
+        } finally {
+            setLoadingFollow(false);
+        }
+    };
 
     const fetchTopicPosts = async () => {
         setLoading(true);
@@ -92,16 +165,12 @@ const TopicPage = () => {
                             </p>
                         </div>
                         <Button
-                            variant="default"
+                            variant={isFollowing ? "outline" : "default"}
                             size="sm"
-                            onClick={() => {
-                                toast({
-                                    title: "Follow feature",
-                                    description: "Follow topics to see them in your feed!",
-                                });
-                            }}
+                            onClick={handleFollow}
+                            disabled={loadingFollow}
                         >
-                            Follow
+                            {loadingFollow ? "..." : isFollowing ? "Following" : "Follow"}
                         </Button>
                     </div>
                 </div>

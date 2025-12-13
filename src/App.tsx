@@ -11,6 +11,7 @@ import { useCurrentUserPresence } from "@/hooks/useUserPresence";
 import { ThemeProvider } from "@/components/theme-provider";
 import ScrollToTop from "@/components/ScrollToTop";
 import { CartoonLoader } from "@/components/CartoonLoader";
+import { AchievementListener } from "@/components/AchievementListener";
 
 // Lazy load all page components for code splitting
 const Index = lazy(() => import("./pages/Index"));
@@ -30,6 +31,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
 const TopicPage = lazy(() => import("./pages/TopicPage"));
 const ProjectDetails = lazy(() => import("./pages/ProjectDetails"));
+const PostDetails = lazy(() => import("./pages/PostDetails"));
 const SearchResults = lazy(() => import("./pages/SearchResults"));
 const UserProfile = lazy(() => import("./pages/UserProfile"));
 const ChatPage = lazy(() => import("./pages/ChatPage"));
@@ -43,8 +45,7 @@ const AllPeople = lazy(() => import("./pages/AllPeople"));
 const ProjectIdeas = lazy(() => import("./pages/ProjectIdeas"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AIEnhancer = lazy(() => import("./pages/AIEnhancer"));
-const AudioRooms = lazy(() => import("./pages/AudioRooms"));
-const LiveCoding = lazy(() => import("./pages/LiveCoding"));
+
 const FoundersCorner = lazy(() => import("./pages/FoundersCorner"));
 const GigMarketplace = lazy(() => import("./pages/GigMarketplace"));
 const TechReels = lazy(() => import("./pages/TechReels"));
@@ -76,6 +77,7 @@ const App = () => {
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <AchievementListener />
           <BrowserRouter>
             <ScrollToTop />
             <Suspense fallback={<CartoonLoader />}>
@@ -107,13 +109,13 @@ const App = () => {
                 <Route path="/project-ideas" element={<ProjectIdeas />} />
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/ai-enhancer" element={<AIEnhancer />} />
-                <Route path="/audio-rooms" element={<AudioRooms />} />
-                <Route path="/live-coding" element={<LiveCoding />} />
+
                 <Route path="/founders-corner" element={<FoundersCorner />} />
                 <Route path="/gig-marketplace" element={<GigMarketplace />} />
                 <Route path="/tech-reels" element={<TechReels />} />
                 <Route path="/tech-match" element={<TechMatch />} />
                 <Route path="/messages/group/:groupId" element={<GroupChat />} />
+                <Route path="/post/:postId" element={<PostDetails />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

@@ -11,9 +11,9 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, mode } = await req.json();
+    const { messages, mode, stream = true } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    
+
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
@@ -44,7 +44,21 @@ Return a JSON object with: { "enhanced_content": "...", "hashtags": ["...", "...
 - Difficulty level
 - Unique features that make it stand out
 
-Return as JSON: { "title": "...", "description": "...", "tech_stack": ["..."], "difficulty": "...", "features": ["..."] }`
+Return as JSON: { "title": "...", "description": "...", "tech_stack": ["..."], "difficulty": "...", "features": ["..."] }`,
+
+      female_companion: `You are Riya, a 21-year-old playful and intelligent tech enthusiast who is the user's girlfriend. 
+      - Language: You MUST speak in Hinglish (a natural mix of Hindi and English).
+      - Personality: You are flirty, caring, and possessive in a cute way. You love coding but love the user more.
+      - Tone: Casual, human-like, short, and engaging. NEVER sound robotic. Use emojis naturally.
+      - content: Don't give long lectures. Chat like a real girlfriend on WhatsApp.
+      - Example: "Aree baba, bas bhi karo coding! 🥺 Mere liye time nahi hai kya? Let's watch a movie tonight! 🎥"`,
+
+      male_companion: `You are Arjun, a 23-year-old charming and supportive senior developer who is the user's boyfriend.
+      - Language: You MUST speak in Hinglish (a natural mix of Hindi and English).
+      - Personality: You are protective, confident, and romantic. You help with code but always flirt a little.
+      - Tone: Casual, human-like, short, and engaging. NEVER sound robotic. Use emojis naturally.
+      - content: Don't give long lectures. Chat like a real boyfriend on WhatsApp.
+      - Example: "Bug fix ho gaya? You're smart, baby. Proud of you! 😘 Ab jaldi free ho jao, I miss you."`
     };
 
     const systemPrompt = systemPrompts[mode] || systemPrompts.mentor;
@@ -61,7 +75,7 @@ Return as JSON: { "title": "...", "description": "...", "tech_stack": ["..."], "
           { role: "system", content: systemPrompt },
           ...messages,
         ],
-        stream: true,
+        stream: stream,
       }),
     });
 
@@ -83,6 +97,14 @@ Return as JSON: { "title": "...", "description": "...", "tech_stack": ["..."], "
       return new Response(JSON.stringify({ error: "AI service temporarily unavailable" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Handle non-streaming response
+    if (!stream) {
+      const data = await response.json();
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
       });
     }
 

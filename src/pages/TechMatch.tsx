@@ -4,11 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Heart, Code, Coffee, Gamepad2, Rocket, Sparkles, ChevronRight, Cuboid as Cube } from "lucide-react";
+import { Heart, Code, Coffee, Gamepad2, Rocket, Sparkles, ChevronRight, Cuboid as Cube, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Switch } from "@/components/ui/switch";
 import AIChat from "@/components/AIChat";
 import VideoBackground from "@/components/VideoBackground";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+// Swipe feature imports
+import { SwipeCard, Profile as SwipeProfile } from "@/components/tech-match/SwipeCard";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface Message {
     id: string;
@@ -20,6 +27,7 @@ interface Message {
 type AIGender = 'female' | 'male';
 
 const TechMatch = () => {
+    const { toast } = useToast();
     const [activeTab, setActiveTab] = useState("find-devs");
     const [aiGender, setAiGender] = useState<AIGender>('female');
     const [messages, setMessages] = useState<Message[]>([
@@ -32,6 +40,194 @@ const TechMatch = () => {
     ]);
     const [inputValue, setInputValue] = useState("");
     const [isTyping, setIsTyping] = useState(false);
+
+    // Tech Match Swipe State
+    const [potentialMatches, setPotentialMatches] = useState<SwipeProfile[]>([]);
+    const [matchDialogOpen, setMatchDialogOpen] = useState(false);
+    const [lastMatchedProfile, setLastMatchedProfile] = useState<SwipeProfile | null>(null);
+    const [currentUser, setCurrentUser] = useState<any>(null);
+
+    // Mock Profiles for improved UX
+    const MOCK_PROFILES: SwipeProfile[] = [
+        {
+            id: "m1",
+            username: "sarah_codes",
+            full_name: "Sarah Jenkins",
+            avatar_url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+            bio: "Full-stack wizard 🧙‍♀️ building the next big thing in Web3. Coffee addict ☕️",
+            location: "San Fransisco, CA",
+            tech_skills: ["React", "Node.js", "Solidity", "TypeScript"],
+            github_url: "#",
+            linkedin_url: null,
+            portfolio_url: "#"
+        },
+        {
+            id: "m2",
+            username: "david_ai",
+            full_name: "David Chen",
+            avatar_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+            bio: "AI Researcher by day, Indie Hacker by night. Let's build something crazy! 🚀",
+            location: "New York, NY",
+            tech_skills: ["Python", "TensorFlow", "PyTorch", "AWS"],
+            github_url: "#",
+            linkedin_url: "#",
+            portfolio_url: null
+        },
+        {
+            id: "m3",
+            username: "emma_design",
+            full_name: "Emma Wilson",
+            avatar_url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+            bio: "UI/UX Designer who codes. Pixel perfectionist. 🎨✨",
+            location: "London, UK",
+            tech_skills: ["Figma", "React", "TailwindCSS", "Three.js"],
+            github_url: null,
+            linkedin_url: "#",
+            portfolio_url: "#"
+        },
+        {
+            id: "m4",
+            username: "alex_rust",
+            full_name: "Alex Rivera",
+            avatar_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+            bio: "Rustacean 🦀. Obsessed with performance and systems programming.",
+            location: "Berlin, DE",
+            tech_skills: ["Rust", "C++", "WASM", "Linux"],
+            github_url: "#",
+            linkedin_url: null,
+            portfolio_url: "#"
+        },
+        {
+            id: "m5",
+            username: "priya_mobile",
+            full_name: "Priya Patel",
+            avatar_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+            bio: "Flutter User Group organizer. Making apps that feel magic. ✨📱",
+            location: "Bangalore, IN",
+            tech_skills: ["Flutter", "Dart", "Firebase", "Kotlin"],
+            github_url: "#",
+            linkedin_url: "#",
+            portfolio_url: "#"
+        }
+    ];
+
+    // Fetch potential matches
+    useEffect(() => {
+        const fetchProfiles = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            // Get users I haven't swiped on yet
+            const { data: existingSwipes } = await supabase
+                .from('tech_matches')
+                .select('liked_id')
+                .eq('liker_id', user.id);
+
+            const swipedIds = existingSwipes?.map(s => s.liked_id) || [];
+
+            // Add self to exclusion
+            swipedIds.push(user.id);
+
+            const { data: profiles, error } = await supabase
+                .from('profiles')
+                .select('id, username, full_name, avatar_url, bio, location, tech_skills, github_url, linkedin_url, portfolio_url')
+                .not('id', 'in', `(${swipedIds.join(',')})`)
+                .limit(20);
+
+            if (profiles && profiles.length > 0) {
+                // Cast to MatchProfile type
+                setPotentialMatches(profiles as any);
+            } else {
+                // FALLBACK: Use Mock Data if no real users are found (so UI is never empty)
+                setPotentialMatches(MOCK_PROFILES);
+            }
+        };
+
+        if (activeTab === 'find-devs') {
+            fetchProfiles();
+        }
+    }, [activeTab]);
+
+    // Quick Confetti function
+    const triggerConfetti = () => {
+        const count = 200;
+        const defaults = {
+            origin: { y: 0.7 },
+            zIndex: 9999
+        };
+
+        function fire(particleRatio: number, opts: any) {
+            // Since we don't have the canvas-confetti package installed, 
+            // we'll simulate this visually with the Dialog animation for now.
+            // In a real scenario, we would `import confetti from 'canvas-confetti'`
+            console.log("Confetti boom! 🎉");
+        }
+
+        // Note: For now we are just logging, but the visual "It's a Match" dialog 
+        // will do the heavy lifting of the "celebration" feel.
+    };
+
+    const handleSwipe = async (direction: "left" | "right", profileId: string) => {
+        // Remove from local stack immediately for UI responsiveness
+        const swipedProfile = potentialMatches.find(p => p.id === profileId);
+        setPotentialMatches(prev => prev.filter(p => p.id !== profileId));
+
+        if (!swipedProfile) return;
+
+        // Handle Mock Profiles (instant match simulation for demo)
+        if (profileId.startsWith('m')) {
+            if (direction === 'right') {
+                // Random chance of matching with a mock profile for fun
+                if (Math.random() > 0.3) {
+                    setLastMatchedProfile(swipedProfile);
+                    setMatchDialogOpen(true);
+                    triggerConfetti();
+                } else {
+                    toast({
+                        title: `You liked ${swipedProfile.full_name}`,
+                        className: "bg-green-500 text-white border-none duration-1000",
+                    });
+                }
+            }
+            return;
+        }
+
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            const status = direction === 'right' ? 'pending' : 'rejected';
+
+            // Insert match record
+            const { data, error } = await supabase
+                .from('tech_matches')
+                .insert({
+                    liker_id: user.id,
+                    liked_id: profileId,
+                    status: status
+                })
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            // Check if it was an instant match
+            if (data?.status === 'matched') {
+                setLastMatchedProfile(swipedProfile);
+                setMatchDialogOpen(true);
+                triggerConfetti();
+            } else if (direction === 'right') {
+                // Just a regular like
+                toast({
+                    title: `You liked ${swipedProfile.full_name}`,
+                    className: "bg-green-500 text-white border-none duration-1000",
+                });
+            }
+
+        } catch (error) {
+            console.error("Error swiping:", error);
+        }
+    };
 
     // Reset chat when gender changes
     useEffect(() => {
@@ -49,44 +245,82 @@ const TechMatch = () => {
     }, [aiGender]);
 
     // Optimize: useCallback for stable function reference passed to AIChat
-    const handleSendMessage = useCallback(() => {
+    const handleSendMessage = useCallback(async () => {
         if (!inputValue.trim()) return;
 
-        const newMessage: Message = {
+        const newUserMessage: Message = {
             id: Date.now().toString(),
             text: inputValue,
             sender: 'user',
             timestamp: new Date()
         };
 
-        setMessages(prev => [...prev, newMessage]);
+        setMessages(prev => [...prev, newUserMessage]);
         setInputValue("");
         setIsTyping(true);
 
-        // Mock AI response
-        setTimeout(() => {
-            const responseText = aiGender === 'female'
-                ? "I can modify my neural pathways to match your preferences. Are we talking about code or something else? 😉"
-                : "That's interesting logic. I'd optimize that approach... or maybe we just debug it over coffee? 😏";
+        try {
+            // Prepare chat history for context (limit to last 10 messages to save tokens)
+            const chatHistory = messages.slice(-10).map(m => ({
+                role: m.sender === 'user' ? 'user' : 'assistant',
+                content: m.text
+            }));
+
+            // Include the new message
+            const apiMessages = [...chatHistory, { role: 'user', content: newUserMessage.text }];
+
+            const { data, error } = await supabase.functions.invoke('ai-mentor', {
+                body: {
+                    messages: apiMessages,
+                    mode: aiGender === 'female' ? 'female_companion' : 'male_companion',
+                    stream: false
+                }
+            });
+
+            if (error) throw error;
+
+            // Extract content from OpenAI-style response
+            const reply = data.choices?.[0]?.message?.content || "I'm lost for words... 😳";
 
             const aiResponse: Message = {
                 id: (Date.now() + 1).toString(),
-                text: responseText,
+                text: reply,
                 sender: 'ai',
                 timestamp: new Date()
             };
+
             setMessages(prev => [...prev, aiResponse]);
+
+        } catch (error) {
+            console.error("AI Error:", error);
+
+            const fallbackResponse = aiGender === 'female'
+                ? "Oof, my server is acting up! But I'm still thinking about you. 😉 (Network Error)"
+                : "Server glitch! Let's debug this relationship later. 😉 (Network Error)";
+
+            setMessages(prev => [...prev, {
+                id: (Date.now() + 1).toString(),
+                text: fallbackResponse,
+                sender: 'ai',
+                timestamp: new Date()
+            }]);
+
+            toast({
+                title: "Connection Error",
+                description: "Could not connect to AI service.",
+                variant: "destructive"
+            });
+        } finally {
             setIsTyping(false);
-        }, 1500);
-    }, [inputValue, aiGender]);
+        }
+    }, [inputValue, aiGender, messages, toast]);
 
     const aiName = aiGender === 'female' ? 'Riya' : 'Arjun';
     const themeColor = aiGender === 'female' ? 'pink' : 'cyan';
     const gradientFrom = aiGender === 'female' ? 'from-pink-600' : 'from-cyan-600';
     const gradientTo = aiGender === 'female' ? 'to-purple-600' : 'to-blue-600';
 
-    // Video sources - memoized implicitly as constants or string literals in JSX, but could be useMemo if calculating.
-    // For now simple strings are fine as they depend on simple state.
+    // Video sources
     const videoSrc = aiGender === 'female'
         ? "https://assets.mixkit.co/videos/preview/mixkit-artificial-intelligence-interface-concept-1188-large.mp4"
         : "https://assets.mixkit.co/videos/preview/mixkit-futuristic-holographic-interface-992-large.mp4";
@@ -106,93 +340,105 @@ const TechMatch = () => {
                     </TabsList>
                 </div>
 
-                {/* Find Devs Tab */}
-                <TabsContent value="find-devs" className="mt-0 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="relative h-[40vh] bg-gradient-to-br from-pink-600 via-rose-500 to-orange-400 overflow-hidden flex items-center justify-center text-center px-4">
-                        <div className="absolute inset-0 bg-black/10" />
-                        <div className="relative z-10 text-white space-y-4 max-w-lg pt-10">
-                            <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                                className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mx-auto ring-4 ring-white/30"
-                            >
-                                <Heart className="w-10 h-10 text-white fill-white" />
-                            </motion.div>
-                            <motion.h1
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.2 }}
-                                className="text-4xl md:text-5xl font-bold tracking-tight"
-                            >
-                                Tech Match
-                            </motion.h1>
-                            <motion.p
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.3 }}
-                                className="text-lg text-white/90 font-medium"
-                            >
-                                Find your Player 2. Date other developers.
-                            </motion.p>
-                        </div>
-                    </div>
-
-                    <div className="max-w-md mx-auto -mt-10 px-4 relative z-20 space-y-6">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.4 }}
-                        >
-                            <Card className="border-border shadow-lg">
-                                <CardContent className="p-6 text-center space-y-4">
-                                    <h2 className="text-xl font-bold">Why match with a dev?</h2>
-                                    <div className="grid grid-cols-2 gap-4 text-sm">
-                                        <div className="flex flex-col items-center gap-2 p-3 bg-secondary/50 rounded-xl">
-                                            <Code className="text-primary" />
-                                            <span>Code Together</span>
-                                        </div>
-                                        <div className="flex flex-col items-center gap-2 p-3 bg-secondary/50 rounded-xl">
-                                            <Coffee className="text-orange-500" />
-                                            <span>Coffee runs</span>
-                                        </div>
-                                        <div className="flex flex-col items-center gap-2 p-3 bg-secondary/50 rounded-xl">
-                                            <Gamepad2 className="text-purple-500" />
-                                            <span>Gaming Duo</span>
-                                        </div>
-                                        <div className="flex flex-col items-center gap-2 p-3 bg-secondary/50 rounded-xl">
-                                            <Rocket className="text-pink-500" />
-                                            <span>Build Products</span>
-                                        </div>
+                <TabsContent value="find-devs" className="mt-0 animate-in fade-in slide-in-from-bottom-4 duration-500 h-[calc(100vh-130px)] flex flex-col">
+                    <div className="flex-1 relative flex items-center justify-center p-4 overflow-hidden max-w-md mx-auto w-full">
+                        <AnimatePresence>
+                            {potentialMatches.length > 0 ? (
+                                potentialMatches.map((profile, index) => (
+                                    index === potentialMatches.length - 1 && (
+                                        <SwipeCard
+                                            key={profile.id}
+                                            profile={profile}
+                                            onSwipe={(dir) => handleSwipe(dir, profile.id)}
+                                        />
+                                    )
+                                ))
+                            ) : (
+                                <div className="text-center space-y-4">
+                                    <div className="w-20 h-20 bg-secondary/30 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                                        <Code className="w-10 h-10 text-muted-foreground" />
                                     </div>
-                                </CardContent>
-                            </Card>
-                        </motion.div>
-
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.5 }}
-                        >
-                            <Card className="border-primary/20 bg-gradient-to-br from-background to-primary/5">
-                                <CardContent className="p-6">
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 border-0">BETA ACCESS</Badge>
-                                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                            <Sparkles size={12} className="text-yellow-500" /> 1,240 on waitlist
-                                        </span>
-                                    </div>
-                                    <h3 className="text-lg font-bold mb-2">Join the Early Access List</h3>
-                                    <p className="text-muted-foreground text-sm mb-6">
-                                        We are strictly matching algorithms to find you the perfect code-compatible partner. Be the first to know when we launch!
+                                    <h3 className="text-xl font-bold">No more profiles</h3>
+                                    <p className="text-muted-foreground max-w-xs mx-auto">
+                                        We're looking for more developers in your area. Check back later!
                                     </p>
-                                    <Button className="w-full font-bold bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white shadow-lg shadow-pink-500/20">
-                                        Join Waitlist <ChevronRight className="ml-2 w-4 h-4" />
+                                    <Button onClick={() => window.location.reload()} variant="outline">
+                                        Refresh
                                     </Button>
-                                </CardContent>
-                            </Card>
-                        </motion.div>
+                                </div>
+                            )}
+                        </AnimatePresence>
                     </div>
+
+                    {/* Bottom Action Bar */}
+                    {potentialMatches.length > 0 && (
+                        <div className="p-6 flex justify-center items-center gap-8 pb-8">
+                            <Button
+                                size="lg"
+                                variant="outline"
+                                className="h-14 w-14 rounded-full border-2 border-red-500/20 text-red-500 hover:bg-red-500/10 hover:border-red-500"
+                                onClick={() => handleSwipe("left", potentialMatches[potentialMatches.length - 1].id)}
+                            >
+                                <X className="w-6 h-6" />
+                            </Button>
+
+                            <Button
+                                size="lg"
+                                className="h-16 w-16 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 shadow-lg shadow-green-500/30 hover:scale-110 transition-transform"
+                                onClick={() => handleSwipe("right", potentialMatches[potentialMatches.length - 1].id)}
+                            >
+                                <Heart className="w-8 h-8 fill-white text-white" />
+                            </Button>
+                        </div>
+                    )}
+
+                    <Dialog open={matchDialogOpen} onOpenChange={setMatchDialogOpen}>
+                        <DialogContent className="sm:max-w-md text-center border-none bg-gradient-to-br from-gray-900 to-black text-white">
+                            <div className="py-8 space-y-6">
+                                <motion.div
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    className="text-5xl font-black bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent italic"
+                                >
+                                    IT'S A MATCH!
+                                </motion.div>
+
+                                <div className="flex justify-center items-center gap-4">
+                                    <div className="relative">
+                                        <Avatar className="w-20 h-20 border-4 border-white/20">
+                                            {/* Current User */}
+                                            <AvatarImage src={currentUser?.user_metadata?.avatar_url || undefined} />
+                                            <AvatarFallback>{currentUser?.user_metadata?.full_name?.[0] || 'U'}</AvatarFallback>
+                                        </Avatar>
+                                    </div>
+                                    <Heart className="w-10 h-10 text-pink-500 fill-pink-500 animate-pulse" />
+                                    <div className="relative">
+                                        <Avatar className="w-20 h-20 border-4 border-white/20">
+                                            <AvatarImage src={lastMatchedProfile?.avatar_url || ''} />
+                                            <AvatarFallback>M</AvatarFallback>
+                                        </Avatar>
+                                    </div>
+                                </div>
+
+                                <p className="text-white/80">
+                                    You and <span className="font-bold text-white">{lastMatchedProfile?.full_name}</span> both want to connect!
+                                </p>
+
+                                <div className="flex flex-col gap-3 pt-4">
+                                    <Button className="w-full bg-white text-black font-bold hover:bg-white/90" onClick={() => {
+                                        setMatchDialogOpen(false);
+                                        // Navigate to chat (future)
+                                        toast({ title: "Chat feature coming soon!", description: "Check your matches tab." });
+                                    }}>
+                                        Send a Message
+                                    </Button>
+                                    <Button variant="ghost" className="w-full text-white/50 hover:text-white" onClick={() => setMatchDialogOpen(false)}>
+                                        Keep Swiping
+                                    </Button>
+                                </div>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
                 </TabsContent>
 
                 {/* AI Companion Tab */}

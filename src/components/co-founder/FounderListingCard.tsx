@@ -1,8 +1,8 @@
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Briefcase, TrendingUp, DollarSign } from "lucide-react";
+import { MapPin, TrendingUp, DollarSign } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ApplyFounderDialog } from "./ApplyFounderDialog";
 
 export interface FounderListing {
     id: string;
@@ -67,10 +67,10 @@ export const FounderListingCard = ({ listing }: FounderListingCardProps) => {
             </CardContent>
 
             <CardFooter className="pt-2">
-                <Button className="w-full gap-2 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-md">
-                    <Briefcase className="w-4 h-4" />
-                    Connect with Founder
-                </Button>
+                <ApplyFounderDialog
+                    listingId={listing.id}
+                    listingRole={listing.role_needed}
+                />
             </CardFooter>
         </Card>
     );
