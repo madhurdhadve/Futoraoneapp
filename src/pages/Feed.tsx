@@ -183,14 +183,61 @@ const Feed = () => {
         .on(
           'postgres_changes',
           {
-            event: '*',
+            event: 'INSERT',
             schema: 'public',
             table: 'posts'
           },
-          () => {
-            // Reset pagination on new post
-            pageRef.current = 0;
-            fetchPosts(true);
+          (payload) => {
+            // Optimistically add new post to the top if it's not already there
+            const newPost = payload.new as Post;
+            // Fetch complete post data (including profile)
+            supabase
+              .from('posts')
+              .select(`
+                *,
+                profiles(username, full_name, avatar_url, is_verified),
+                likes(id, user_id),
+                comments(id),
+                saves(id, user_id)
+              `)
+              .eq('id', newPost.id)
+              .single()
+              .then(({ data }) => {
+                if (data) {
+                  setPosts(prev => [data as Post, ...prev]);
+                  toast({
+                    title: "New post",
+                    description: "A new post has just arrived!",
+                  });
+                }
+              });
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'DELETE',
+            schema: 'public',
+            table: 'posts'
+          },
+          (payload) => {
+            // Remove deleted post from state
+            setPosts(prev => prev.filter(p => p.id !== payload.old.id));
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'posts'
+          },
+          (payload) => {
+            // Update post logic is complex because we need joined data. 
+            // Ideally we just update the content fields.
+            setPosts(prev => prev.map(p =>
+              p.id === payload.new.id ? { ...p, ...payload.new } : p
+            ));
           }
         )
         .on(
@@ -438,7 +485,6 @@ const Feed = () => {
       toast({
         title: "Link copied!",
         description: "Share link copied to clipboard.",
-        timeout: 2000,
       });
     }
   }, [toast]);

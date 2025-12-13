@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -141,28 +141,14 @@ export function GroupChatWindow({ groupId, currentUserId }: { groupId: string; c
                         const showAvatar = !isMe && (index === 0 || messages[index - 1].sender_id !== msg.sender_id);
 
                         return (
-                            <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-1`}>
-                                {!isMe && (
-                                    <div className="w-8 mr-2 flex-shrink-0">
-                                        {showAvatar && (
-                                            <Avatar className="h-8 w-8">
-                                                <AvatarImage src={msg.sender_avatar} />
-                                                <AvatarFallback>?</AvatarFallback>
-                                            </Avatar>
-                                        )}
-                                    </div>
-                                )}
-                                <div className={`max-w-[70%] rounded-2xl px-4 py-2 ${isMe ? 'bg-primary text-primary-foreground rounded-tr-sm' : 'bg-card border rounded-tl-sm'}`}>
-                                    {!isMe && showAvatar && <p className="text-[10px] text-muted-foreground mb-1">{msg.sender_name}</p>}
-                                    <p className="text-sm">{msg.content}</p>
-                                    <div className={`text-[10px] text-right mt-1 opacity-70`}>
-                                        {format(new Date(msg.created_at), 'HH:mm')}
-                                    </div>
-                                </div>
-                            </div>
+                            <MessageBubble
+                                key={msg.id}
+                                msg={msg}
+                                isMe={isMe}
+                                showAvatar={showAvatar}
+                            />
                         );
-                    })}
-                    <div ref={scrollRef} />
+                    })}<div ref={scrollRef} />
                 </div>
             </ScrollArea>
 
@@ -181,3 +167,26 @@ export function GroupChatWindow({ groupId, currentUserId }: { groupId: string; c
         </div>
     );
 }
+
+const MessageBubble = React.memo(({ msg, isMe, showAvatar }: { msg: Message, isMe: boolean, showAvatar: boolean }) => (
+    <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-1`}>
+        {!isMe && (
+            <div className="w-8 mr-2 flex-shrink-0">
+                {showAvatar && (
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={msg.sender_avatar} />
+                        <AvatarFallback>?</AvatarFallback>
+                    </Avatar>
+                )}
+            </div>
+        )}
+        <div className={`max-w-[70%] rounded-2xl px-4 py-2 ${isMe ? 'bg-primary text-primary-foreground rounded-tr-sm' : 'bg-card border rounded-tl-sm'}`}>
+            {!isMe && showAvatar && <p className="text-[10px] text-muted-foreground mb-1">{msg.sender_name}</p>}
+            <p className="text-sm">{msg.content}</p>
+            <div className={`text-[10px] text-right mt-1 opacity-70`}>
+                {format(new Date(msg.created_at), 'HH:mm')}
+            </div>
+        </div>
+    </div>
+));
+MessageBubble.displayName = 'MessageBubble';
