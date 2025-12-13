@@ -70,7 +70,6 @@ const TechMatch = () => {
 
         setMessages(prev => [...prev, newMessage]);
         setInputValue("");
-
         // Mock AI response
         setTimeout(() => {
             const aiResponse: Message = {
@@ -183,11 +182,99 @@ const TechMatch = () => {
                                     </Button>
                                 </CardContent>
                             </Card>
-                        </Tabs>
-
-                        <BottomNav />
+                        </motion.div>
                     </div>
-                    );
+                </TabsContent>
+
+                {/* AI Companion Tab */}
+                <TabsContent value="ai-companion" className="mt-0">
+                    <div className="relative h-[calc(100dvh-130px)] overflow-hidden w-full">
+                        {/* Background Layer (Video/Image) */}
+                        <div className="absolute inset-0 z-0">
+                            <video
+                                autoPlay
+                                loop
+                                muted
+                                playsInline
+                                className="h-full w-full object-cover"
+                                poster="/ai-3d-model.png"
+                            >
+                                <source src="https://assets.mixkit.co/videos/preview/mixkit-artificial-intelligence-interface-concept-1188-large.mp4" type="video/mp4" />
+                                Your browser does not support the video tag.
+                            </video>
+                            {/* Dark Overlay for Readability */}
+                            <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
+                        </div>
+
+                        {/* Interactive Overlay & Chat */}
+                        <div className="relative z-10 flex flex-col h-full">
+                            {/* Top Bar with 3D Toggle */}
+                            <div className="flex justify-between items-center p-4 bg-gradient-to-b from-black/80 to-transparent">
+                                <div>
+                                    <h1 className="text-xl font-bold text-white flex items-center gap-2">
+                                        Aira <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/50">V2.0</Badge>
+                                    </h1>
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button size="icon" variant="ghost" className="text-white hover:bg-white/20 rounded-full">
+                                        <Video className="w-5 h-5" />
+                                    </Button>
+                                </div>
+                            </div>
+
+                            {/* Chat Area */}
+                            <ScrollArea className="flex-1 px-4">
+                                <div className="space-y-6 pb-4 pt-4">
+                                    {messages.map((msg) => (
+                                        <div
+                                            key={msg.id}
+                                            className={`flex gap-3 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                                        >
+                                            {msg.sender === 'ai' && (
+                                                <Avatar className="w-10 h-10 border-2 border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.5)]">
+                                                    <AvatarImage src="/ai-3d-model.png" className="object-cover" />
+                                                    <AvatarFallback>AI</AvatarFallback>
+                                                </Avatar>
+                                            )}
+                                            <div
+                                                className={`max-w-[80%] px-5 py-3 rounded-2xl text-sm backdrop-blur-md shadow-lg ${msg.sender === 'user'
+                                                        ? 'bg-gradient-to-r from-pink-600/90 to-purple-600/90 text-white rounded-tr-sm border border-pink-500/30'
+                                                        : 'bg-black/40 text-white rounded-tl-sm border border-white/10'
+                                                    }`}
+                                            >
+                                                {msg.text}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <div ref={messagesEndRef} />
+                                </div>
+                            </ScrollArea>
+
+                            {/* Input Area */}
+                            <div className="p-4 bg-gradient-to-t from-black via-black/80 to-transparent">
+                                <form
+                                    className="flex gap-3 max-w-md mx-auto"
+                                    onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
+                                >
+                                    <Input
+                                        placeholder="Type a message..."
+                                        className="rounded-full bg-white/10 border-white/20 text-white placeholder:text-white/50 focus-visible:ring-pink-500 h-12 px-6 backdrop-blur-md"
+                                        value={inputValue}
+                                        onChange={(e) => setInputValue(e.target.value)}
+                                    />
+                                    <Button type="submit" size="icon" className="h-12 w-12 rounded-full bg-gradient-to-r from-pink-600 to-purple-600 shadow-[0_0_20px_rgba(236,72,153,0.5)] hover:shadow-[0_0_30px_rgba(236,72,153,0.7)] transition-all shrink-0 border border-white/20">
+                                        <Send className="w-5 h-5 text-white" />
+                                    </Button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </TabsContent>
+            </Tabs>
+
+            <BottomNav />
+        </div>
+    );
 };
 
-                    export default TechMatch;
+export default TechMatch;
