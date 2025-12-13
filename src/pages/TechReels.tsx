@@ -6,6 +6,55 @@ import { BottomNav } from "@/components/BottomNav";
 import { useInView } from "react-intersection-observer";
 import { Button } from "@/components/ui/button";
 
+// Mock data moved outside to be reusable
+const MOCK_REELS: Reel[] = [
+    {
+        id: '1',
+        video_url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+        caption: 'Mastering VS Code shortcuts in 60s! 🚀 #vscode #programming',
+        likes_count: 1240,
+        comments_count: 45,
+        song_name: 'Chill Lo-Fi Coding Beats',
+        user: { id: 'u1', username: 'code_wizard', avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Wizard' }
+    },
+    {
+        id: '2',
+        video_url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+        caption: 'The beauty of clean code ✨ #coding #aesthetic #satisfying',
+        likes_count: 850,
+        comments_count: 12,
+        song_name: 'Synthwave Night',
+        user: { id: 'u2', username: 'dev_artist', avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Artist' }
+    },
+    {
+        id: '3',
+        video_url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+        caption: 'Late night debugging sessions be like... 😅 #debugging #developer #nightowl',
+        likes_count: 3200,
+        comments_count: 128,
+        song_name: 'Debugging Depression',
+        user: { id: 'u3', username: 'night_owl_dev', avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Night' }
+    },
+    {
+        id: '4',
+        video_url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+        caption: 'Inside the cloud ☁️ Data Center Tour! #server #cloud #tech',
+        likes_count: 5400,
+        comments_count: 300,
+        song_name: 'Techno Server Hum',
+        user: { id: 'u4', username: 'cloud_engineer', avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Cloud' }
+    },
+    {
+        id: '5',
+        video_url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+        caption: 'My setup upgrade! Dual monitors is a game changer 🖥️🖥️ #setup #productivity',
+        likes_count: 900,
+        comments_count: 56,
+        song_name: 'Productivity Boost',
+        user: { id: 'u5', username: 'setup_king', avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Setup' }
+    }
+];
+
 const TechReels = () => {
     const [reels, setReels] = useState<Reel[]>([]);
     const [loading, setLoading] = useState(true);
@@ -20,54 +69,7 @@ const TechReels = () => {
         setIsMuted(prev => !prev);
     }, []);
 
-    // Mock data moved outside to be reusable
-    const MOCK_REELS: Reel[] = [
-        {
-            id: '1',
-            video_url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-            caption: 'Mastering VS Code shortcuts in 60s! 🚀 #vscode #programming',
-            likes_count: 1240,
-            comments_count: 45,
-            song_name: 'Chill Lo-Fi Coding Beats',
-            user: { id: 'u1', username: 'code_wizard', avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Wizard' }
-        },
-        {
-            id: '2',
-            video_url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-            caption: 'The beauty of clean code ✨ #coding #aesthetic #satisfying',
-            likes_count: 850,
-            comments_count: 12,
-            song_name: 'Synthwave Night',
-            user: { id: 'u2', username: 'dev_artist', avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Artist' }
-        },
-        {
-            id: '3',
-            video_url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-            caption: 'Late night debugging sessions be like... 😅 #debugging #developer #nightowl',
-            likes_count: 3200,
-            comments_count: 128,
-            song_name: 'Debugging Depression',
-            user: { id: 'u3', username: 'night_owl_dev', avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Night' }
-        },
-        {
-            id: '4',
-            video_url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-            caption: 'Inside the cloud ☁️ Data Center Tour! #server #cloud #tech',
-            likes_count: 5400,
-            comments_count: 300,
-            song_name: 'Techno Server Hum',
-            user: { id: 'u4', username: 'cloud_engineer', avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Cloud' }
-        },
-        {
-            id: '5',
-            video_url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
-            caption: 'My setup upgrade! Dual monitors is a game changer 🖥️🖥️ #setup #productivity',
-            likes_count: 900,
-            comments_count: 56,
-            song_name: 'Productivity Boost',
-            user: { id: 'u5', username: 'setup_king', avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Setup' }
-        }
-    ];
+
 
     const fetchReels = async () => {
         try {
