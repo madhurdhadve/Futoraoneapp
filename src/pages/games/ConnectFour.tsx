@@ -282,6 +282,7 @@ const ConnectFour = () => {
                                                         ? "bg-red-500 border-red-400"
                                                         : "bg-yellow-400 border-yellow-300"}
                                                 `}
+                                                style={{ willChange: "transform" }}
                                             >
                                                 {/* Shine effect */}
                                                 <div className="absolute top-2 left-2 w-1/3 h-1/3 bg-white/30 rounded-full blur-[1px]" />

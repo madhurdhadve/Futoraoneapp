@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { BottomNav } from "@/components/BottomNav";
-import { MessageCircle, Search, Users } from "lucide-react";
+import { MessageCircle, Search, Users, ExternalLink } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { formatDistanceToNow } from "date-fns";
 import type { User } from "@supabase/supabase-js";
@@ -13,6 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { CartoonLoader } from "@/components/CartoonLoader";
 import { CreateGroupDialog } from "@/components/chat/CreateGroupDialog";
 import { GroupsList } from "@/components/chat/GroupsList";
+import { OnlineIndicator } from "@/components/OnlineIndicator";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ConversationWithDetails {
   id: string;
@@ -31,46 +33,61 @@ interface ConversationWithDetails {
 }
 
 const ConversationItem = React.memo(({ conv, onClick }: { conv: ConversationWithDetails, onClick: (id: string) => void }) => (
-  <Card
-    className="bg-card border-border hover:border-primary transition-all cursor-pointer"
-    onClick={() => onClick(conv.id)}
+  <motion.div
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    whileHover={{ scale: 1.01 }}
+    transition={{ duration: 0.2 }}
   >
-    <CardContent className="p-3 sm:p-4">
-      <div className="flex items-center gap-3">
-        <Avatar className="h-12 w-12 shrink-0">
-          <AvatarImage src={conv.otherUser.avatar_url || undefined} />
-          <AvatarFallback className="bg-primary text-primary-foreground">
-            {conv.otherUser.username[0]?.toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2">
-            <p className="font-semibold text-foreground truncate">
-              {conv.otherUser.full_name}
-            </p>
-            {conv.lastMessage && (
-              <span className="text-xs text-muted-foreground shrink-0">
-                {formatDistanceToNow(new Date(conv.lastMessage.created_at), {
-                  addSuffix: true
-                })}
-              </span>
-            )}
+    <Card
+      className={`border-0 shadow-sm hover:shadow-md transition-all cursor-pointer bg-card/50 hover:bg-card mb-2 ${conv.unreadCount > 0 ? 'bg-primary/5 ring-1 ring-primary/10' : ''}`}
+      onClick={() => onClick(conv.id)}
+    >
+      <CardContent className="p-3 sm:p-4">
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <Avatar className="h-14 w-14 border-2 border-background shadow-sm">
+              <AvatarImage src={conv.otherUser.avatar_url || undefined} className="object-cover" />
+              <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-bold">
+                {conv.otherUser.username[0]?.toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <OnlineIndicator userId={conv.otherUser.id} className="w-3.5 h-3.5 border-[3px]" />
           </div>
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-sm text-muted-foreground truncate">
-              {conv.lastMessage?.content || "Start a conversation"}
-            </p>
-            {conv.unreadCount > 0 && (
-              <Badge className="bg-primary text-primary-foreground shrink-0">
-                {conv.unreadCount}
-              </Badge>
-            )}
+
+          <div className="flex-1 min-w-0 grid gap-1">
+            <div className="flex items-center justify-between">
+              <h3 className={`font-semibold text-base truncate ${conv.unreadCount > 0 ? 'text-foreground' : 'text-foreground/90'}`}>
+                {conv.otherUser.full_name}
+              </h3>
+              {conv.lastMessage && (
+                <span className={`text-xs whitespace-nowrap ${conv.unreadCount > 0 ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
+                  {formatDistanceToNow(new Date(conv.lastMessage.created_at), { addSuffix: false }).replace('about ', '')}
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between gap-2">
+              <p className={`text-sm truncate pr-2 ${conv.unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                {conv.lastMessage?.content || <span className="text-muted-foreground italic">No messages yet</span>}
+              </p>
+              {conv.unreadCount > 0 && (
+                <Badge className="h-5 min-w-[1.25rem] px-1 flex items-center justify-center bg-primary text-primary-foreground text-[10px] rounded-full shadow-sm animate-in zoom-in">
+                  {conv.unreadCount}
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </CardContent>
-  </Card>
+      </CardContent>
+    </Card>
+  </motion.div>
 ));
+
+import { ActiveUsersList } from "@/components/chat/ActiveUsersList";
+import { MessageSquarePlus, Filter, Archive } from "lucide-react";
+
+// ... (keep existing imports)
 
 const Messages = () => {
   const navigate = useNavigate();
@@ -79,210 +96,136 @@ const Messages = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<'direct' | 'groups'>('direct');
+  const [showUnreadOnly, setShowUnreadOnly] = useState(false);
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
+  // ... (keep existing effects and functions)
 
-  useEffect(() => {
-    if (user && activeTab === 'direct') {
-      fetchConversations();
-      subscribeToConversations();
-    }
-  }, [user, activeTab]);
-
-  const checkAuth = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-    setUser(user);
-  };
-
-  const subscribeToConversations = () => {
-    const channel = supabase
-      .channel('conversations-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'messages'
-        },
-        () => {
-          fetchConversations();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  };
-
-  const fetchConversations = async () => {
-    if (!user) return;
-    setLoading(true);
-
-    // Get all conversations the user is part of
-    const { data: participations } = await supabase
-      .from("conversation_participants")
-      .select("conversation_id, last_read_at, conversations(id, updated_at)")
-      .eq("user_id", user.id);
-
-    if (!participations || participations.length === 0) {
-      setLoading(false);
-      setConversations([]);
-      return;
-    }
-
-    const conversationIds = participations.map(p => p.conversation_id);
-
-    // Get other participants for each conversation
-    const { data: otherParticipants } = await supabase
-      .from("conversation_participants")
-      .select("conversation_id, user_id, profiles(id, username, full_name, avatar_url)")
-      .in("conversation_id", conversationIds)
-      .neq("user_id", user.id);
-
-    // Get last message for each conversation
-    const { data: lastMessages } = await supabase
-      .from("messages")
-      .select("conversation_id, content, created_at")
-      .in("conversation_id", conversationIds)
-      .order("created_at", { ascending: false });
-
-    // Get unread message counts - optimized single query instead of N+1
-    const { data: unreadMessages } = await supabase
-      .from("messages")
-      .select("conversation_id, sender_id, created_at")
-      .in("conversation_id", conversationIds)
-      .neq("sender_id", user.id);
-
-    // Calculate unread counts per conversation in JavaScript
-    const unreadCounts: Record<string, number> = {};
-    participations.forEach(p => {
-      const count = unreadMessages?.filter(msg =>
-        msg.conversation_id === p.conversation_id &&
-        msg.created_at > (p.last_read_at || "1970-01-01")
-      ).length || 0;
-      unreadCounts[p.conversation_id] = count;
-    });
-
-    // Build conversation details
-    const conversationDetails: ConversationWithDetails[] = participations
-      .map(p => {
-        const conv = p.conversations as any;
-        const otherParticipant = otherParticipants?.find(
-          op => op.conversation_id === p.conversation_id
-        );
-        const lastMsg = lastMessages?.find(
-          m => m.conversation_id === p.conversation_id
-        );
-
-        if (!otherParticipant?.profiles) return null;
-
-        return {
-          id: conv.id,
-          updated_at: conv.updated_at,
-          otherUser: otherParticipant.profiles as any,
-          lastMessage: lastMsg || null,
-          unreadCount: unreadCounts[p.conversation_id] || 0
-        };
-      })
-      .filter(Boolean) as ConversationWithDetails[];
-
-    // Sort by most recent
-    conversationDetails.sort((a, b) =>
-      new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-    );
-
-    setConversations(conversationDetails);
-    setLoading(false);
-  };
-
-  const handleSearchUsers = () => {
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
-    }
-  };
+  const filteredConversations = conversations.filter(conv => {
+    const matchesSearch = conv.otherUser.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      conv.otherUser.username.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesUnread = showUnreadOnly ? conv.unreadCount > 0 : true;
+    return matchesSearch && matchesUnread;
+  });
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <div className="sticky top-0 z-10 bg-card border-b border-border p-3 sm:p-4 space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Messages</h1>
-          {activeTab === 'groups' && <CreateGroupDialog onGroupCreated={() => { }} />}
-        </div>
-
-        {/* Tabs */}
-        <div className="flex p-1 bg-muted/50 rounded-lg">
-          <button
-            className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-all ${activeTab === 'direct'
-              ? 'bg-background text-foreground shadow-sm'
-              : 'text-muted-foreground hover:bg-background/50'
-              }`}
-            onClick={() => setActiveTab('direct')}
-          >
-            <MessageCircle className="w-4 h-4" />
-            Direct
-          </button>
-          <button
-            className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-all ${activeTab === 'groups'
-              ? 'bg-background text-foreground shadow-sm'
-              : 'text-muted-foreground hover:bg-background/50'
-              }`}
-            onClick={() => setActiveTab('groups')}
-          >
-            <Users className="w-4 h-4" />
-            Communities
-          </button>
-        </div>
-
-        {activeTab === 'direct' && (
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-            <Input
-              placeholder="Search users to message..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearchUsers()}
-              className="pl-10 bg-background border-border"
-            />
+    <div className="min-h-screen bg-background pb-20 relative">
+      {/* Sticky Premium Header */}
+      <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border/50">
+        <div className="p-3 sm:p-4 space-y-4 max-w-3xl mx-auto">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent flex items-center gap-2">
+              Messages
+            </h1>
+            <div className="flex gap-2">
+              {activeTab === 'groups' && <CreateGroupDialog onGroupCreated={() => { }} />}
+              <Button variant="ghost" size="icon" className="rounded-full" onClick={() => navigate('/search')}>
+                <MessageSquarePlus className="w-6 h-6 text-primary" />
+              </Button>
+            </div>
           </div>
-        )}
+
+          {/* Custom Tabs */}
+          <div className="flex p-1 bg-secondary/30 rounded-xl relative">
+            <div
+              className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-background rounded-lg shadow-sm transition-all duration-300 ease-spring ${activeTab === 'direct' ? 'left-1' : 'left-[calc(50%+4px)]'}`}
+            />
+            <button
+              className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition-colors ${activeTab === 'direct' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground/80'}`}
+              onClick={() => setActiveTab('direct')}
+            >
+              <MessageCircle className="w-4 h-4" />
+              Direct
+            </button>
+            <button
+              className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition-colors ${activeTab === 'groups' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground/80'}`}
+              onClick={() => setActiveTab('groups')}
+            >
+              <Users className="w-4 h-4" />
+              Communities
+            </button>
+          </div>
+
+          {/* Search & Filter Row */}
+          {activeTab === 'direct' && (
+            <div className="flex gap-2">
+              <div className="relative group flex-1">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                </div>
+                <Input
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-10 bg-secondary/50 border-transparent hover:bg-secondary/80 focus:bg-background focus:border-primary/20 rounded-full transition-all"
+                />
+              </div>
+              <Button
+                variant={showUnreadOnly ? "default" : "outline"}
+                size="icon"
+                className={`rounded-full shrink-0 ${showUnreadOnly ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-secondary'}`}
+                onClick={() => setShowUnreadOnly(!showUnreadOnly)}
+              >
+                <Filter className={`w-4 h-4 ${showUnreadOnly ? 'fill-current' : ''}`} />
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="p-3 sm:p-4">
+      <div className="p-3 sm:p-4 max-w-3xl mx-auto">
         {activeTab === 'direct' ? (
           loading ? (
-            <CartoonLoader />
-          ) : conversations.length === 0 ? (
-            <Card className="bg-card border-border">
-              <CardContent className="p-8 text-center">
-                <MessageCircle className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground mb-4">No conversations yet</p>
-                <Button onClick={() => navigate("/search")}>
-                  Find people to message
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-2">
-              {conversations.map((conv) => (
-                <ConversationItem
-                  key={conv.id}
-                  conv={conv}
-                  onClick={(id) => navigate(`/chat/${id}`)}
-                />
-              ))}
+            <div className="pt-8">
+              <CartoonLoader />
             </div>
+          ) : (
+            <>
+              {/* Active Users Bar */}
+              <ActiveUsersList currentUserId={user?.id || ""} />
+
+              {/* Messages List */}
+              {filteredConversations.length === 0 ? (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="text-center py-12"
+                >
+                  <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <MessageCircle className="w-10 h-10 text-primary" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">
+                    {showUnreadOnly ? "No unread messages" : "No messages yet"}
+                  </h3>
+                  <p className="text-muted-foreground mb-6 max-w-xs mx-auto">
+                    {showUnreadOnly ? "You're all caught up!" : "Start a conversation to see it here."}
+                  </p>
+                  {!showUnreadOnly && (
+                    <Button onClick={() => navigate("/search")} className="rounded-full px-8 shadow-lg">
+                      Find People
+                    </Button>
+                  )}
+                </motion.div>
+              ) : (
+                <AnimatePresence>
+                  <div className="space-y-1 pb-4">
+                    {filteredConversations.map((conv) => (
+                      <ConversationItem
+                        key={conv.id}
+                        conv={conv}
+                        onClick={(id) => navigate(`/chat/${id}`)}
+                      />
+                    ))}
+                  </div>
+                </AnimatePresence>
+              )}
+            </>
           )
         ) : (
           <GroupsList currentUserId={user?.id || ""} />
         )}
       </div>
+
+
 
       <BottomNav />
     </div>

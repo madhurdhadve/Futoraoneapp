@@ -74,7 +74,7 @@ const games = [
     }
 ];
 
-const Games = () => {
+const Games = React.memo(() => {
     const navigate = useNavigate();
 
     return (
@@ -101,6 +101,7 @@ const Games = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
                     className="relative overflow-hidden rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 text-white shadow-2xl hover:shadow-violet-500/20 transition-shadow duration-500"
+                    style={{ willChange: "transform, opacity" }}
                 >
                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
                     {/* Decorative blurred blob */}
@@ -133,6 +134,7 @@ const Games = () => {
                             animate={{ y: [0, -20, 0], rotate: [0, 5, 0] }}
                             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
                             className="relative hidden md:block"
+                            style={{ willChange: "transform" }}
                         >
                             <div className="w-[300px] h-[300px] md:w-[400px] md:h-[400px] bg-gradient-to-tr from-white/10 to-transparent backdrop-blur-sm rounded-[3rem] border border-white/20 flex items-center justify-center relative shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
                                 <div className="absolute inset-4 border-2 border-dashed border-white/20 rounded-[2.5rem]" />
@@ -152,9 +154,10 @@ const Games = () => {
                             key={game.id}
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: index * 0.1 + 0.3 }}
+                            transition={{ delay: index * 0.1 }}
                             whileHover={{ y: -5 }}
                             className="h-full"
+                            style={{ willChange: "transform, opacity" }}
                         >
                             <Card
                                 className="group h-full border-0 shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer overflow-hidden bg-white dark:bg-slate-900 rounded-[2rem] relative flex flex-col"
@@ -171,6 +174,7 @@ const Games = () => {
                                     {/* Central Icon Container - The "Badge" Look */}
                                     <motion.div
                                         className="relative z-10 w-20 h-20 md:w-24 md:h-24 bg-white/20 backdrop-blur-md rounded-[1.5rem] flex items-center justify-center shadow-lg border border-white/30 group-hover:scale-110 transition-transform duration-500"
+                                        style={{ willChange: "transform" }}
                                     >
                                         {/* Internal Dashed Border for Detail */}
                                         <div className="absolute inset-2 border border-dashed border-white/40 rounded-[1rem]" />
@@ -227,6 +231,6 @@ const Games = () => {
             </div>
         </div>
     );
-};
+});
 
 export default Games;

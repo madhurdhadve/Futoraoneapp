@@ -385,6 +385,7 @@ const DotsAndBoxes = () => {
                                                                 className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-sm 
                                                                     ${boxes[r][c] === 1 ? "bg-blue-100 text-blue-600" : "bg-pink-100 text-pink-600"}
                                                                 `}
+                                                                style={{ willChange: "transform" }}
                                                             >
                                                                 {boxes[r][c] === 1 ? <User className="w-6 h-6" /> : (gameMode === 'AI' ? <Cpu className="w-6 h-6" /> : <User className="w-6 h-6" />)}
                                                             </motion.div>

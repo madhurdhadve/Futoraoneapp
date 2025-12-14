@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, memo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ interface Message {
   sender_id: string;
   created_at: string;
   is_read: boolean;
+  // Make sure to include any other fields used
 }
 
 interface OtherUser {
@@ -24,6 +25,32 @@ interface OtherUser {
   full_name: string;
   avatar_url: string | null;
 }
+
+// Memoized message component to prevent unnecessary re-renders
+const MessageBubble = memo(({ message, isOwn }: { message: Message, isOwn: boolean }) => (
+  <div className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
+    <div
+      className={`max-w-[70%] sm:max-w-[60%] rounded-2xl px-4 py-2 ${isOwn
+        ? "bg-primary text-primary-foreground"
+        : "bg-muted text-foreground"
+        }`}
+    >
+      <p className="text-sm sm:text-base break-words">{message.content}</p>
+      <div className="flex items-center justify-end gap-1 mt-1">
+        <p className="text-xs opacity-70">
+          {formatDistanceToNow(new Date(message.created_at), {
+            addSuffix: true
+          })}
+        </p>
+        {isOwn && message.is_read && (
+          <span className="text-xs opacity-70">• Read</span>
+        )}
+      </div>
+    </div>
+  </div>
+));
+
+MessageBubble.displayName = "MessageBubble";
 
 const Chat = () => {
   const { conversationId } = useParams();
@@ -38,6 +65,7 @@ const Chat = () => {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const lastTypingSentRef = useRef<number>(0);
 
   useEffect(() => {
     checkAuth();
@@ -177,25 +205,29 @@ const Chat = () => {
       .neq("sender_id", user.id);
   };
 
-  const handleTyping = async () => {
+  const handleTyping = useCallback(async () => {
     if (!user || !conversationId) return;
 
-    // Clear existing timeout
+    // Clear existing timeout to prevent premature "is typing: false"
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
 
-    // Set typing indicator
-    await supabase
-      .from("typing_indicators")
-      .upsert({
-        conversation_id: conversationId,
-        user_id: user.id,
-        is_typing: true,
-        updated_at: new Date().toISOString()
-      });
+    const now = Date.now();
+    // Only send "is typing" update if more than 2 seconds have passed since last update
+    if (now - lastTypingSentRef.current > 2000) {
+      lastTypingSentRef.current = now;
+      await supabase
+        .from("typing_indicators")
+        .upsert({
+          conversation_id: conversationId,
+          user_id: user.id,
+          is_typing: true,
+          updated_at: new Date().toISOString()
+        });
+    }
 
-    // Clear typing indicator after 2 seconds
+    // Set timeout to clear typing status
     typingTimeoutRef.current = setTimeout(async () => {
       await supabase
         .from("typing_indicators")
@@ -205,8 +237,9 @@ const Chat = () => {
           is_typing: false,
           updated_at: new Date().toISOString()
         });
-    }, 2000);
-  };
+      lastTypingSentRef.current = 0; // Reset so next type sends immediately
+    }, 3000);
+  }, [user, conversationId]);
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -222,6 +255,9 @@ const Chat = () => {
     });
 
     // Clear typing indicator
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
     await supabase
       .from("typing_indicators")
       .upsert({
@@ -230,6 +266,7 @@ const Chat = () => {
         is_typing: false,
         updated_at: new Date().toISOString()
       });
+    lastTypingSentRef.current = 0;
 
     if (error) {
       toast({
@@ -289,34 +326,13 @@ const Chat = () => {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4">
-        {messages.map((message) => {
-          const isOwn = message.sender_id === user?.id;
-          return (
-            <div
-              key={message.id}
-              className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
-            >
-              <div
-                className={`max-w-[70%] sm:max-w-[60%] rounded-2xl px-4 py-2 ${isOwn
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-foreground"
-                  }`}
-              >
-                <p className="text-sm sm:text-base break-words">{message.content}</p>
-                <div className="flex items-center justify-end gap-1 mt-1">
-                  <p className="text-xs opacity-70">
-                    {formatDistanceToNow(new Date(message.created_at), {
-                      addSuffix: true
-                    })}
-                  </p>
-                  {isOwn && message.is_read && (
-                    <span className="text-xs opacity-70">• Read</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        {messages.map((message) => (
+          <MessageBubble
+            key={message.id}
+            message={message}
+            isOwn={message.sender_id === user?.id}
+          />
+        ))}
         {isTyping && (
           <div className="flex justify-start">
             <div className="bg-muted rounded-2xl px-4 py-2">
