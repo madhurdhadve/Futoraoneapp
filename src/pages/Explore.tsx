@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, TrendingUp, Code, Brain, Shield, Cloud, Cpu, Blocks, Users, Smartphone, Database, Rocket, ExternalLink, Zap, Heart } from "lucide-react";
+import { Search, TrendingUp, Code, Brain, Shield, Cloud, Cpu, Blocks, Users, Smartphone, Database, Rocket, ExternalLink, Zap, Heart, Gamepad2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
@@ -277,31 +277,56 @@ const Explore = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="col-span-2"
             >
               <Card
-                className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 cursor-pointer overflow-hidden relative hover:scale-[1.01] transition-transform duration-300"
+                className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 cursor-pointer overflow-hidden relative h-full hover:scale-[1.02] transition-transform duration-300"
                 onClick={() => navigate('/tech-match')}
               >
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 p-2 opacity-10">
-                  <Heart size={100} />
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <Heart size={80} />
                 </div>
-                <CardContent className="p-3 relative z-10 flex flex-row items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 overflow-hidden">
-                    <div className="bg-white/20 p-2 rounded-full shrink-0">
-                      <Heart className="text-white w-5 h-5 fill-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-base md:text-lg font-bold flex items-center gap-2 truncate">
-                        Tech Match
-                      </h2>
-                      <p className="text-white/90 text-xs md:text-sm truncate">
-                        Find your player 2. Date other devs.
-                      </p>
-                    </div>
+                <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between gap-2">
+                  <div>
+                    <h2 className="text-lg md:text-2xl font-bold mb-1 flex items-center gap-2">
+                      <Heart className="fill-white w-5 h-5 md:w-6 md:h-6" />
+                      <span className="leading-tight">Tech Match</span>
+                    </h2>
+                    <p className="text-white/90 text-xs md:text-base line-clamp-3 md:line-clamp-none">
+                      Find your player 2. Date other devs.
+                    </p>
                   </div>
-                  <Button size="sm" variant="secondary" className="shrink-0 font-bold text-rose-600 hover:text-rose-700 h-8 text-xs px-4">
+                  <Button size="sm" variant="secondary" className="mt-2 w-full md:w-fit font-bold text-rose-600 hover:text-rose-700 h-8 text-xs md:text-sm">
                     Connect
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Game Zone Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <Card
+                className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white border-0 cursor-pointer overflow-hidden relative h-full hover:scale-[1.02] transition-transform duration-300"
+                onClick={() => navigate('/games')}
+              >
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <Gamepad2 size={80} />
+                </div>
+                <CardContent className="p-4 relative z-10 flex flex-col h-full justify-between gap-2">
+                  <div>
+                    <h2 className="text-lg md:text-2xl font-bold mb-1 flex items-center gap-2">
+                      <Gamepad2 className="fill-white w-5 h-5 md:w-6 md:h-6" />
+                      <span className="leading-tight">Game Zone</span>
+                    </h2>
+                    <p className="text-white/90 text-xs md:text-base line-clamp-3 md:line-clamp-none">
+                      Play multiplayer games with friends.
+                    </p>
+                  </div>
+                  <Button size="sm" variant="secondary" className="mt-2 w-full md:w-fit font-bold text-indigo-600 hover:text-indigo-700 h-8 text-xs md:text-sm">
+                    Play Now
                   </Button>
                 </CardContent>
               </Card>

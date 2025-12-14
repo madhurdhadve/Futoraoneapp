@@ -50,7 +50,15 @@ const FoundersCorner = lazy(() => import("./pages/FoundersCorner"));
 const GigMarketplace = lazy(() => import("./pages/GigMarketplace"));
 const TechReels = lazy(() => import("./pages/TechReels"));
 const TechMatch = lazy(() => import("./pages/TechMatch"));
+
 const GroupChat = lazy(() => import("./pages/GroupChat"));
+
+const Games = lazy(() => import("./pages/Games"));
+const DotsAndBoxes = lazy(() => import("./pages/games/DotsAndBoxes"));
+const TicTacToe = lazy(() => import("./pages/games/TicTacToe"));
+const MemoryMatch = lazy(() => import("./pages/games/MemoryMatch"));
+const RockPaperScissors = lazy(() => import("./pages/games/RockPaperScissors"));
+const ConnectFour = lazy(() => import("./pages/games/ConnectFour"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -116,6 +124,15 @@ const App = () => {
                 <Route path="/tech-match" element={<TechMatch />} />
                 <Route path="/messages/group/:groupId" element={<GroupChat />} />
                 <Route path="/post/:postId" element={<PostDetails />} />
+
+                {/* Games */}
+                <Route path="/games" element={<Games />} />
+                <Route path="/games/dots-and-boxes" element={<DotsAndBoxes />} />
+                <Route path="/games/tic-tac-toe" element={<TicTacToe />} />
+                <Route path="/games/memory-match" element={<MemoryMatch />} />
+                <Route path="/games/rock-paper-scissors" element={<RockPaperScissors />} />
+                <Route path="/games/connect-four" element={<ConnectFour />} />
+
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
