@@ -72,32 +72,42 @@ export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDe
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
+      initial={{ opacity: 0, y: 30, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ delay: index * 0.08, type: "spring", stiffness: 100 }}
+      whileHover={{ y: -4, scale: 1.01 }}
+      className="group"
     >
-      <Card className="overflow-hidden shadow-lg border-2 border-black/30 dark:border-border">
-        <div className="p-6">
+      <Card className="overflow-hidden shadow-md hover:shadow-2xl border border-border/50 hover:border-primary/20 transition-all duration-300 bg-card/60 backdrop-blur-sm">
+        {/* Subtle gradient overlay on hover */}
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 pointer-events-none" />
+
+        <div className="p-6 relative z-10">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate(`/user/${post.user_id}`)}>
-              <Avatar className="w-12 h-12 border-2 border-primary">
+            <motion.div
+              className="flex items-center gap-3 cursor-pointer"
+              onClick={() => navigate(`/user/${post.user_id}`)}
+              whileHover={{ x: 2 }}
+              transition={{ type: "spring", stiffness: 400 }}
+            >
+              <Avatar className="w-12 h-12 border-2 border-primary ring-2 ring-primary/10 hover:ring-primary/30 transition-all">
                 <AvatarImage src={post.profiles.avatar_url || undefined} loading="lazy" />
-                <AvatarFallback>{post.profiles.username[0]}</AvatarFallback>
+                <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20">{post.profiles.username[0]}</AvatarFallback>
               </Avatar>
               <div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                   <h3 className="font-semibold hover:text-primary transition-colors">{post.profiles.full_name}</h3>
                   <VerifiedBadge isVerified={post.profiles.is_verified} size={14} />
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   @{post.profiles.username} · {new Date(post.created_at).toLocaleDateString()} · {calculateReadTime(post.content)}
                 </p>
               </div>
-            </div>
+            </motion.div>
             {isOwner && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
                     <MoreVertical className="w-5 h-5" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -119,7 +129,7 @@ export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDe
           </div>
 
           <div
-            className="mb-4 prose dark:prose-invert max-w-none cursor-pointer hover:opacity-95 transition-opacity"
+            className="mb-4 prose dark:prose-invert max-w-none cursor-pointer hover:opacity-90 transition-opacity leading-relaxed"
             onClick={() => navigate(`/post/${post.id}`)}
             dangerouslySetInnerHTML={{
               __html: DOMPurify.sanitize(post.content.replace(/\n/g, '<br />'))
@@ -128,12 +138,14 @@ export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDe
 
           {post.image_url && (
             <>
-              <img
+              <motion.img
                 src={post.image_url}
                 alt="Post"
-                className="w-full rounded-xl object-cover mb-4 cursor-pointer hover:opacity-90 transition-opacity"
+                className="w-full rounded-2xl object-cover mb-4 cursor-pointer shadow-md"
                 loading="lazy"
                 onClick={() => setLightboxOpen(true)}
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300 }}
               />
               <ImageLightbox
                 imageUrl={post.image_url}
@@ -147,46 +159,55 @@ export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDe
             <video
               src={post.video_url}
               controls
-              className="w-full rounded-xl mb-4"
+              className="w-full rounded-2xl mb-4 shadow-md"
               preload="metadata"
             />
           )}
 
-          <div className="flex items-center justify-between pt-4 border-t">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLikeClick}
-              className={isLiked ? "text-secondary" : ""}
-            >
-              <Heart
-                className={`w-5 h-5 mr-2 ${isLiked ? "fill-secondary" : ""}`}
-              />
-              {post.likes.length}
-            </Button>
-            <Button variant="ghost" size="sm">
-              <MessageCircle className="w-5 h-5 mr-2" />
-              {post.comments.length}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onSave(post.id, !!isSaved)}
-              className={isSaved ? "text-primary" : ""}
-            >
-              <Bookmark
-                className={`w-5 h-5 mr-2 ${isSaved ? "fill-primary" : ""}`}
-              />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => onShare(post)}>
-              <Share2 className="w-5 h-5 mr-2" />
-            </Button>
+          <div className="flex items-center justify-between pt-4 border-t border-border/50">
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLikeClick}
+                className={`${isLiked ? "text-red-500 hover:text-red-600" : "hover:text-red-500"} transition-colors`}
+              >
+                <Heart
+                  className={`w-5 h-5 mr-1.5 ${isLiked ? "fill-red-500" : ""} transition-all`}
+                />
+                <span className="font-medium">{post.likes.length}</span>
+              </Button>
+            </motion.div>
+
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button variant="ghost" size="sm" className="hover:text-blue-500 transition-colors">
+                <MessageCircle className="w-5 h-5 mr-1.5" />
+                <span className="font-medium">{post.comments.length}</span>
+              </Button>
+            </motion.div>
+
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onSave(post.id, !!isSaved)}
+                className={`${isSaved ? "text-primary hover:text-primary/80" : "hover:text-primary"} transition-colors`}
+              >
+                <Bookmark
+                  className={`w-5 h-5 mr-1.5 ${isSaved ? "fill-primary" : ""} transition-all`}
+                />
+              </Button>
+            </motion.div>
+
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button variant="ghost" size="sm" onClick={() => onShare(post)} className="hover:text-green-500 transition-colors">
+                <Share2 className="w-5 h-5" />
+              </Button>
+            </motion.div>
           </div>
 
-
-
           {/* Comments Section */}
-          <div className="mt-4 pt-4 border-t">
+          <div className="mt-4 pt-4 border-t border-border/50">
             <CommentSection
               postId={post.id}
               postAuthorId={post.user_id}
