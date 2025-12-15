@@ -18,11 +18,11 @@ import Index from "./pages/Index";
 import Welcome from "./pages/Welcome";
 import Auth from "./pages/Auth";
 import Feed from "./pages/Feed";
-import Explore from "./pages/Explore";
-import Messages from "./pages/Messages";
+// import Messages from "./pages/Messages";
 import Profile from "./pages/Profile";
 
 // Lazy load other pages
+const Explore = lazy(() => import("./pages/Explore"));
 const CreatePost = lazy(() => import("./pages/CreatePost"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 // const Profile = lazy(() => import("./pages/Profile")); // Removed lazy profile
@@ -40,7 +40,7 @@ const SearchResults = lazy(() => import("./pages/SearchResults"));
 const UserProfile = lazy(() => import("./pages/UserProfile"));
 const ChatPage = lazy(() => import("./pages/ChatPage"));
 const AIPage = lazy(() => import("./pages/AIPage"));
-// const Messages = lazy(() => import("./pages/Messages")); // Removed lazy messages
+const Messages = lazy(() => import("./pages/Messages"));
 const Chat = lazy(() => import("./pages/Chat"));
 const CreateStory = lazy(() => import("./pages/CreateStory"));
 const StoryView = lazy(() => import("./pages/StoryView"));

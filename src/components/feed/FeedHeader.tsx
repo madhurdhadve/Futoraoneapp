@@ -1,0 +1,45 @@
+import { Button } from "@/components/ui/button";
+import { Zap, Film, Bell } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+interface FeedHeaderProps {
+    unreadCount?: number;
+}
+
+export const FeedHeader = ({ unreadCount = 0 }: FeedHeaderProps) => {
+    const navigate = useNavigate();
+
+    return (
+        <header className="sticky top-0 z-50 bg-card border-b border-black/20 dark:border-border shadow-sm">
+            <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
+                <h1 className="text-2xl font-bold gradient-text">FutoraOne</h1>
+                <div className="flex items-center gap-4">
+                    <Button
+                        size="icon"
+                        variant="ghost"
+                        className="relative w-12 h-12 mr-2 animate-blink-glow bg-primary/10 rounded-full hover:bg-primary/20 transition-all"
+                        onClick={() => navigate("/ai-tools")}
+                    >
+                        <Zap className="w-8 h-8 text-primary" />
+                        <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-sky-500"></span>
+                        </span>
+                    </Button>
+                    <Button
+                        size="icon"
+                        variant="ghost"
+                        className="relative w-10 h-10 mr-2 hover:bg-muted transition-all"
+                        onClick={() => navigate("/tech-reels")}
+                    >
+                        <Film className="w-6 h-6 text-foreground" />
+                    </Button>
+                    <Button size="icon" variant="ghost" className="relative" onClick={() => navigate("/notifications")}>
+                        <Bell className="w-5 h-5" />
+                        <span className={`absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full ${unreadCount > 0 ? 'animate-blink-glow' : ''}`}></span>
+                    </Button>
+                </div>
+            </div>
+        </header>
+    );
+};

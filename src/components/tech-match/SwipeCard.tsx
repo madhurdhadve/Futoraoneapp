@@ -35,9 +35,9 @@ export const SwipeCard = memo(({ profile, onSwipe, exitDirection }: SwipeCardPro
     const leftOpacity = useTransform(x, [-150, -50], [1, 0]);
 
     const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-        if (info.offset.x > 100) {
+        if (info.offset.x > 80) {
             onSwipe("right");
-        } else if (info.offset.x < -100) {
+        } else if (info.offset.x < -80) {
             onSwipe("left");
         }
     };
@@ -52,7 +52,8 @@ export const SwipeCard = memo(({ profile, onSwipe, exitDirection }: SwipeCardPro
         <motion.div
             style={{ x, rotate, opacity }}
             drag="x"
-            dragConstraints={{ left: 0, right: 0 }}
+            dragConstraints={{ left: -300, right: 300 }}
+            dragElastic={0.2}
             onDragEnd={handleDragEnd}
             initial={{ scale: 0.95, opacity: 0.5, y: 0 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}

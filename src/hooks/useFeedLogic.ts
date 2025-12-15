@@ -1,0 +1,433 @@
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { getPostsFromCache, savePostsToCache } from "@/utils/cache";
+import { triggerHeartConfetti } from "@/utils/confetti";
+import { sendPushNotification } from "@/utils/notifications";
+import { DEMO_POSTS } from "@/constants/feedData";
+import type { User } from "@supabase/supabase-js";
+
+interface Post {
+    id: string;
+    content: string;
+    image_url: string | null;
+    video_url: string | null;
+    user_id: string;
+    created_at: string;
+    updated_at?: string;
+    is_project_update?: boolean;
+    project_id?: string | null;
+    profiles: {
+        username: string;
+        full_name: string;
+        avatar_url: string | null;
+        is_verified?: boolean | null;
+    };
+    likes: { id: string; user_id: string }[];
+    comments: { id: string }[];
+    saves?: { id: string; user_id: string }[];
+}
+
+export const useFeedLogic = () => {
+    const [user, setUser] = useState<User | null>(null);
+    const [userProfile, setUserProfile] = useState<{ xp: number; level: number; current_streak: number } | null>(null);
+    const [posts, setPosts] = useState<Post[]>([]);
+    const [loading, setLoading] = useState(true);
+    const pageRef = useRef(0);
+    const [hasMore, setHasMore] = useState(true);
+    const POSTS_PER_PAGE = 10;
+    const [unreadCount, setUnreadCount] = useState(0);
+    const navigate = useNavigate();
+    const { toast } = useToast();
+
+    useEffect(() => {
+        // Check authentication
+        const checkAuth = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                navigate("/auth");
+            } else {
+                setUser(session.user);
+                fetchUserProfile(session.user.id);
+            }
+        };
+
+        checkAuth();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (!session) {
+                navigate("/auth");
+            } else {
+                setUser(session.user);
+                fetchUserProfile(session.user.id);
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, [navigate]);
+
+    const fetchUserProfile = async (userId: string) => {
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('xp, level, current_streak')
+            .eq('id', userId)
+            .single();
+
+        if (!error && data) {
+            setUserProfile(data);
+        }
+    };
+
+    const fetchPosts = useCallback(async () => {
+        try {
+            if (pageRef.current === 0) {
+                // setLoading(true); // Don't reset loading on pagination to prevent flicker
+            }
+
+            const { data, error } = await supabase
+                .from('posts')
+                .select(`
+          *,
+          profiles(username, full_name, avatar_url, is_verified),
+          likes(id, user_id),
+          comments(id),
+          saves(id, user_id)
+        `)
+                .order('created_at', { ascending: false })
+                .range(pageRef.current * POSTS_PER_PAGE, (pageRef.current + 1) * POSTS_PER_PAGE - 1);
+
+            if (error) throw error;
+
+            // Transform data to match Post interface (especially likes/saves which might be null from join)
+            // The join returns arrays, so we just ensure they exist
+            const formattedPosts: Post[] = (data || []).map(post => ({
+                ...post,
+                likes: post.likes || [],
+                comments: post.comments || [],
+                saves: post.saves || []
+            }));
+
+            // Combine with DEMO posts if it's the first page and we have few real posts
+            let allPosts = formattedPosts;
+            if (pageRef.current === 0 && formattedPosts.length < 5) {
+                allPosts = [...formattedPosts, ...DEMO_POSTS];
+            }
+
+            if (pageRef.current === 0) {
+                setPosts(allPosts);
+                // Save to cache
+                savePostsToCache(allPosts.slice(0, 20));
+            } else {
+                setPosts(prev => [...prev, ...allPosts]);
+            }
+
+            if (formattedPosts.length < POSTS_PER_PAGE) {
+                setHasMore(false);
+            }
+        } catch (error: any) {
+            console.error('Error fetching posts:', error);
+            toast({
+                title: "Error loading posts",
+                description: error.message,
+                variant: "destructive",
+            });
+            // Fallback to cache if network error
+            if (pageRef.current === 0) {
+                const cached = await getPostsFromCache();
+                if (cached) setPosts(cached);
+            }
+        } finally {
+            setLoading(false);
+        }
+    }, [toast]);
+
+    const fetchUnreadCount = async () => {
+        const { count } = await supabase
+            .from('notifications')
+            .select('*', { count: 'exact', head: true })
+            .eq('read', false);
+        setUnreadCount(count || 0);
+    };
+
+    useEffect(() => {
+        if (user) {
+            // Load from cache first
+            const loadCache = async () => {
+                const cachedPosts = await getPostsFromCache();
+                if (cachedPosts && cachedPosts.length > 0) {
+                    // Sort by date desc
+                    cachedPosts.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+                    setPosts(cachedPosts);
+                    setLoading(false); // Show cached content immediately
+                }
+            };
+            loadCache();
+
+            fetchPosts();
+            fetchUnreadCount();
+
+            // Subscribe to realtime updates
+            const channel = supabase
+                .channel('posts-changes')
+                .on(
+                    'postgres_changes',
+                    {
+                        event: 'INSERT',
+                        schema: 'public',
+                        table: 'posts'
+                    },
+                    (payload) => {
+                        // Optimistically add new post to the top if it's not already there
+                        const newPost = payload.new as Post;
+                        // Fetch complete post data (including profile)
+                        supabase
+                            .from('posts')
+                            .select(`
+                *,
+                profiles(username, full_name, avatar_url, is_verified),
+                likes(id, user_id),
+                comments(id),
+                saves(id, user_id)
+              `)
+                            .eq('id', newPost.id)
+                            .single()
+                            .then(({ data }) => {
+                                if (data) {
+                                    const formattedPost: Post = {
+                                        ...data,
+                                        likes: data.likes || [],
+                                        comments: data.comments || [],
+                                        saves: data.saves || []
+                                    };
+                                    setPosts(prev => [formattedPost, ...prev]);
+                                }
+                            });
+                    }
+                )
+                .subscribe();
+
+            // Subscribe to notifications
+            const notificationChannel = supabase
+                .channel('notifications-count')
+                .on(
+                    'postgres_changes',
+                    {
+                        event: '*',
+                        schema: 'public',
+                        table: 'notifications',
+                        filter: `user_id=eq.${user.id}`
+                    },
+                    () => {
+                        fetchUnreadCount();
+                    }
+                )
+                .subscribe();
+
+            return () => {
+                supabase.removeChannel(channel);
+                supabase.removeChannel(notificationChannel);
+            };
+        }
+    }, [user, fetchPosts]);
+
+    const toggleLike = useCallback(async (postId: string, isLiked: boolean) => {
+        if (!user) return;
+
+        // Skip database operations for demo posts
+        const isDemoPost = postId.startsWith('demo-post-');
+
+        // Optimistic update
+        setPosts(currentPosts => currentPosts.map(post => {
+            if (post.id === postId) {
+                if (isLiked) {
+                    const newLikes = post.likes ? post.likes.filter(like => like.user_id !== user.id) : [];
+                    return { ...post, likes: newLikes };
+                } else {
+                    const newLikes = post.likes ? [...post.likes, { id: 'temp-id', user_id: user.id }] : [{ id: 'temp-id', user_id: user.id }];
+                    return { ...post, likes: newLikes };
+                }
+            }
+            return post;
+        }));
+
+        // Don't persist demo post interactions
+        if (isDemoPost) {
+            if (!isLiked) triggerHeartConfetti();
+            return;
+        }
+
+        try {
+            if (isLiked) {
+                const { data: likeData } = await supabase
+                    .from('likes')
+                    .select('id')
+                    .eq('user_id', user.id)
+                    .eq('post_id', postId)
+                    .maybeSingle();
+
+                if (likeData) {
+                    await supabase.from('likes').delete().eq('id', likeData.id);
+                }
+            } else {
+                triggerHeartConfetti();
+                await supabase.from('likes').insert({
+                    user_id: user.id,
+                    post_id: postId,
+                });
+
+                // Send notification to post owner
+                const { data: postData } = await supabase
+                    .from('posts')
+                    .select('user_id')
+                    .eq('id', postId)
+                    .maybeSingle();
+
+                if (postData && postData.user_id !== user.id) {
+                    const actorName = user.user_metadata.full_name || user.email?.split('@')[0] || "Someone";
+                    await sendPushNotification(postData.user_id, `${actorName} liked your post`);
+                }
+            }
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: (error as Error).message,
+                variant: "destructive",
+            });
+            fetchPosts(); // Revert on error
+        }
+    }, [user, toast, fetchPosts]);
+
+    const toggleSave = useCallback(async (postId: string, isSaved: boolean) => {
+        if (!user) return;
+
+        // Skip database operations for demo posts
+        const isDemoPost = postId.startsWith('demo-post-');
+
+        // Optimistic update
+        setPosts(currentPosts => currentPosts.map(post => {
+            if (post.id === postId) {
+                if (isSaved) {
+                    const newSaves = post.saves ? post.saves.filter(save => save.user_id !== user.id) : [];
+                    return { ...post, saves: newSaves };
+                } else {
+                    const newSaves = post.saves ? [...post.saves, { id: 'temp-id', user_id: user.id }] : [{ id: 'temp-id', user_id: user.id }];
+                    return { ...post, saves: newSaves };
+                }
+            }
+            return post;
+        }));
+
+        // Don't persist demo post interactions
+        if (isDemoPost) return;
+
+        try {
+            if (isSaved) {
+                const { data: saveData } = await supabase
+                    .from('saves')
+                    .select('id')
+                    .eq('user_id', user.id)
+                    .eq('post_id', postId)
+                    .maybeSingle();
+
+                if (saveData) {
+                    await supabase.from('saves').delete().eq('id', saveData.id);
+                }
+            } else {
+                await supabase.from('saves').insert({
+                    user_id: user.id,
+                    post_id: postId,
+                });
+
+                const { data: postData } = await supabase
+                    .from('posts')
+                    .select('user_id')
+                    .eq('id', postId)
+                    .maybeSingle();
+
+                if (postData && postData.user_id !== user.id) {
+                    const actorName = user.user_metadata.full_name || user.email?.split('@')[0] || "Someone";
+                    await sendPushNotification(postData.user_id, `${actorName} saved your post`);
+                }
+            }
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: error.message,
+                variant: "destructive",
+            });
+            fetchPosts();
+        }
+    }, [user, toast, fetchPosts]);
+
+    const handleShare = useCallback(async (post: Post) => {
+        const shareData = {
+            title: `Post by ${post.profiles.full_name}`,
+            text: post.content,
+            url: window.location.href,
+        };
+
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+            } catch (error) {
+                console.log('Error sharing:', error);
+            }
+        } else {
+            navigator.clipboard.writeText(window.location.href);
+            toast({
+                title: "Link copied!",
+                description: "Share link copied to clipboard.",
+            });
+        }
+    }, [toast]);
+
+    const handleDeletePost = useCallback(async (postId: string) => {
+        try {
+            const { error } = await supabase.from('posts').delete().eq('id', postId);
+            if (error) throw error;
+            toast({
+                title: "Post deleted",
+                description: "Your post has been deleted successfully.",
+            });
+            fetchPosts();
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: error.message,
+                variant: "destructive",
+            });
+        }
+    }, [toast, fetchPosts]);
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        navigate("/");
+    };
+
+    const loadMore = useCallback(() => {
+        if (!loading && hasMore) {
+            pageRef.current += 1;
+            fetchPosts();
+        }
+    }, [loading, hasMore, fetchPosts]);
+
+    return {
+        user,
+        userProfile,
+        posts,
+        loading,
+        hasMore,
+        unreadCount,
+        setPosts,
+        loadMore,
+        fetchPosts,
+        toggleLike,
+        toggleSave,
+        handleShare,
+        handleDeletePost,
+        handleLogout
+    };
+};
+
+export type { Post };

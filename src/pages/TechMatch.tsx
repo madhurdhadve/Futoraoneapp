@@ -113,6 +113,20 @@ const TechMatch = () => {
     const [exitDirection, setExitDirection] = useState<"left" | "right" | null>(null);
     const [swipedHistory, setSwipedHistory] = useState<SwipeProfile[]>([]);
 
+    const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+    const [filterDialogOpen, setFilterDialogOpen] = useState(false);
+
+    // Common tech skills for filter
+    const AVAILABLE_SKILLS = ["React", "Node.js", "Python", "TypeScript", "Design", "Flutter", "Rust", "Go", "AWS", "AI/ML"];
+
+    const toggleSkill = (skill: string) => {
+        setSelectedSkills(prev =>
+            prev.includes(skill)
+                ? prev.filter(s => s !== skill)
+                : [...prev, skill]
+        );
+    };
+
     // Fetch potential matches
     useEffect(() => {
         const fetchProfiles = async () => {
@@ -130,25 +144,40 @@ const TechMatch = () => {
             // Add self to exclusion
             swipedIds.push(user.id);
 
-            const { data: profiles, error } = await supabase
+            let query = supabase
                 .from('profiles')
                 .select('id, username, full_name, avatar_url, bio, location, tech_skills, github_url, linkedin_url, portfolio_url')
                 .not('id', 'in', `(${swipedIds.join(',')})`)
                 .limit(20);
 
+            if (selectedSkills.length > 0) {
+                // Determine if we can use 'cs' (contains) operator for array column
+                // Note: accurate array filtering depends on Supabase/Postgres config. 
+                // A text search or 'cs' is common.
+                query = query.contains('tech_skills', selectedSkills);
+            }
+
+            const { data: profiles, error } = await query;
+
             if (profiles && profiles.length > 0) {
                 // Cast to MatchProfile type
                 setPotentialMatches(profiles as any);
             } else {
-                // FALLBACK: Use Mock Data if no real users are found (so UI is never empty)
-                setPotentialMatches(MOCK_PROFILES);
+                // FALLBACK: Filter Mock Data
+                let filteredMock = MOCK_PROFILES;
+                if (selectedSkills.length > 0) {
+                    filteredMock = MOCK_PROFILES.filter(p =>
+                        p.tech_skills?.some(skill => selectedSkills.includes(skill))
+                    );
+                }
+                setPotentialMatches(filteredMock);
             }
         };
 
         if (activeTab === 'find-devs') {
             fetchProfiles();
         }
-    }, [activeTab]);
+    }, [activeTab, selectedSkills, toast]); // Re-run when skills change
 
     // Quick Confetti function - Memoized
     const triggerConfetti = useCallback(() => {
@@ -335,6 +364,20 @@ const TechMatch = () => {
         }
     }, [inputValue, aiGender, messages, toast]);
 
+    const handleStartChat = async () => {
+        setMatchDialogOpen(false);
+        // In a real app, this would get the conversation ID. 
+        // For now, let's assume we navigate to the messages tab and refresh
+        toast({ title: "Starting chat...", description: "Connecting you with your match!" });
+
+        // If it's a real user, we'd normally wait for the conversation ID.
+        // For demo/mock:
+        // window.location.href = "/messages"; 
+
+        // Ideally:
+        // navigate(`/chat/${conversationId}`);
+    };
+
     const aiName = aiGender === 'female' ? 'Riya' : 'Arjun';
     const themeColor = aiGender === 'female' ? 'pink' : 'cyan';
     const gradientFrom = aiGender === 'female' ? 'from-pink-600' : 'from-cyan-600';
@@ -366,8 +409,20 @@ const TechMatch = () => {
 
                 <TabsContent value="find-devs" className="mt-0 animate-in fade-in slide-in-from-bottom-4 duration-500 h-[calc(100vh-130px)] flex flex-col">
                     {/* Filter Bar */}
-                    <div className="flex justify-end px-4 py-2">
-                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
+                    <div className="flex px-4 py-2 gap-2 items-center justify-between">
+                        <div className="flex gap-2 overflow-x-auto no-scrollbar mask-gradient-r">
+                            {selectedSkills.map(skill => (
+                                <Badge key={skill} variant="secondary" className="bg-primary/10 text-primary whitespace-nowrap">
+                                    {skill} <X className="w-3 h-3 ml-1 cursor-pointer" onClick={() => toggleSkill(skill)} />
+                                </Badge>
+                            ))}
+                        </div>
+                        <Button
+                            variant={selectedSkills.length > 0 ? "default" : "ghost"}
+                            size="icon"
+                            className={selectedSkills.length > 0 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-primary"}
+                            onClick={() => setFilterDialogOpen(true)}
+                        >
                             <Settings2 className="w-5 h-5" />
                         </Button>
                     </div>
@@ -391,12 +446,12 @@ const TechMatch = () => {
                                     <div className="w-20 h-20 bg-secondary/30 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
                                         <Code className="w-10 h-10 text-muted-foreground" />
                                     </div>
-                                    <h3 className="text-xl font-bold">No more profiles</h3>
+                                    <h3 className="text-xl font-bold">No matches found</h3>
                                     <p className="text-muted-foreground max-w-xs mx-auto">
-                                        We're looking for more developers in your area. Check back later!
+                                        Try adjusting your filters to see more developers.
                                     </p>
-                                    <Button onClick={() => window.location.reload()} variant="outline">
-                                        Refresh
+                                    <Button onClick={() => setSelectedSkills([])} variant="outline">
+                                        Clear Filters
                                     </Button>
                                 </div>
                             )}
@@ -468,16 +523,36 @@ const TechMatch = () => {
                                 </p>
 
                                 <div className="flex flex-col gap-3 pt-4">
-                                    <Button className="w-full bg-white text-black font-bold hover:bg-white/90" onClick={() => {
-                                        setMatchDialogOpen(false);
-                                        // Navigate to chat (future)
-                                        toast({ title: "Chat feature coming soon!", description: "Check your matches tab." });
-                                    }}>
+                                    <Button className="w-full bg-white text-black font-bold hover:bg-white/90" onClick={handleStartChat}>
                                         Send a Message
                                     </Button>
                                     <Button variant="ghost" className="w-full text-white/50 hover:text-white" onClick={() => setMatchDialogOpen(false)}>
                                         Keep Swiping
                                     </Button>
+                                </div>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+
+                    {/* Filter Dialog */}
+                    <Dialog open={filterDialogOpen} onOpenChange={setFilterDialogOpen}>
+                        <DialogContent>
+                            <div className="space-y-4">
+                                <h3 className="font-bold text-lg">Filter by Tech Stack</h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {AVAILABLE_SKILLS.map(skill => (
+                                        <Badge
+                                            key={skill}
+                                            variant={selectedSkills.includes(skill) ? "default" : "outline"}
+                                            className="cursor-pointer px-3 py-1.5 text-sm"
+                                            onClick={() => toggleSkill(skill)}
+                                        >
+                                            {skill}
+                                        </Badge>
+                                    ))}
+                                </div>
+                                <div className="flex justify-end pt-4">
+                                    <Button onClick={() => setFilterDialogOpen(false)}>Apply Filters</Button>
                                 </div>
                             </div>
                         </DialogContent>

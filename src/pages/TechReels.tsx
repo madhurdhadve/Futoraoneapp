@@ -111,11 +111,16 @@ const TechReels = () => {
 
     const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
         const container = e.currentTarget;
-        const index = Math.round(container.scrollTop / container.clientHeight);
-        if (activeReelIndex !== index) {
+        // Use scrollTop and viewport height for better snap detection
+        const scrollPosition = container.scrollTop;
+        const viewportHeight = container.clientHeight;
+        const index = Math.round(scrollPosition / viewportHeight);
+
+        // Only update if index actually changed
+        if (activeReelIndex !== index && index >= 0 && index < reels.length) {
             setActiveReelIndex(index);
         }
-    }, [activeReelIndex]);
+    }, [activeReelIndex, reels.length]);
 
     return (
         <div className="h-screen bg-black text-white flex flex-col">
@@ -134,8 +139,9 @@ const TechReels = () => {
 
             {/* Main Snap Feed */}
             <div
-                className="flex-1 overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
+                className="flex-1 overflow-y-scroll snap-y snap-mandatory scrollbar-hide overscroll-contain"
                 onScroll={handleScroll}
+                style={{ scrollSnapType: 'y mandatory' }}
             >
                 {loading ? (
                     <div className="h-full flex items-center justify-center">
