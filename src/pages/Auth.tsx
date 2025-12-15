@@ -213,20 +213,20 @@ const Auth = () => {
               <motion.div
                 layoutId="active-tab"
                 className={cn("absolute inset-1 w-[calc(50%-4px)] bg-background rounded-lg shadow-sm")}
-                style={{ left: isLogin ? '4px' : 'calc(50%)' }}
+                style={{ left: !isLogin ? '4px' : 'calc(50%)' }}
                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
               />
-              <button
-                onClick={() => { setIsLogin(true); navigate("?mode=login", { replace: true }); }}
-                className={cn("relative z-10 py-2.5 text-sm font-semibold transition-colors rounded-lg", isLogin ? "text-foreground" : "text-muted-foreground hover:text-foreground/80")}
-              >
-                Sign In
-              </button>
               <button
                 onClick={() => { setIsLogin(false); navigate("?mode=signup", { replace: true }); }}
                 className={cn("relative z-10 py-2.5 text-sm font-semibold transition-colors rounded-lg", !isLogin ? "text-foreground" : "text-muted-foreground hover:text-foreground/80")}
               >
                 Create Account
+              </button>
+              <button
+                onClick={() => { setIsLogin(true); navigate("?mode=login", { replace: true }); }}
+                className={cn("relative z-10 py-2.5 text-sm font-semibold transition-colors rounded-lg", isLogin ? "text-foreground" : "text-muted-foreground hover:text-foreground/80")}
+              >
+                Sign In
               </button>
             </div>
 
