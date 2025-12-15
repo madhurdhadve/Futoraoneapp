@@ -127,24 +127,51 @@ const Games = React.memo(() => {
                                 key={game.id}
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: index * 0.1 }}
-                                whileHover={{ y: -5 }}
+                                transition={{ delay: index * 0.1, type: "spring", stiffness: 100 }}
+                                whileHover={{ y: -8, scale: 1.02 }}
                                 onClick={() => navigate(game.path)}
-                                className="group cursor-pointer"
+                                className="group cursor-pointer relative"
                             >
-                                <Card className="h-full border-0 shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden bg-white dark:bg-slate-900 rounded-[2rem] relative flex flex-col">
-                                    <div className={`h-40 bg-gradient-to-br ${game.gradient} relative flex items-center justify-center p-6`}>
-                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                                        <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-lg border border-white/30 group-hover:scale-110 transition-transform">
-                                            {game.icon}
+                                <div className={`absolute inset-0 bg-gradient-to-br ${game.gradient} opacity-20 blur-xl group-hover:opacity-40 transition-opacity rounded-[2rem]`} />
+                                <Card className="h-full border-white/10 shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2rem] relative flex flex-col border p-1">
+                                    <div className={`relative h-48 rounded-[1.8rem] overflow-hidden`}>
+                                        <div className={`absolute inset-0 bg-gradient-to-br ${game.gradient} opacity-90 group-hover:opacity-100 transition-opacity`} />
+
+                                        {/* Pattern Overlay */}
+                                        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/50 to-transparent" />
+
+                                        {/* Icon */}
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-lg border border-white/30 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                                                {game.icon}
+                                            </div>
+                                        </div>
+
+                                        {/* Play Overlay */}
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                                            <div className="bg-white text-black font-bold px-6 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 flex items-center gap-2">
+                                                Play Now <Gamepad2 className="w-4 h-4 ml-1" />
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="p-6 flex-1 flex flex-col">
-                                        <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">{game.title}</h3>
-                                        <p className="text-slate-500 text-sm flex-1">{game.description}</p>
-                                        <div className="mt-4 flex items-center justify-between text-xs font-semibold uppercase text-muted-foreground">
-                                            <span className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">{game.difficulty}</span>
-                                            <span className="group-hover:translate-x-1 transition-transform">Play &rarr;</span>
+
+                                    <div className="p-6 flex-1 flex flex-col space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="text-xl font-bold group-hover:text-primary transition-colors text-slate-800 dark:text-slate-100">{game.title}</h3>
+                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full text-white uppercase tracking-wider bg-black/50 backdrop-blur-sm border border-white/10`}>
+                                                {game.difficulty}
+                                            </span>
+                                        </div>
+
+                                        <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed flex-1">
+                                            {game.description}
+                                        </p>
+
+                                        <div className="flex items-center gap-2 pt-2">
+                                            <div className="h-1.5 flex-1 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                                                <div className={`h-full bg-gradient-to-r ${game.gradient} w-2/3 opacity-80`} />
+                                            </div>
+                                            <span className="text-xs text-muted-foreground font-medium">1.2k playing</span>
                                         </div>
                                     </div>
                                 </Card>
