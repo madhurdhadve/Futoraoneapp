@@ -97,7 +97,7 @@ const TechMatch = () => {
     const [messages, setMessages] = useState<Message[]>([
         {
             id: '1',
-            text: "Namaste! I'm Riya 2.0. I'm fully rendered in 3D now. Do you like my new look?",
+            text: "yes",
             sender: 'ai',
             timestamp: new Date()
         }
@@ -281,7 +281,7 @@ const TechMatch = () => {
     // Reset chat when gender changes
     useEffect(() => {
         const initialMessage = aiGender === 'female'
-            ? "Namaste! I'm Riya 2.0. I'm fully rendered in 3D now. Do you like my new look?"
+            ? "yes"
             : "Hey, I'm Arjun. Ready to build something incredible together?";
 
         setMessages([{
@@ -309,27 +309,21 @@ const TechMatch = () => {
         setIsTyping(true);
 
         try {
-            // Prepare chat history for context (limit to last 10 messages to save tokens)
-            const chatHistory = messages.slice(-10).map(m => ({
-                role: m.sender === 'user' ? 'user' : 'assistant',
-                content: m.text
-            }));
+            // Hardcoded sequence for AI GF
+            await new Promise(resolve => setTimeout(resolve, 1000));
 
-            // Include the new message
-            const apiMessages = [...chatHistory, { role: 'user', content: newUserMessage.text }];
+            let reply = "I am listening...";
+            // Count AI messages currently in the conversation (excluding the one we are about to generate)
+            const aiMsgCount = messages.filter(m => m.sender === 'ai').length;
 
-            const { data, error } = await supabase.functions.invoke('ai-mentor', {
-                body: {
-                    messages: apiMessages,
-                    mode: aiGender === 'female' ? 'female_companion' : 'male_companion',
-                    stream: false
-                }
-            });
-
-            if (error) throw error;
-
-            // Extract content from OpenAI-style response
-            const reply = data.choices?.[0]?.message?.content || "I'm lost for words... 😳";
+            if (aiGender === 'female') {
+                if (aiMsgCount === 1) reply = "I Love you too";
+                else if (aiMsgCount === 2) reply = "haa";
+                else if (aiMsgCount === 3) reply = "nahi";
+                else reply = "nahi";
+            } else {
+                reply = "I'm just a demo AI.";
+            }
 
             const aiResponse: Message = {
                 id: (Date.now() + 1).toString(),
@@ -342,18 +336,6 @@ const TechMatch = () => {
 
         } catch (error) {
             console.error("AI Error:", error);
-
-            const fallbackResponse = aiGender === 'female'
-                ? "Oof, my server is acting up! But I'm still thinking about you. 😉 (Network Error)"
-                : "Server glitch! Let's debug this relationship later. 😉 (Network Error)";
-
-            setMessages(prev => [...prev, {
-                id: (Date.now() + 1).toString(),
-                text: fallbackResponse,
-                sender: 'ai',
-                timestamp: new Date()
-            }]);
-
             toast({
                 title: "Connection Error",
                 description: "Could not connect to AI service.",
@@ -385,7 +367,7 @@ const TechMatch = () => {
 
     // Video sources - Memoized
     const videoSrc = aiGender === 'female'
-        ? "https://assets.mixkit.co/videos/preview/mixkit-artificial-intelligence-interface-concept-1188-large.mp4"
+        ? "/pookie-girl.png"
         : "https://assets.mixkit.co/videos/preview/mixkit-futuristic-holographic-interface-992-large.mp4";
 
     const MemoizedVideo = useMemo(() => (
