@@ -13,15 +13,19 @@ import ScrollToTop from "@/components/ScrollToTop";
 import { CartoonLoader } from "@/components/CartoonLoader";
 import { AchievementListener } from "@/components/AchievementListener";
 
-// Lazy load all page components for code splitting
-const Index = lazy(() => import("./pages/Index"));
-const Welcome = lazy(() => import("./pages/Welcome"));
-const Auth = lazy(() => import("./pages/Auth"));
-const Feed = lazy(() => import("./pages/Feed"));
+// Core pages - Eager loaded for speed
+import Index from "./pages/Index";
+import Welcome from "./pages/Welcome";
+import Auth from "./pages/Auth";
+import Feed from "./pages/Feed";
+import Explore from "./pages/Explore";
+import Messages from "./pages/Messages";
+import Profile from "./pages/Profile";
+
+// Lazy load other pages
 const CreatePost = lazy(() => import("./pages/CreatePost"));
-const Explore = lazy(() => import("./pages/Explore"));
 const Notifications = lazy(() => import("./pages/Notifications"));
-const Profile = lazy(() => import("./pages/Profile"));
+// const Profile = lazy(() => import("./pages/Profile")); // Removed lazy profile
 const Projects = lazy(() => import("./pages/Projects"));
 const AIRoadmap = lazy(() => import("./pages/AIRoadmap"));
 const Terms = lazy(() => import("./pages/Terms"));
@@ -36,7 +40,7 @@ const SearchResults = lazy(() => import("./pages/SearchResults"));
 const UserProfile = lazy(() => import("./pages/UserProfile"));
 const ChatPage = lazy(() => import("./pages/ChatPage"));
 const AIPage = lazy(() => import("./pages/AIPage"));
-const Messages = lazy(() => import("./pages/Messages"));
+// const Messages = lazy(() => import("./pages/Messages")); // Removed lazy messages
 const Chat = lazy(() => import("./pages/Chat"));
 const CreateStory = lazy(() => import("./pages/CreateStory"));
 const StoryView = lazy(() => import("./pages/StoryView"));

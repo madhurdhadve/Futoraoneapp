@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,7 +57,7 @@ const Auth = () => {
     setIsLogin(searchParams.get("mode") === "login");
   }, [searchParams]);
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setProfilePhoto(file);
@@ -67,9 +67,9 @@ const Auth = () => {
       };
       reader.readAsDataURL(file);
     }
-  };
+  }, []);
 
-  const uploadProfilePhoto = async (userId: string): Promise<string | null> => {
+  const uploadProfilePhoto = useCallback(async (userId: string): Promise<string | null> => {
     if (!profilePhoto) return null;
 
     try {
@@ -92,9 +92,9 @@ const Auth = () => {
       console.error('Error uploading photo:', error);
       return null;
     }
-  };
+  }, [profilePhoto]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
@@ -161,7 +161,7 @@ const Auth = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isLogin, email, password, fullName, username, profilePhoto, navigate, toast, uploadProfilePhoto]);
 
   return (
     <div className="dark min-h-screen bg-background relative flex items-center justify-center p-4 overflow-hidden">
@@ -349,4 +349,4 @@ const Auth = () => {
   );
 };
 
-export default Auth;
+export default memo(Auth);
