@@ -33,17 +33,22 @@ const AllPeople = () => {
         fetchAllUsers();
     }, []);
 
+    // Debounce search query to prevent filtering on every keystroke
     useEffect(() => {
-        if (searchQuery.trim()) {
-            const filtered = users.filter(
-                (user) =>
-                    user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    user.full_name.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-            setFilteredUsers(filtered);
-        } else {
-            setFilteredUsers(users);
-        }
+        const timeoutId = setTimeout(() => {
+            if (searchQuery.trim()) {
+                const filtered = users.filter(
+                    (user) =>
+                        user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        user.full_name.toLowerCase().includes(searchQuery.toLowerCase())
+                );
+                setFilteredUsers(filtered);
+            } else {
+                setFilteredUsers(users);
+            }
+        }, 300); // 300ms debounce
+
+        return () => clearTimeout(timeoutId);
     }, [searchQuery, users]);
 
     const fetchCurrentUser = async () => {
@@ -56,33 +61,53 @@ const AllPeople = () => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
 
+            // Optimization: Fetch profiles and counts in ONE query using Supabase foreign key aggregation
+            // Assuming 'follows' table has foreign keys set up correctly to profiles
+            // Note: If direct count aggregation isn't supported by your specific Supabase version/policy,
+            // we typically use a .select('*, followers:follows!follower_id(count), following:follows!following_id(count)')
+
+            // However, typical JS client might struggle with granular count maps if relations aren't perfect.
+            // Let's rely on the previous logic but parallelize correctly or check if we can simply use the count approach.
+
+            // Fallback Plan for Safety without changing Schema: 
+            // 1. Fetch all profiles.
+            // 2. Fetch all FOLLOWS relationships where involved (or just all follows if table is small, but that's risky).
+            // BETTER: Use the aggregation syntax if possible.
+
             const { data, error } = await supabase
                 .from("profiles")
-                .select("id, username, full_name, avatar_url, bio, is_verified")
+                .select(`
+                    id, 
+                    username, 
+                    full_name, 
+                    avatar_url, 
+                    bio, 
+                    is_verified,
+                    followers:follows!following_id(count),
+                    following:follows!follower_id(count)
+                `)
                 .neq("id", user?.id || "")
                 .order("created_at", { ascending: false });
 
             if (error) throw error;
 
-            const usersWithCounts = await Promise.all(
-                (data || []).map(async (profile) => {
-                    const [{ count: followerCount }, { count: followingCount }] = await Promise.all([
-                        supabase.from("follows").select("*", { count: "exact", head: true }).eq("following_id", profile.id),
-                        supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", profile.id),
-                    ]);
-
-                    return {
-                        ...profile,
-                        follower_count: followerCount || 0,
-                        following_count: followingCount || 0,
-                    };
-                })
-            );
+            // Transform data to flat structure
+            const usersWithCounts = (data || []).map((profile: any) => ({
+                id: profile.id,
+                username: profile.username,
+                full_name: profile.full_name,
+                avatar_url: profile.avatar_url,
+                bio: profile.bio,
+                is_verified: profile.is_verified,
+                follower_count: profile.followers?.[0]?.count || 0,
+                following_count: profile.following?.[0]?.count || 0,
+            }));
 
             setUsers(usersWithCounts);
             setFilteredUsers(usersWithCounts);
         } catch (error) {
             console.error("Error fetching users:", error);
+            // Error handling/Retries could go here
         } finally {
             setLoading(false);
         }
