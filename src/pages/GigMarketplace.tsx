@@ -243,7 +243,7 @@ const GigMarketplace = () => {
             <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border">
                 <div className="container max-w-2xl mx-auto p-4">
                     <div className="flex items-center gap-4 mb-4">
-                        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+                        <Button variant="ghost" size="icon" onClick={() => navigate('/explore')}>
                             <ArrowLeft className="w-6 h-6" />
                         </Button>
                         <div>

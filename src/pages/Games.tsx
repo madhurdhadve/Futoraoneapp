@@ -87,7 +87,7 @@ const Games = React.memo(() => {
             <div className="max-w-7xl mx-auto space-y-12">
                 {/* Header */}
                 <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full">
+                    <Button variant="ghost" size="icon" onClick={() => navigate('/feed')} className="hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full">
                         <ArrowLeft className="w-6 h-6" />
                     </Button>
                     <div>
