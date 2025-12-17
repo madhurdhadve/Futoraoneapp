@@ -149,8 +149,8 @@ const ApplicationsDashboard = () => {
                                                         <h4 className="font-semibold truncate">{listing.role_needed}</h4>
                                                         <p className="text-sm text-muted-foreground truncate">{listing.industry} • {listing.location}</p>
                                                     </div>
-                                                    <Badge variant={listing.applications[0].count > 0 ? "default" : "secondary"}>
-                                                        {listing.applications[0].count} Applicants
+                                                    <Badge variant={(listing.applications?.[0]?.count || 0) > 0 ? "default" : "secondary"}>
+                                                        {listing.applications?.[0]?.count || 0} Applicants
                                                     </Badge>
                                                 </CardContent>
                                                 <div className="bg-muted/50 p-2 flex justify-end">
@@ -190,8 +190,8 @@ const ApplicationsDashboard = () => {
                                                         <h4 className="font-semibold truncate">{gig.title}</h4>
                                                         <p className="text-sm text-muted-foreground truncate">₹{gig.price} • {gig.status}</p>
                                                     </div>
-                                                    <Badge variant={gig.applications[0].count > 0 ? "default" : "secondary"} className={gig.applications[0].count > 0 ? "bg-yellow-500 hover:bg-yellow-600" : ""}>
-                                                        {gig.applications[0].count} Proposals
+                                                    <Badge variant={(gig.applications?.[0]?.count || 0) > 0 ? "default" : "secondary"} className={(gig.applications?.[0]?.count || 0) > 0 ? "bg-yellow-500 hover:bg-yellow-600" : ""}>
+                                                        {gig.applications?.[0]?.count || 0} Proposals
                                                     </Badge>
                                                 </CardContent>
                                                 <div className="bg-muted/50 p-2 flex justify-end">

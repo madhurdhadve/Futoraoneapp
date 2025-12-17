@@ -19,6 +19,7 @@ interface Profile {
   location: string | null;
   github_url: string | null;
   linkedin_url: string | null;
+  instagram_url: string | null;
   portfolio_url: string | null;
   tech_skills: string[] | null;
   banner_url: string | null;
@@ -41,6 +42,7 @@ export const EditProfileDialog = ({ open, onOpenChange, profile, onUpdate }: Edi
     location: profile?.location || "Pune",
     github_url: profile?.github_url || "",
     linkedin_url: profile?.linkedin_url || "",
+    instagram_url: profile?.instagram_url || "",
     portfolio_url: profile?.portfolio_url || "",
     tech_skills: profile?.tech_skills?.join(", ") || "",
     digest_mode: profile?.digest_mode || false,
@@ -130,6 +132,7 @@ export const EditProfileDialog = ({ open, onOpenChange, profile, onUpdate }: Edi
           location: formData.location,
           github_url: formData.github_url,
           linkedin_url: formData.linkedin_url,
+          instagram_url: formData.instagram_url,
           portfolio_url: formData.portfolio_url,
           tech_skills: formData.tech_skills.split(',').map(s => s.trim()).filter(Boolean),
           avatar_url: avatarUrl,
@@ -306,6 +309,17 @@ export const EditProfileDialog = ({ open, onOpenChange, profile, onUpdate }: Edi
               value={formData.linkedin_url}
               onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
               placeholder="https://linkedin.com/in/username"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="instagram_url">Instagram URL</Label>
+            <Input
+              id="instagram_url"
+              type="url"
+              value={formData.instagram_url}
+              onChange={(e) => setFormData({ ...formData, instagram_url: e.target.value })}
+              placeholder="https://instagram.com/username"
             />
           </div>
 

@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, Github, Linkedin, Globe, MapPin, Edit, Eye, Shield, QrCode, Settings } from "lucide-react";
+import { LogOut, Github, Linkedin, Instagram, Globe, MapPin, Edit, Eye, Shield, QrCode, Settings } from "lucide-react";
 import { motion } from "framer-motion";
 import type { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
@@ -33,12 +33,15 @@ interface Profile {
   location: string | null;
   github_url: string | null;
   linkedin_url: string | null;
+  instagram_url: string | null;
   portfolio_url: string | null;
   tech_skills: string[] | null;
   banner_url: string | null;
   is_verified?: boolean | null;
   verification_category?: string | null;
   theme_color?: string | null;
+  badges?: string[] | null;
+  trust_score?: number | null;
 }
 
 interface Project {
@@ -57,6 +60,62 @@ interface Post {
   likes: { id: string }[];
   comments: { id: string }[];
 }
+
+// Social Link Button Component with smart click handling
+interface SocialLinkButtonProps {
+  url: string | null | undefined;
+  icon: React.ReactNode;
+  label: string;
+  isOwnProfile: boolean;
+  onEditProfile: () => void;
+}
+
+const SocialLinkButton: React.FC<SocialLinkButtonProps> = ({
+  url,
+  icon,
+  label,
+  isOwnProfile,
+  onEditProfile,
+}) => {
+  const { toast } = useToast();
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    if (url) {
+      // If URL exists, open it
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else {
+      // If URL doesn't exist
+      if (isOwnProfile) {
+        // Navigate to edit profile if it's user's own profile
+        onEditProfile();
+        toast({
+          title: "Complete Your Profile",
+          description: `Add your ${label} URL in the edit profile section.`,
+        });
+      } else {
+        // Show "Not Connected" message for other users
+        toast({
+          title: "Not Connected",
+          description: `This user hasn't connected their ${label} account yet.`,
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      className={`text-foreground ${!url ? 'opacity-50' : ''}`}
+      onClick={handleClick}
+    >
+      {icon}
+    </Button>
+  );
+};
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -268,29 +327,36 @@ const Profile = () => {
                 )}
               </div>
 
-              {/* Social Links */}
+              {/* Social Links - Always visible, smart click handling */}
               <div className="flex gap-3 mt-4">
-                {profile?.github_url && (
-                  <a href={profile.github_url} target="_blank" rel="noopener noreferrer">
-                    <Button variant="ghost" size="sm" className="text-foreground">
-                      <Github size={18} />
-                    </Button>
-                  </a>
-                )}
-                {profile?.linkedin_url && (
-                  <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer">
-                    <Button variant="ghost" size="sm" className="text-foreground">
-                      <Linkedin size={18} />
-                    </Button>
-                  </a>
-                )}
-                {profile?.portfolio_url && (
-                  <a href={profile.portfolio_url} target="_blank" rel="noopener noreferrer">
-                    <Button variant="ghost" size="sm" className="text-foreground">
-                      <Globe size={18} />
-                    </Button>
-                  </a>
-                )}
+                <SocialLinkButton
+                  url={profile?.github_url}
+                  icon={<Github size={18} />}
+                  label="GitHub"
+                  isOwnProfile={true}
+                  onEditProfile={() => setEditDialogOpen(true)}
+                />
+                <SocialLinkButton
+                  url={profile?.linkedin_url}
+                  icon={<Linkedin size={18} />}
+                  label="LinkedIn"
+                  isOwnProfile={true}
+                  onEditProfile={() => setEditDialogOpen(true)}
+                />
+                <SocialLinkButton
+                  url={profile?.instagram_url}
+                  icon={<Instagram size={18} />}
+                  label="Instagram"
+                  isOwnProfile={true}
+                  onEditProfile={() => setEditDialogOpen(true)}
+                />
+                <SocialLinkButton
+                  url={profile?.portfolio_url}
+                  icon={<Globe size={18} />}
+                  label="Website"
+                  isOwnProfile={true}
+                  onEditProfile={() => setEditDialogOpen(true)}
+                />
               </div>
 
               {/* Stats */}
@@ -350,7 +416,55 @@ const Profile = () => {
           {/* Achievement Showcase */}
           <AchievementShowcase userId={user?.id} />
 
+          {/* Gamification & Applications */}
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              variant="outline"
+              className="w-full border-blue-500/20 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+              onClick={() => navigate('/applications')}
+            >
+              <div className="flex flex-col items-center gap-1">
+                <span className="font-bold">My Applications</span>
+                <span className="text-[10px] opacity-70">Gigs & Founder Roles</span>
+              </div>
+            </Button>
+
+            <Card className="bg-card border-border flex items-center justify-center p-2">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600 flex items-center justify-center gap-1">
+                  {profile?.trust_score || 50}
+                  <Shield className="w-4 h-4" />
+                </div>
+                <div className="text-[10px] text-muted-foreground">Trust Score</div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Badges Section */}
+          {profile?.badges && profile.badges.length > 0 && (
+            <Card className="bg-card border-border">
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                  Validation Badges
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {profile.badges.map((badge: string) => (
+                    <Badge
+                      key={badge}
+                      variant="outline"
+                      className="bg-yellow-500/10 text-yellow-700 border-yellow-200 flex items-center gap-1 px-3 py-1"
+                    >
+                      <Shield className="w-3 h-3 fill-yellow-500 text-yellow-500" />
+                      {badge}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Projects Tabs */}
+
           <Tabs defaultValue="posts" className="w-full">
             <TabsList className="grid w-full grid-cols-2 bg-muted">
               <TabsTrigger value="posts" className="data-[state=active]:bg-background">
