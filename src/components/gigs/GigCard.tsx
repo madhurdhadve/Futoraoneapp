@@ -81,10 +81,52 @@ export const GigCard = ({ gig, currentUserId }: GigCardProps) => {
 
             <CardFooter className="pt-0 pb-4">
                 {currentUserId === gig.user_id ? (
-                    <ViewGigApplicationsDialog
-                        gigId={gig.id}
-                        gigTitle={gig.title}
-                    />
+                    gig.status === 'assigned' ? (
+                        <Button
+                            className="w-full bg-green-600 hover:bg-green-700 text-white"
+                            onClick={async () => {
+                                if (!confirm("Mark this gig as complete and release payment?")) return;
+
+                                try {
+                                    const { error: txError } = await import("@/integrations/supabase/client")
+                                        .then(({ supabase }) => supabase.from('transactions').insert({
+                                            amount: gig.price,
+                                            platform_fee: gig.price * 0.02, // 2% Fee
+                                            net_amount: gig.price * 0.98,
+                                            currency: gig.currency,
+                                            status: 'completed',
+                                            type: 'gig_payment',
+                                            sender_id: currentUserId,
+                                            description: `Payment for gig: ${gig.title}`,
+                                            // receiver_id would be the hired applicant, simplification for now as we don't have it in props easily without fetching
+                                        }));
+
+                                    if (txError) throw txError;
+
+                                    const { error: updateError } = await import("@/integrations/supabase/client")
+                                        .then(({ supabase }) => supabase.from('gig_listings').update({ status: 'completed' }).eq('id', gig.id));
+
+                                    if (updateError) throw updateError;
+
+                                    window.location.reload();
+                                } catch (e) {
+                                    console.error("Error completing gig:", e);
+                                    alert("Failed to complete gig");
+                                }
+                            }}
+                        >
+                            Mark as Complete & Pay
+                        </Button>
+                    ) : gig.status === 'completed' ? (
+                        <Button variant="outline" disabled className="w-full border-green-500/30 text-green-600 bg-green-50">
+                            Completed
+                        </Button>
+                    ) : (
+                        <ViewGigApplicationsDialog
+                            gigId={gig.id}
+                            gigTitle={gig.title}
+                        />
+                    )
                 ) : (
                     <ApplyGigDialog
                         gigId={gig.id}

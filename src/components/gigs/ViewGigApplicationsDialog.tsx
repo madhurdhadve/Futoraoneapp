@@ -73,6 +73,37 @@ export const ViewGigApplicationsDialog = ({ gigId, gigTitle }: ViewGigApplicatio
         }
     };
 
+    const handleHire = async (applicationId: string, applicantId: string, bidAmount: number) => {
+        try {
+            setLoading(true);
+
+            // 1. Update Application Status
+            const { error: appError } = await supabase
+                .from('gig_applications')
+                .update({ status: 'accepted' })
+                .eq('id', applicationId);
+
+            if (appError) throw appError;
+
+            // 2. Update Gig Status
+            const { error: gigError } = await supabase
+                .from('gig_listings')
+                .update({ status: 'assigned' })
+                .eq('id', gigId);
+
+            if (gigError) throw gigError;
+
+            // 3. Close dialog and maybe refresh (handled by parent usually, but we can just close)
+            setOpen(false);
+            // Optionally trigger a toast or callback
+            // window.location.reload(); // Simple reload for now or use a context recharge
+        } catch (error) {
+            console.error("Error hiring:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -131,9 +162,16 @@ export const ViewGigApplicationsDialog = ({ gigId, gigTitle }: ViewGigApplicatio
                                             Timeline: {app.expected_timeline}
                                         </div>
 
-                                        <div className="bg-muted/50 p-3 rounded-lg text-sm">
+                                        <div className="bg-muted/50 p-3 rounded-lg text-sm mb-3">
                                             <p className="whitespace-pre-wrap">{app.proposal}</p>
                                         </div>
+
+                                        <Button
+                                            className="w-full bg-green-600 hover:bg-green-700 text-white"
+                                            onClick={() => handleHire(app.id, app.applicant_id, app.bid_amount)}
+                                        >
+                                            Hire Applicant
+                                        </Button>
                                     </div>
                                 ))}
                             </div>

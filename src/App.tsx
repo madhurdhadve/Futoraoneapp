@@ -47,11 +47,17 @@ const StoryView = lazy(() => import("./pages/StoryView"));
 const ProfileViews = lazy(() => import("./pages/ProfileViews"));
 const AllPeople = lazy(() => import("./pages/AllPeople"));
 const ProjectIdeas = lazy(() => import("./pages/ProjectIdeas"));
-const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AdminDashboard = lazy(() => import("./pages/Admin/Dashboard"));
+const AdminUsers = lazy(() => import("./pages/Admin/Users"));
+const AdminModeration = lazy(() => import("./pages/Admin/Moderation"));
+const AdminAnalytics = lazy(() => import("./pages/Admin/Analytics"));
+const AdminFinance = lazy(() => import("./pages/Admin/Finance"));
+const AdminSettings = lazy(() => import("./pages/Admin/Settings"));
 const AIEnhancer = lazy(() => import("./pages/AIEnhancer"));
 
 const FoundersCorner = lazy(() => import("./pages/FoundersCorner"));
 const GigMarketplace = lazy(() => import("./pages/GigMarketplace"));
+const ApplicationsDashboard = lazy(() => import("./pages/ApplicationsDashboard"));
 const TechReels = lazy(() => import("./pages/TechReels"));
 const TechMatch = lazy(() => import("./pages/TechMatch"));
 
@@ -122,10 +128,16 @@ const App = () => {
                 <Route path="/profile-views" element={<ProfileViews />} />
                 <Route path="/project-ideas" element={<ProjectIdeas />} />
                 <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/users" element={<AdminUsers />} />
+                <Route path="/admin/moderation" element={<AdminModeration />} />
+                <Route path="/admin/analytics" element={<AdminAnalytics />} />
+                <Route path="/admin/finance" element={<AdminFinance />} />
+                <Route path="/admin/settings" element={<AdminSettings />} />
                 <Route path="/ai-enhancer" element={<AIEnhancer />} />
 
                 <Route path="/founders-corner" element={<FoundersCorner />} />
                 <Route path="/gig-marketplace" element={<GigMarketplace />} />
+                <Route path="/applications" element={<ApplicationsDashboard />} />
                 <Route path="/tech-reels" element={<TechReels />} />
                 <Route path="/tech-match" element={<TechMatch />} />
                 <Route path="/messages/group/:groupId" element={<GroupChat />} />
