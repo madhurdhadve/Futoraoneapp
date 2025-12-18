@@ -4,6 +4,7 @@ import { Reel, ReelPlayer } from "@/components/reels/ReelPlayer";
 import { Loader2, Volume2, VolumeX } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
+import { useInView } from "react-intersection-observer";
 
 // Mock data moved outside to be reusable
 const MOCK_REELS: Reel[] = [
@@ -54,11 +55,48 @@ const MOCK_REELS: Reel[] = [
     }
 ];
 
+// Component to handle individual reel visibility
+const ReelWrapper = memo(({ reel, index, isActive, isMuted, toggleMute, onInView }: {
+    reel: Reel;
+    index: number;
+    isActive: boolean;
+    isMuted: boolean;
+    toggleMute: () => void;
+    onInView: (index: number) => void;
+}) => {
+    const { ref, inView } = useInView({
+        threshold: 0.6, // Trigger when 60% visible
+    });
+
+    useEffect(() => {
+        if (inView) {
+            onInView(index);
+        }
+    }, [inView, index, onInView]);
+
+    return (
+        <div ref={ref} className="snap-start shrink-0 h-full w-full">
+            <ReelPlayer
+                reel={reel}
+                isActive={isActive}
+                isMuted={isMuted}
+                toggleMute={toggleMute}
+            />
+        </div>
+    );
+});
+
+ReelWrapper.displayName = "ReelWrapper";
+
 const TechReels = memo(() => {
     const [reels, setReels] = useState<Reel[]>([]);
     const [loading, setLoading] = useState(true);
     const [isMuted, setIsMuted] = useState(true);
     const [activeReelIndex, setActiveReelIndex] = useState(0);
+
+    const handleInView = useCallback((index: number) => {
+        setActiveReelIndex(index);
+    }, []);
 
     useEffect(() => {
         fetchReels();
@@ -102,19 +140,6 @@ const TechReels = memo(() => {
         }
     };
 
-    const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-        const container = e.currentTarget;
-        const scrollPosition = container.scrollTop;
-        const viewportHeight = container.clientHeight;
-
-        // Use a small offset for more reliable snap detection
-        const index = Math.round(scrollPosition / viewportHeight);
-
-        if (activeReelIndex !== index && index >= 0 && index < reels.length) {
-            setActiveReelIndex(index);
-        }
-    }, [activeReelIndex, reels.length]);
-
     return (
         <div className="h-[100dvh] bg-black text-white flex flex-col overflow-hidden">
             {/* Header / Top Bar */}
@@ -133,7 +158,6 @@ const TechReels = memo(() => {
             {/* Main Snap Feed */}
             <div
                 className="flex-1 overflow-y-scroll snap-y snap-mandatory scrollbar-hide overscroll-contain"
-                onScroll={handleScroll}
                 style={{ scrollSnapType: 'y mandatory', WebkitOverflowScrolling: 'touch' }}
             >
                 {loading ? (
@@ -142,12 +166,14 @@ const TechReels = memo(() => {
                     </div>
                 ) : (
                     reels.map((reel, index) => (
-                        <ReelPlayer
+                        <ReelWrapper
                             key={reel.id}
                             reel={reel}
+                            index={index}
                             isActive={index === activeReelIndex}
                             isMuted={isMuted}
                             toggleMute={toggleMute}
+                            onInView={handleInView}
                         />
                     ))
                 )}

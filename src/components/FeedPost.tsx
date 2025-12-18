@@ -63,21 +63,42 @@ export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDe
   );
 
   // Memoize event handler to prevent recreation
-  const handleLikeClick = useCallback(() => {
+  const handleLikeClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!isLiked) {
       triggerHeartConfetti();
     }
     onLike(post.id, isLiked);
   }, [isLiked, onLike, post.id]);
 
+  const handleSaveClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onSave(post.id, !!isSaved);
+  }, [isSaved, onSave, post.id]);
+
+  const handleShareClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onShare(post);
+  }, [onShare, post]);
+
+  const handleProfileClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/user/${post.user_id}`);
+  }, [navigate, post.user_id]);
+
+  const handlePostClick = useCallback(() => {
+    navigate(`/post/${post.id}`);
+  }, [navigate, post.id]);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ delay: index * 0.08, type: "spring", stiffness: 100 }}
+      transition={{ delay: Math.min(index * 0.05, 0.3), type: "spring", stiffness: 100 }}
       whileHover={{ y: -4, scale: 1.01 }}
       className="group"
       style={{ willChange: "transform, opacity" }}
+      layout
     >
       <Card className="overflow-hidden shadow-md hover:shadow-2xl border border-border/50 hover:border-primary/20 transition-all duration-300 bg-card/60 backdrop-blur-sm">
         {/* Subtle gradient overlay on hover */}
@@ -87,7 +108,7 @@ export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDe
           <div className="flex items-center justify-between mb-4">
             <motion.div
               className="flex items-center gap-3 cursor-pointer"
-              onClick={() => navigate(`/user/${post.user_id}`)}
+              onClick={handleProfileClick}
               whileHover={{ x: 2 }}
               transition={{ type: "spring", stiffness: 400 }}
             >
@@ -131,7 +152,7 @@ export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDe
 
           <div
             className="mb-4 prose dark:prose-invert max-w-none cursor-pointer hover:opacity-90 transition-opacity leading-relaxed"
-            onClick={() => navigate(`/post/${post.id}`)}
+            onClick={handlePostClick}
             dangerouslySetInnerHTML={{
               __html: DOMPurify.sanitize(post.content.replace(/\n/g, '<br />'))
             }}
@@ -191,7 +212,7 @@ export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDe
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onSave(post.id, !!isSaved)}
+                onClick={handleSaveClick}
                 className={`${isSaved ? "text-primary hover:text-primary/80" : "hover:text-primary"} transition-colors`}
               >
                 <Bookmark
@@ -201,7 +222,7 @@ export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDe
             </motion.div>
 
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button variant="ghost" size="sm" onClick={() => onShare(post)} className="hover:text-green-500 transition-colors">
+              <Button variant="ghost" size="sm" onClick={handleShareClick} className="hover:text-green-500 transition-colors">
                 <Share2 className="w-5 h-5" />
               </Button>
             </motion.div>
@@ -218,6 +239,15 @@ export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDe
         </div>
       </Card>
     </motion.div>
+  );
+}, (prevProps, nextProps) => {
+  // Custom comparison function for performance
+  return (
+    prevProps.post.id === nextProps.post.id &&
+    prevProps.post.likes.length === nextProps.post.likes.length &&
+    prevProps.post.comments.length === nextProps.post.comments.length &&
+    prevProps.post.saves?.length === nextProps.post.saves?.length &&
+    prevProps.currentUser?.id === nextProps.currentUser?.id
   );
 });
 

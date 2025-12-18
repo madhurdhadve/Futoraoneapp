@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -28,19 +28,24 @@ interface UserCardProps {
 export const UserCard = memo(({ user, currentUser, index }: UserCardProps) => {
     const navigate = useNavigate();
 
+    const handleCardClick = useCallback(() => {
+        navigate(`/user/${user.id}`);
+    }, [navigate, user.id]);
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
+            transition={{ delay: Math.min(index * 0.05, 0.5) }}
             style={{ willChange: "transform, opacity" }}
+            layout
         >
             <Card className="bg-card border-border hover:border-primary transition-colors">
                 <CardContent className="p-3 sm:p-4">
                     <div className="flex items-start gap-3">
                         <div
                             className="relative cursor-pointer shrink-0"
-                            onClick={() => navigate(`/user/${user.id}`)}
+                            onClick={handleCardClick}
                         >
                             <Avatar className="h-12 w-12 sm:h-14 sm:w-14">
                                 <AvatarImage src={user.avatar_url || undefined} loading="lazy" />
@@ -54,7 +59,7 @@ export const UserCard = memo(({ user, currentUser, index }: UserCardProps) => {
                         <div className="flex-1 min-w-0">
                             <div
                                 className="cursor-pointer"
-                                onClick={() => navigate(`/user/${user.id}`)}
+                                onClick={handleCardClick}
                             >
                                 <div className="flex items-center gap-1">
                                     <p className="font-semibold text-foreground truncate">
@@ -101,6 +106,13 @@ export const UserCard = memo(({ user, currentUser, index }: UserCardProps) => {
                 </CardContent>
             </Card>
         </motion.div>
+    );
+}, (prevProps, nextProps) => {
+    return (
+        prevProps.user.id === nextProps.user.id &&
+        prevProps.user.follower_count === nextProps.user.follower_count &&
+        prevProps.user.following_count === nextProps.user.following_count &&
+        prevProps.currentUser?.id === nextProps.currentUser?.id
     );
 });
 
