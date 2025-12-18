@@ -418,25 +418,26 @@ const Profile = () => {
 
           {/* Gamification & Applications */}
           <div className="grid grid-cols-2 gap-3">
-            <Button
-              variant="outline"
-              className="w-full border-blue-500/20 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => navigate('/applications')}
+              className="cursor-pointer"
             >
-              <div className="flex flex-col items-center gap-1">
-                <span className="font-bold">My Applications</span>
-                <span className="text-[10px] opacity-70">Gigs & Founder Roles</span>
-              </div>
-            </Button>
+              <Card className="bg-card border-blue-500/30 hover:border-blue-500/50 transition-all shadow-[0_0_15px_rgba(59,130,246,0.15)] hover:shadow-[0_0_25px_rgba(59,130,246,0.3)] h-24 flex flex-col items-center justify-center text-center p-2 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent pointer-events-none" />
+                <span className="font-bold text-blue-600 block relative z-10">My Applications</span>
+                <span className="text-[10px] text-muted-foreground relative z-10">Gigs & Founder Roles</span>
+              </Card>
+            </motion.div>
 
-            <Card className="bg-card border-border flex items-center justify-center p-2">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600 flex items-center justify-center gap-1">
-                  {profile?.trust_score || 50}
-                  <Shield className="w-4 h-4" />
-                </div>
-                <div className="text-[10px] text-muted-foreground">Trust Score</div>
+            <Card className="bg-card border-green-500/30 shadow-[0_0_15px_rgba(34,197,94,0.15)] h-24 flex flex-col items-center justify-center text-center p-2 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent pointer-events-none" />
+              <div className="text-2xl font-bold text-green-600 flex items-center justify-center gap-1 relative z-10">
+                {profile?.trust_score || 50}
+                <Shield className="w-5 h-5 fill-green-500/20" />
               </div>
+              <div className="text-[10px] text-muted-foreground relative z-10">Trust Score</div>
             </Card>
           </div>
 

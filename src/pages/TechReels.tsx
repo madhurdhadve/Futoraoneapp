@@ -1,9 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Reel, ReelPlayer } from "@/components/reels/ReelPlayer";
 import { Loader2, Volume2, VolumeX } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
-import { useInView } from "react-intersection-observer";
 import { Button } from "@/components/ui/button";
 
 // Mock data moved outside to be reusable
@@ -55,7 +54,7 @@ const MOCK_REELS: Reel[] = [
     }
 ];
 
-const TechReels = () => {
+const TechReels = memo(() => {
     const [reels, setReels] = useState<Reel[]>([]);
     const [loading, setLoading] = useState(true);
     const [isMuted, setIsMuted] = useState(true);
@@ -69,12 +68,8 @@ const TechReels = () => {
         setIsMuted(prev => !prev);
     }, []);
 
-
-
     const fetchReels = async () => {
         try {
-            // Temporary: Since we might not have data, we'll use some mock data if DB is empty
-            // but let's try to fetch first
             const { data, error } = await supabase
                 .from('reels')
                 .select(`
@@ -107,23 +102,21 @@ const TechReels = () => {
         }
     };
 
-
-
     const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
         const container = e.currentTarget;
-        // Use scrollTop and viewport height for better snap detection
         const scrollPosition = container.scrollTop;
         const viewportHeight = container.clientHeight;
+
+        // Use a small offset for more reliable snap detection
         const index = Math.round(scrollPosition / viewportHeight);
 
-        // Only update if index actually changed
         if (activeReelIndex !== index && index >= 0 && index < reels.length) {
             setActiveReelIndex(index);
         }
     }, [activeReelIndex, reels.length]);
 
     return (
-        <div className="h-screen bg-black text-white flex flex-col">
+        <div className="h-[100dvh] bg-black text-white flex flex-col overflow-hidden">
             {/* Header / Top Bar */}
             <div className="absolute top-0 left-0 right-0 z-50 p-4 flex justify-between items-center bg-gradient-to-b from-black/50 to-transparent pointer-events-none">
                 <h1 className="font-bold text-xl drop-shadow-md">Tech Reels</h1>
@@ -141,7 +134,7 @@ const TechReels = () => {
             <div
                 className="flex-1 overflow-y-scroll snap-y snap-mandatory scrollbar-hide overscroll-contain"
                 onScroll={handleScroll}
-                style={{ scrollSnapType: 'y mandatory' }}
+                style={{ scrollSnapType: 'y mandatory', WebkitOverflowScrolling: 'touch' }}
             >
                 {loading ? (
                     <div className="h-full flex items-center justify-center">
@@ -163,6 +156,8 @@ const TechReels = () => {
             <BottomNav />
         </div>
     );
-};
+});
+
+TechReels.displayName = "TechReels";
 
 export default TechReels;

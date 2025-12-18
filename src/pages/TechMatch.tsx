@@ -228,11 +228,11 @@ const TechMatch = () => {
                         .eq('liker_id', profileId)
                         .eq('liked_id', user.id)
                         .maybeSingle();
-                    
+
                     if (reverseLike && (reverseLike.status === 'pending' || reverseLike.status === 'matched')) {
                         status = 'matched';
                         isMatch = true;
-                        
+
                         // Try to update their status to matched (might fail if RLS blocks, but we try)
                         await supabase
                             .from('tech_matches')
@@ -266,7 +266,7 @@ const TechMatch = () => {
                     const { error: convError } = await supabase.rpc('get_or_create_conversation', {
                         other_user_id: profileId
                     });
-                     if (convError) console.error("Error creating conversation:", convError);
+                    if (convError) console.error("Error creating conversation:", convError);
 
                 } else if (direction === 'right') {
                     toast({

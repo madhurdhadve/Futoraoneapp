@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Plus } from "lucide-react";
 import { StoryViewer, Story } from "./StoryViewer";
@@ -90,7 +90,7 @@ const DEMO_STORIES = [
     }
 ];
 
-export const Stories = () => {
+export const Stories = memo(() => {
     const [selectedUser, setSelectedUser] = useState<string | null>(null);
     const [storiesByUser, setStoriesByUser] = useState<Record<string, Story[]>>({});
     const [usersWithStories, setUsersWithStories] = useState<any[]>([]);
@@ -349,4 +349,6 @@ export const Stories = () => {
             )}
         </>
     );
-};
+});
+
+Stories.displayName = "Stories";

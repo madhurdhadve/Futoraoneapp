@@ -125,7 +125,7 @@ export const ReelPlayer = memo(({ reel, isActive, isMuted, toggleMute }: ReelPla
 
     return (
         <div
-            className="relative w-full h-[calc(100vh-64px)] snap-start shrink-0 bg-black flex items-center justify-center overflow-hidden"
+            className="relative w-full h-[calc(100dvh-64px)] snap-start shrink-0 bg-black flex items-center justify-center overflow-hidden"
             onClick={handleVideoClick}
         >
             {/* Video Element */}
@@ -169,8 +169,8 @@ export const ReelPlayer = memo(({ reel, isActive, isMuted, toggleMute }: ReelPla
             </AnimatePresence>
 
             {/* Overlay UI */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60 point-events-none">
-                <div className="absolute bottom-0 left-0 right-0 p-4 pb-20 sm:pb-4 flex items-end justify-between">
+            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/80 pointer-events-none">
+                <div className="absolute bottom-0 left-0 right-0 p-4 pb-6 flex items-end justify-between">
 
                     {/* Caption & User Info */}
                     <div className="flex-1 mr-12 space-y-3 pointer-events-auto">

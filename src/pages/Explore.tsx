@@ -317,6 +317,7 @@ const Explore = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
+              style={{ willChange: "transform, opacity" }}
             >
               <Card
                 className="bg-gradient-to-r from-orange-500 to-pink-600 text-white border-0 cursor-pointer overflow-hidden relative h-full hover:scale-[1.02] transition-transform duration-300"
@@ -347,6 +348,7 @@ const Explore = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
+              style={{ willChange: "transform, opacity" }}
             >
               <Card
                 className="bg-gradient-to-r from-yellow-400 to-green-500 text-black border-0 cursor-pointer overflow-hidden relative h-full hover:scale-[1.02] transition-transform duration-300"
@@ -377,6 +379,7 @@ const Explore = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
+              style={{ willChange: "transform, opacity" }}
             >
               <Card
                 className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 cursor-pointer overflow-hidden relative h-full hover:scale-[1.02] transition-transform duration-300"
@@ -407,6 +410,7 @@ const Explore = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
+              style={{ willChange: "transform, opacity" }}
             >
               <Card
                 className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white border-0 cursor-pointer overflow-hidden relative h-full hover:scale-[1.02] transition-transform duration-300"
@@ -475,6 +479,7 @@ const Explore = () => {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: index * 0.1 }}
+                    style={{ willChange: "transform, opacity" }}
                   >
                     <Card className="bg-card border-2 border-black/30 dark:border-border hover:border-primary transition-all hover:shadow-lg">
                       <CardContent className="p-3 sm:p-4">

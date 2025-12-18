@@ -77,6 +77,7 @@ export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDe
       transition={{ delay: index * 0.08, type: "spring", stiffness: 100 }}
       whileHover={{ y: -4, scale: 1.01 }}
       className="group"
+      style={{ willChange: "transform, opacity" }}
     >
       <Card className="overflow-hidden shadow-md hover:shadow-2xl border border-border/50 hover:border-primary/20 transition-all duration-300 bg-card/60 backdrop-blur-sm">
         {/* Subtle gradient overlay on hover */}
