@@ -19,13 +19,13 @@ import Index from "./pages/Index";
 import Welcome from "./pages/Welcome";
 import Auth from "./pages/Auth";
 import Feed from "./pages/Feed";
-import Profile from "./pages/Profile";
+// import Profile from "./pages/Profile"; // Removed static import to use lazy loading
 
 // Lazy load other pages
 const Explore = lazy(() => import("./pages/Explore"));
 const CreatePost = lazy(() => import("./pages/CreatePost"));
 const Notifications = lazy(() => import("./pages/Notifications"));
-// const Profile = lazy(() => import("./pages/Profile")); // Removed lazy profile
+const Profile = lazy(() => import("./pages/Profile")); // Restore lazy profile
 const Projects = lazy(() => import("./pages/Projects"));
 const AIRoadmap = lazy(() => import("./pages/AIRoadmap"));
 const Terms = lazy(() => import("./pages/Terms"));

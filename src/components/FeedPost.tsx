@@ -100,11 +100,11 @@ export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDe
     <motion.div
       initial={{ opacity: 0, y: 30, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ delay: Math.min(index * 0.05, 0.3), type: "spring", stiffness: 100 }}
-      whileHover={{ y: -4, scale: 1.01 }}
+      transition={{ delay: Math.min(index * 0.05, 0.3), type: "spring", stiffness: 80, damping: 15 }}
+      whileHover={{ y: -2, scale: 1.005 }}
       className="group"
-      style={{ willChange: "transform, opacity" }}
-      layout
+      style={{ willChange: "transform, opacity", contentVisibility: "auto" }}
+      layout="position"
     >
       <Card className="overflow-hidden shadow-md hover:shadow-2xl border border-border/50 hover:border-primary/20 transition-all duration-300 bg-card/60 backdrop-blur-sm">
         {/* Subtle gradient overlay on hover */}
@@ -116,10 +116,10 @@ export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDe
               className="flex items-center gap-3 cursor-pointer"
               onClick={handleProfileClick}
               whileHover={{ x: 2 }}
-              transition={{ type: "spring", stiffness: 400 }}
+              transition={{ type: "spring", stiffness: 300 }}
             >
               <Avatar className="w-12 h-12 border-2 border-primary ring-2 ring-primary/10 hover:ring-primary/30 transition-all">
-                <AvatarImage src={post.profiles.avatar_url || undefined} loading="lazy" />
+                <AvatarImage src={post.profiles.avatar_url || undefined} loading="lazy" decoding="async" />
                 <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20">{post.profiles.username[0]}</AvatarFallback>
               </Avatar>
               <div>
@@ -169,9 +169,10 @@ export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDe
                 alt="Post"
                 className="w-full rounded-2xl object-cover mb-4 cursor-pointer shadow-md"
                 loading="lazy"
+                decoding="async"
                 onClick={() => setLightboxOpen(true)}
-                whileHover={{ scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 300 }}
+                whileHover={{ scale: 1.01 }}
+                transition={{ type: "spring", stiffness: 200 }}
               />
               <ImageLightbox
                 imageUrl={post.image_url}

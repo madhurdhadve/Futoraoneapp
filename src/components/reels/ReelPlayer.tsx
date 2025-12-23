@@ -127,6 +127,7 @@ export const ReelPlayer = memo(({ reel, isActive, isMuted, toggleMute }: ReelPla
         <div
             className="relative w-full h-[calc(100dvh-64px)] snap-start shrink-0 bg-black flex items-center justify-center overflow-hidden"
             onClick={handleVideoClick}
+            style={{ contentVisibility: isActive ? 'auto' : 'hidden', containIntrinsicSize: '100% 100vh' }}
         >
             {/* Video Element */}
             <video
@@ -137,6 +138,7 @@ export const ReelPlayer = memo(({ reel, isActive, isMuted, toggleMute }: ReelPla
                 loop
                 muted={isMuted}
                 playsInline
+                preload={isActive ? "auto" : "none"} // Only preload if active to save data
             />
 
             {/* Play/Pause Overlay Indicator */}

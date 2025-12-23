@@ -79,7 +79,8 @@ export const CommentSection = ({ postId, postAuthorId, currentUser }: CommentSec
         profiles(username, full_name, avatar_url)
       `)
             .eq("post_id", postId)
-            .order("created_at", { ascending: true });
+            .order("created_at", { ascending: true })
+            .limit(20); // Optimize: Only fetch last 20 comments initially
 
         if (!error && data) {
             setComments(data as unknown as Comment[]);
