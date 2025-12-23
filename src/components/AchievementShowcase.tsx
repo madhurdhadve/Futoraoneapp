@@ -116,42 +116,18 @@ export const AchievementShowcase = ({ userId }: { userId?: string }) => {
                 const userIndex = allUsers?.findIndex(u => u.id === targetUserId) ?? -1;
                 const userRankNumber = userIndex !== -1 ? userIndex + 1 : null;
 
-                // Determine which users to show
-                let displayedUsers: LeaderboardUser[] = [];
+                // ALWAYS show only top 3 users
+                const displayedUsers = allUsers?.slice(0, 3) || [];
 
-                if (allUsers && allUsers.length > 0) {
-                    // Always include top 3
-                    const top3 = allUsers.slice(0, 3);
-
-                    if (userRankNumber && userRankNumber > 3) {
-                        // User is not in top 3, show neighbors (rank-1, rank, rank+1)
-                        const start = Math.max(0, userIndex - 1);
-                        const end = Math.min(allUsers.length, userIndex + 2);
-                        const neighbors = allUsers.slice(start, end);
-
-                        // Combine top 3 + neighbors (removing duplicates)
-                        const combined = [...top3];
-                        neighbors.forEach(neighbor => {
-                            if (!combined.find(u => u.id === neighbor.id)) {
-                                combined.push(neighbor);
-                            }
-                        });
-                        displayedUsers = combined;
-
-                        // Set current user rank for display
-                        const userData = allUsers[userIndex];
-                        setCurrentUserRank({
-                            rank: userRankNumber,
-                            user: userData
-                        });
-                    } else {
-                        // User is in top 3 or not found, show only top 3
-                        displayedUsers = allUsers.slice(0, 3);
-
-                        if (userRankNumber && userRankNumber <= 3) {
-                            setCurrentUserRank(null); // Already in the list
-                        }
-                    }
+                // Keep track of current user rank for potential display elsewhere
+                if (userRankNumber && userRankNumber > 3) {
+                    const userData = allUsers[userIndex];
+                    setCurrentUserRank({
+                        rank: userRankNumber,
+                        user: userData
+                    });
+                } else {
+                    setCurrentUserRank(null); // User is in top 3, no need to show separately
                 }
 
                 setLeaderboard(displayedUsers);
@@ -177,8 +153,15 @@ export const AchievementShowcase = ({ userId }: { userId?: string }) => {
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'profiles' },
                 (payload) => {
-                    console.log('Profile XP updated!', payload);
-                    fetchData(); // Refetch leaderboard
+                    const updatedUser = payload.new as any;
+                    // Only refetch if the updated user is in the current leaderboard or is the target user
+                    const isInLeaderboard = leaderboard.some(u => u.id === updatedUser.id);
+                    const isTargetUser = updatedUser.id === targetUserId;
+
+                    if (isInLeaderboard || isTargetUser) {
+                        console.log('Relevant Profile XP updated!', payload);
+                        fetchData(); // Refetch leaderboard
+                    }
                 }
             )
             .subscribe();
@@ -550,6 +533,7 @@ export const AchievementShowcase = ({ userId }: { userId?: string }) => {
                                     </Button>
                                 </motion.div>
                             )}
+
 
                             {/* Show current user rank if not in displayed list */}
                             {!loading && currentUserRank && !leaderboard.some(u => u.id === currentUserRank.user.id) && (

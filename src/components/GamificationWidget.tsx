@@ -87,7 +87,7 @@ const GamificationWidget = ({
         const { count: postsToday } = await supabase
           .from('posts')
           .select('id', { count: 'exact', head: true })
-          .eq('author_id', user.id)
+          .eq('user_id', user.id)
           .gte('created_at', today.toISOString());
 
         // Challenge 2: Like and comment on 5 posts
@@ -100,7 +100,7 @@ const GamificationWidget = ({
         const { count: commentsCount } = await supabase
           .from('comments')
           .select('id', { count: 'exact', head: true })
-          .eq('author_id', user.id)
+          .eq('user_id', user.id)
           .gte('created_at', today.toISOString());
 
         const engagementCount = Math.min((likesComments || 0) + (commentsCount || 0), 5);
@@ -109,7 +109,7 @@ const GamificationWidget = ({
         const { count: codeSnippets } = await supabase
           .from('posts')
           .select('id', { count: 'exact', head: true })
-          .eq('author_id', user.id)
+          .eq('user_id', user.id)
           .gte('created_at', today.toISOString())
           .or('content.ilike.%```%,content.ilike.%code%');
 
@@ -382,8 +382,8 @@ const GamificationWidget = ({
                             <Star
                               key={i}
                               className={`w-3 h-3 ${i < badge.level
-                                  ? 'text-yellow-500 fill-yellow-500'
-                                  : 'text-muted-foreground/30'
+                                ? 'text-yellow-500 fill-yellow-500'
+                                : 'text-muted-foreground/30'
                                 }`}
                             />
                           ))}

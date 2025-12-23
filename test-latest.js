@@ -1,4 +1,5 @@
-const GEMINI_API_KEY = 'AIzaSyC9gmzhbPBgR-zBm-4nuclsiiAraHtQwNs';
+require('dotenv').config();
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
 
 const payload = {

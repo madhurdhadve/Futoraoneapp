@@ -1,4 +1,5 @@
-const API_KEY = 'AIzaSyC9gmzhbPBgR-zBm-4nuclsiiAraHtQwNs';
+require('dotenv').config();
+const API_KEY = process.env.GEMINI_API_KEY;
 
 async function testModel(modelName, apiVersion = 'v1beta') {
     const url = `https://generativelanguage.googleapis.com/${apiVersion}/models/${modelName}:generateContent?key=${API_KEY}`;

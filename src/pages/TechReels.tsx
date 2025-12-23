@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, memo, useRef } from "react";
+import React, { useState, useEffect, useCallback, memo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Reel, ReelPlayer } from "@/components/reels/ReelPlayer";
 import { Loader2, Volume2, VolumeX } from "lucide-react";
@@ -56,11 +56,12 @@ const MOCK_REELS: Reel[] = [
 ];
 
 // Component to handle individual reel visibility
-const ReelWrapper = React.memo(({ reel, index, currentActiveIndex, isMuted }: {
+const ReelWrapper = memo(({ reel, index, currentActiveIndex, isMuted, shouldPreload = false }: {
     reel: Reel;
     index: number;
     currentActiveIndex: React.MutableRefObject<number>; // Pass ref for active index
     isMuted: boolean;
+    shouldPreload?: boolean;
 }) => {
     const { ref, inView } = useInView({
         threshold: 0.75, // Trigger when 75% visible
@@ -83,6 +84,7 @@ const ReelWrapper = React.memo(({ reel, index, currentActiveIndex, isMuted }: {
                 reel={reel}
                 isActive={isActive}
                 isMuted={isMuted}
+                shouldPreload={shouldPreload}
             />
         </div>
     );
@@ -163,15 +165,20 @@ const TechReels = memo(() => {
                         <Loader2 className="w-10 h-10 animate-spin text-primary" />
                     </div>
                 ) : (
-                    reels.map((reel, index) => (
-                        <ReelWrapper
-                            key={reel.id}
-                            reel={reel}
-                            index={index}
-                            currentActiveIndex={currentActiveIndex}
-                            isMuted={isMuted}
-                        />
-                    ))
+                    reels.map((reel, index) => {
+                        // Preload the current and next 2 reels
+                        const shouldPreload = index >= currentActiveIndex.current && index <= currentActiveIndex.current + 2;
+                        return (
+                            <ReelWrapper
+                                key={reel.id}
+                                reel={reel}
+                                index={index}
+                                currentActiveIndex={currentActiveIndex}
+                                isMuted={isMuted}
+                                shouldPreload={shouldPreload}
+                            />
+                        );
+                    })
                 )}
             </div>
 

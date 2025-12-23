@@ -106,7 +106,10 @@ export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDe
       style={{ willChange: "transform, opacity", contentVisibility: "auto" }}
       layout="position"
     >
-      <Card className="overflow-hidden shadow-md hover:shadow-2xl border border-border/50 hover:border-primary/20 transition-all duration-300 bg-card/60 backdrop-blur-sm">
+      <Card
+        className="overflow-hidden shadow-md hover:shadow-2xl border border-border/50 hover:border-primary/20 transition-all duration-300 bg-card/60 backdrop-blur-sm"
+        style={{ contentVisibility: index > 5 ? 'auto' : 'visible', containIntrinsicSize: '0 500px' }}
+      >
         {/* Subtle gradient overlay on hover */}
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 pointer-events-none" />
 
@@ -119,7 +122,11 @@ export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDe
               transition={{ type: "spring", stiffness: 300 }}
             >
               <Avatar className="w-12 h-12 border-2 border-primary ring-2 ring-primary/10 hover:ring-primary/30 transition-all">
-                <AvatarImage src={post.profiles.avatar_url || undefined} loading="lazy" decoding="async" />
+                <AvatarImage
+                  src={post.profiles.avatar_url || undefined}
+                  loading={index < 2 ? "eager" : "lazy"}
+                  decoding="async"
+                />
                 <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20">{post.profiles.username[0]}</AvatarFallback>
               </Avatar>
               <div>
@@ -168,7 +175,8 @@ export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDe
                 src={post.image_url}
                 alt="Post"
                 className="w-full rounded-2xl object-cover mb-4 cursor-pointer shadow-md"
-                loading="lazy"
+                loading={index < 2 ? "eager" : "lazy"}
+                {...({ fetchpriority: index < 2 ? "high" : "auto" } as any)}
                 decoding="async"
                 onClick={() => setLightboxOpen(true)}
                 whileHover={{ scale: 1.01 }}
@@ -187,7 +195,7 @@ export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDe
               src={post.video_url}
               controls
               className="w-full rounded-2xl mb-4 shadow-md"
-              preload="metadata"
+              preload={index < 2 ? "auto" : "metadata"}
             />
           )}
 

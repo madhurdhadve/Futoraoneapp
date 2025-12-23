@@ -34,10 +34,11 @@ interface ReelPlayerProps {
     reel: Reel;
     isActive: boolean;
     isMuted: boolean;
-    toggleMute: () => void;
+    toggleMute?: () => void;
+    shouldPreload?: boolean;
 }
 
-export const ReelPlayer = memo(({ reel, isActive, isMuted, toggleMute }: ReelPlayerProps) => {
+export const ReelPlayer = memo(({ reel, isActive, isMuted, toggleMute, shouldPreload = false }: ReelPlayerProps) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLiked, setIsLiked] = useState(false);
@@ -138,7 +139,7 @@ export const ReelPlayer = memo(({ reel, isActive, isMuted, toggleMute }: ReelPla
                 loop
                 muted={isMuted}
                 playsInline
-                preload={isActive ? "auto" : "none"} // Only preload if active to save data
+                preload={(isActive || shouldPreload) ? "auto" : "none"} // Optimized preloading
             />
 
             {/* Play/Pause Overlay Indicator */}

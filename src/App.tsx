@@ -77,6 +77,7 @@ const SpeedMath = lazy(() => import("./pages/games/SpeedMath"));
 const Settings = lazy(() => import("./pages/Settings"));
 const LeaderboardFull = lazy(() => import("./pages/LeaderboardFull"));
 const HallOfFameFull = lazy(() => import("./pages/HallOfFameFull"));
+const SelectAvatar = lazy(() => import("./pages/SelectAvatar"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -167,6 +168,7 @@ const App = () => {
 
                   <Route path="/leaderboard" element={<LeaderboardFull />} />
                   <Route path="/hall-of-fame" element={<HallOfFameFull />} />
+                  <Route path="/select-avatar" element={<SelectAvatar />} />
 
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
