@@ -29,6 +29,8 @@ interface Post {
     saves?: { id: string; user_id: string }[];
 }
 
+const profileCache = new Map<string, any>();
+
 export const useFeedLogic = () => {
     const [user, setUser] = useState<User | null>(null);
     const [userProfile, setUserProfile] = useState<{ xp: number; level: number; current_streak: number } | null>(null);
@@ -68,6 +70,11 @@ export const useFeedLogic = () => {
     }, [navigate]);
 
     const fetchUserProfile = useCallback(async (userId: string) => {
+        if (profileCache.has(userId)) {
+            setUserProfile(profileCache.get(userId));
+            return;
+        }
+
         const { data, error } = await supabase
             .from('profiles')
             .select('xp, level, current_streak')
@@ -75,6 +82,7 @@ export const useFeedLogic = () => {
             .maybeSingle();
 
         if (!error && data) {
+            profileCache.set(userId, data);
             setUserProfile(data as any);
         }
     }, []);
@@ -180,7 +188,10 @@ export const useFeedLogic = () => {
                                         comments: data.comments || [],
                                         saves: data.saves || []
                                     };
-                                    setPosts(prev => [formattedPost, ...prev]);
+                                    setPosts(prev => {
+                                        if (prev.some(p => p.id === formattedPost.id)) return prev;
+                                        return [formattedPost, ...prev];
+                                    });
                                 }
                             });
                     }
@@ -319,7 +330,7 @@ export const useFeedLogic = () => {
 
                 if (postData && postData.user_id !== user.id) {
                     const actorName = user.user_metadata.full_name || user.email?.split('@')[0] || "Someone";
-                    await sendPushNotification(postData.user_id, `${actorName} saved your post`);
+                    sendPushNotification(postData.user_id, `${actorName} saved your post`).catch(console.error);
                 }
             }
         } catch (error: any) {

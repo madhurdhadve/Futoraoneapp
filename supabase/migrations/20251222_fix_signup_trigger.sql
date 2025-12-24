@@ -1,3 +1,6 @@
+-- Migration Purpose: Improve reliability of the new user signup trigger.
+-- This script ensures profile creation is forced and handles metadata correctly.
+-- Uses an ON CONFLICT clause to prevent duplicate user profile errors.
 -- Force recreate the handle_new_user function to be robust
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$

@@ -1,3 +1,5 @@
+-- Migration Purpose: Primary fix for story RLS policies to enable user uploads.
+-- This script established the base policies for the stories feature.
 -- Fix RLS policies for stories table to allow inserts
 
 -- Drop existing policies if they exist

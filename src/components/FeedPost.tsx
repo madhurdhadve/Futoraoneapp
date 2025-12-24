@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Heart, MessageCircle, Share2, Bookmark, MoreVertical, Edit, Trash } from "lucide-react";
 import { motion } from "framer-motion";
+import { useInView } from "react-intersection-observer";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { CommentSection } from "@/components/CommentSection";
 import type { User } from "@supabase/supabase-js";
@@ -191,11 +192,9 @@ export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDe
           )}
 
           {post.video_url && (
-            <video
+            <PostVideo
               src={post.video_url}
-              controls
-              className="w-full rounded-2xl mb-4 shadow-md"
-              preload={index < 2 ? "auto" : "metadata"}
+              index={index}
             />
           )}
 
@@ -265,3 +264,29 @@ export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDe
 });
 
 FeedPost.displayName = "FeedPost";
+
+// Internal specialized video component for lazy buffering
+const PostVideo = memo(({ src, index }: { src: string; index: number }) => {
+  const { ref, inView } = useInView({
+    triggerOnce: true,
+    rootMargin: "100px 0px", // Pre-fetch slightly before it hits viewport
+  });
+
+  return (
+    <div ref={ref} className="w-full rounded-2xl mb-4 shadow-md overflow-hidden bg-muted/20 min-h-[200px] flex items-center justify-center">
+      {inView ? (
+        <video
+          src={src}
+          controls
+          className="w-full h-full"
+          preload={index < 2 ? "auto" : "metadata"}
+          playsInline
+        />
+      ) : (
+        <div className="w-full h-full animate-pulse bg-muted" />
+      )}
+    </div>
+  );
+});
+
+PostVideo.displayName = "PostVideo";

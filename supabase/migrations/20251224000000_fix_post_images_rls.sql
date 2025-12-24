@@ -1,3 +1,6 @@
+-- Migration Purpose: Fix Storage RLS policies for profile images and post images.
+-- This script ensures consistent access control for the 'post-images' bucket.
+-- Row Level Security (RLS) is applied to prevent unauthorized uploads.
 -- FINAL FIX: Profile Image Upload RLS
 -- Run this in your Supabase SQL Editor (https://supabase.com/dashboard/project/_/sql)
 

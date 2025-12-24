@@ -1,3 +1,6 @@
+-- Migration Purpose: Core backend features implementation.
+-- Includes: Topic follows, tag extraction, gamification (XP/Leveling), and achievements system.
+-- This is a major update defining several core tables and triggers.
 -- Create Topic Follows Table
 CREATE TABLE IF NOT EXISTS public.topic_follows (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,

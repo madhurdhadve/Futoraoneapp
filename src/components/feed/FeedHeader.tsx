@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Zap, Film, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -6,7 +7,7 @@ interface FeedHeaderProps {
     unreadCount?: number;
 }
 
-export const FeedHeader = ({ unreadCount = 0 }: FeedHeaderProps) => {
+export const FeedHeader = memo(({ unreadCount = 0 }: FeedHeaderProps) => {
     const navigate = useNavigate();
 
     return (
@@ -42,4 +43,6 @@ export const FeedHeader = ({ unreadCount = 0 }: FeedHeaderProps) => {
             </div>
         </header>
     );
-};
+});
+
+FeedHeader.displayName = "FeedHeader";

@@ -1,3 +1,6 @@
+-- Migration Purpose: Comprehensive fix for story Row Level Security (RLS) policies.
+-- This script resets all policies on the 'stories' table to ensure clean access.
+-- V2 update includes better visibility and insert/delete permissions.
 -- Comprehensive fix for stories RLS policies
 -- This script drops ALL existing policies and recreates them cleanly
 
