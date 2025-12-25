@@ -14,6 +14,7 @@ import { CartoonLoader } from "@/components/CartoonLoader";
 import { AchievementListener } from "@/components/AchievementListener";
 import { UserPresenceProvider } from "@/contexts/UserPresenceContext";
 import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
+import { SectionErrorBoundary } from "@/components/SectionErrorBoundary";
 
 // Core pages - Eager loaded for speed
 import Index from "./pages/Index";
@@ -139,34 +140,125 @@ const App = () => {
                     <Route path="/story/:userId" element={<StoryView />} />
                     <Route path="/profile-views" element={<ProfileViews />} />
                     <Route path="/project-ideas" element={<ProjectIdeas />} />
-                    <Route path="/admin" element={<AdminDashboard />} />
-                    <Route path="/admin/users" element={<AdminUsers />} />
-                    <Route path="/admin/moderation" element={<AdminModeration />} />
-                    <Route path="/admin/analytics" element={<AdminAnalytics />} />
-                    <Route path="/admin/finance" element={<AdminFinance />} />
-                    <Route path="/admin/settings" element={<AdminSettings />} />
                     <Route path="/ai-enhancer" element={<AIEnhancer />} />
 
-                    <Route path="/founders-corner" element={<FoundersCorner />} />
-                    <Route path="/gig-marketplace" element={<GigMarketplace />} />
-                    <Route path="/applications" element={<ApplicationsDashboard />} />
-                    <Route path="/tech-reels" element={<TechReels />} />
-                    <Route path="/tech-match" element={<TechMatch />} />
-                    <Route path="/messages/group/:groupId" element={<GroupChat />} />
+                    {/* Feature sections with error boundaries */}
+                    <Route path="/founders-corner" element={
+                      <SectionErrorBoundary sectionName="Founders Corner" fallbackRoute="/feed">
+                        <FoundersCorner />
+                      </SectionErrorBoundary>
+                    } />
+                    <Route path="/gig-marketplace" element={
+                      <SectionErrorBoundary sectionName="Gig Marketplace" fallbackRoute="/feed">
+                        <GigMarketplace />
+                      </SectionErrorBoundary>
+                    } />
+                    <Route path="/applications" element={
+                      <SectionErrorBoundary sectionName="Applications" fallbackRoute="/feed">
+                        <ApplicationsDashboard />
+                      </SectionErrorBoundary>
+                    } />
+                    <Route path="/tech-reels" element={
+                      <SectionErrorBoundary sectionName="Tech Reels" fallbackRoute="/feed">
+                        <TechReels />
+                      </SectionErrorBoundary>
+                    } />
+                    <Route path="/tech-match" element={
+                      <SectionErrorBoundary sectionName="Tech Match" fallbackRoute="/feed">
+                        <TechMatch />
+                      </SectionErrorBoundary>
+                    } />
+                    <Route path="/messages/group/:groupId" element={
+                      <SectionErrorBoundary sectionName="Group Chat" fallbackRoute="/messages">
+                        <GroupChat />
+                      </SectionErrorBoundary>
+                    } />
                     <Route path="/post/:postId" element={<PostDetails />} />
 
-                    {/* Games */}
+                    {/* Games with error boundaries */}
                     <Route path="/games" element={<Games />} />
-                    <Route path="/games/dots-and-boxes" element={<DotsAndBoxes />} />
-                    <Route path="/games/tic-tac-toe" element={<TicTacToe />} />
-                    <Route path="/games/memory-match" element={<MemoryMatch />} />
-                    <Route path="/games/rock-paper-scissors" element={<RockPaperScissors />} />
-                    <Route path="/games/connect-four" element={<ConnectFour />} />
-                    <Route path="/games/reflex-master" element={<ReflexMaster />} />
-                    <Route path="/games/word-blitz" element={<WordBlitz />} />
-                    <Route path="/games/number-merge" element={<NumberMerge />} />
-                    <Route path="/games/pattern-pro" element={<PatternPro />} />
-                    <Route path="/games/speed-math" element={<SpeedMath />} />
+                    <Route path="/games/dots-and-boxes" element={
+                      <SectionErrorBoundary sectionName="Dots and Boxes" fallbackRoute="/games">
+                        <DotsAndBoxes />
+                      </SectionErrorBoundary>
+                    } />
+                    <Route path="/games/tic-tac-toe" element={
+                      <SectionErrorBoundary sectionName="Tic Tac Toe" fallbackRoute="/games">
+                        <TicTacToe />
+                      </SectionErrorBoundary>
+                    } />
+                    <Route path="/games/memory-match" element={
+                      <SectionErrorBoundary sectionName="Memory Match" fallbackRoute="/games">
+                        <MemoryMatch />
+                      </SectionErrorBoundary>
+                    } />
+                    <Route path="/games/rock-paper-scissors" element={
+                      <SectionErrorBoundary sectionName="Rock Paper Scissors" fallbackRoute="/games">
+                        <RockPaperScissors />
+                      </SectionErrorBoundary>
+                    } />
+                    <Route path="/games/connect-four" element={
+                      <SectionErrorBoundary sectionName="Connect Four" fallbackRoute="/games">
+                        <ConnectFour />
+                      </SectionErrorBoundary>
+                    } />
+                    <Route path="/games/reflex-master" element={
+                      <SectionErrorBoundary sectionName="Reflex Master" fallbackRoute="/games">
+                        <ReflexMaster />
+                      </SectionErrorBoundary>
+                    } />
+                    <Route path="/games/word-blitz" element={
+                      <SectionErrorBoundary sectionName="Word Blitz" fallbackRoute="/games">
+                        <WordBlitz />
+                      </SectionErrorBoundary>
+                    } />
+                    <Route path="/games/number-merge" element={
+                      <SectionErrorBoundary sectionName="Number Merge" fallbackRoute="/games">
+                        <NumberMerge />
+                      </SectionErrorBoundary>
+                    } />
+                    <Route path="/games/pattern-pro" element={
+                      <SectionErrorBoundary sectionName="Pattern Pro" fallbackRoute="/games">
+                        <PatternPro />
+                      </SectionErrorBoundary>
+                    } />
+                    <Route path="/games/speed-math" element={
+                      <SectionErrorBoundary sectionName="Speed Math" fallbackRoute="/games">
+                        <SpeedMath />
+                      </SectionErrorBoundary>
+                    } />
+
+                    {/* Admin sections with error boundaries */}
+                    <Route path="/admin" element={
+                      <SectionErrorBoundary sectionName="Admin Dashboard" fallbackRoute="/feed">
+                        <AdminDashboard />
+                      </SectionErrorBoundary>
+                    } />
+                    <Route path="/admin/users" element={
+                      <SectionErrorBoundary sectionName="Admin Users" fallbackRoute="/admin">
+                        <AdminUsers />
+                      </SectionErrorBoundary>
+                    } />
+                    <Route path="/admin/moderation" element={
+                      <SectionErrorBoundary sectionName="Admin Moderation" fallbackRoute="/admin">
+                        <AdminModeration />
+                      </SectionErrorBoundary>
+                    } />
+                    <Route path="/admin/analytics" element={
+                      <SectionErrorBoundary sectionName="Admin Analytics" fallbackRoute="/admin">
+                        <AdminAnalytics />
+                      </SectionErrorBoundary>
+                    } />
+                    <Route path="/admin/finance" element={
+                      <SectionErrorBoundary sectionName="Admin Finance" fallbackRoute="/admin">
+                        <AdminFinance />
+                      </SectionErrorBoundary>
+                    } />
+                    <Route path="/admin/settings" element={
+                      <SectionErrorBoundary sectionName="Admin Settings" fallbackRoute="/admin">
+                        <AdminSettings />
+                      </SectionErrorBoundary>
+                    } />
 
                     <Route path="/leaderboard" element={<LeaderboardFull />} />
                     <Route path="/hall-of-fame" element={<HallOfFameFull />} />
