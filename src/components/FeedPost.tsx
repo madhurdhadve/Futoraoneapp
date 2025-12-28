@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Heart, MessageCircle, Share2, Bookmark, MoreVertical, Edit, Trash } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { CommentSection } from "@/components/CommentSection";
@@ -46,6 +46,7 @@ interface FeedPostProps {
 export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDelete, index }: FeedPostProps) => {
   const navigate = useNavigate();
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [showComments, setShowComments] = useState(false);
 
   // Memoize computed values to prevent recalculation on every render
   const isLiked = useMemo(
@@ -214,7 +215,12 @@ export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDe
             </motion.div>
 
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button variant="ghost" size="sm" className="hover:text-blue-500 transition-colors">
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`transition-colors ${showComments ? "text-blue-500" : "hover:text-blue-500"}`}
+                onClick={() => setShowComments(!showComments)}
+              >
                 <MessageCircle className="w-5 h-5 mr-1.5" />
                 <span className="font-medium">{post.comments.length}</span>
               </Button>
@@ -241,13 +247,24 @@ export const FeedPost = memo(({ post, currentUser, onLike, onSave, onShare, onDe
           </div>
 
           {/* Comments Section */}
-          <div className="mt-4 pt-4 border-t border-border/50">
-            <CommentSection
-              postId={post.id}
-              postAuthorId={post.user_id}
-              currentUser={currentUser}
-            />
-          </div>
+          <AnimatePresence>
+            {showComments && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="mt-4 pt-4 border-t border-border/50">
+                  <CommentSection
+                    postId={post.id}
+                    postAuthorId={post.user_id}
+                    currentUser={currentUser}
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </Card>
     </motion.div>
