@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { Button } from "@/components/ui/button";
-import { Zap, Film, Bell } from "lucide-react";
+import { Zap, Film, Bell, Rocket } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface FeedHeaderProps {
@@ -31,9 +31,9 @@ export const FeedHeader = memo(({ unreadCount = 0 }: FeedHeaderProps) => {
                         size="icon"
                         variant="ghost"
                         className="relative w-10 h-10 mr-2 hover:bg-muted transition-all"
-                        onClick={() => navigate("/tech-reels")}
+                        onClick={() => navigate("/upcoming-features")}
                     >
-                        <Film className="w-6 h-6 text-foreground" />
+                        <Rocket className="w-6 h-6 text-foreground" />
                     </Button>
                     <Button size="icon" variant="ghost" className="relative" onClick={() => navigate("/notifications")}>
                         <Bell className="w-5 h-5" />

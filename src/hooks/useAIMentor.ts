@@ -5,7 +5,7 @@ interface Message {
   content: string;
 }
 
-type MentorMode = 'mentor' | 'enhance' | 'ideas' | 'female_companion' | 'male_companion';
+type MentorMode = 'mentor' | 'enhance' | 'ideas' | 'female_companion' | 'male_companion' | 'roadmap';
 
 export const useAIMentor = () => {
   const [messages, setMessages] = useState<Message[]>([]);

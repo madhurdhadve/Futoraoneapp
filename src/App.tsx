@@ -60,7 +60,7 @@ const AIEnhancer = lazy(() => import("./pages/AIEnhancer"));
 const FoundersCorner = lazy(() => import("./pages/FoundersCorner"));
 const GigMarketplace = lazy(() => import("./pages/GigMarketplace"));
 const ApplicationsDashboard = lazy(() => import("./pages/ApplicationsDashboard"));
-const TechReels = lazy(() => import("./pages/TechReels"));
+const UpcomingFeatures = lazy(() => import("./pages/UpcomingFeatures"));
 const TechMatch = lazy(() => import("./pages/TechMatch"));
 
 const GroupChat = lazy(() => import("./pages/GroupChat"));
@@ -80,6 +80,7 @@ const Settings = lazy(() => import("./pages/Settings"));
 const LeaderboardFull = lazy(() => import("./pages/LeaderboardFull"));
 const HallOfFameFull = lazy(() => import("./pages/HallOfFameFull"));
 const SelectAvatar = lazy(() => import("./pages/SelectAvatar"));
+const CodeDuel = lazy(() => import("./pages/games/CodeDuel"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -158,9 +159,9 @@ const App = () => {
                         <ApplicationsDashboard />
                       </SectionErrorBoundary>
                     } />
-                    <Route path="/tech-reels" element={
-                      <SectionErrorBoundary sectionName="Tech Reels" fallbackRoute="/feed">
-                        <TechReels />
+                    <Route path="/upcoming-features" element={
+                      <SectionErrorBoundary sectionName="Upcoming Features" fallbackRoute="/feed">
+                        <UpcomingFeatures />
                       </SectionErrorBoundary>
                     } />
                     <Route path="/tech-match" element={
@@ -225,6 +226,11 @@ const App = () => {
                     <Route path="/games/speed-math" element={
                       <SectionErrorBoundary sectionName="Speed Math" fallbackRoute="/games">
                         <SpeedMath />
+                      </SectionErrorBoundary>
+                    } />
+                    <Route path="/games/code-duel" element={
+                      <SectionErrorBoundary sectionName="Code Duel" fallbackRoute="/games">
+                        <CodeDuel />
                       </SectionErrorBoundary>
                     } />
 

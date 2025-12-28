@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Sparkles, Send, Loader2 } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import type { User } from "@supabase/supabase-js";
+import { useAIMentor } from "@/hooks/useAIMentor";
 
 export default function AIRoadmap() {
     const [user, setUser] = useState<User | null>(null);
@@ -29,6 +30,23 @@ export default function AIRoadmap() {
         });
     }, [navigate]);
 
+    const { sendMessage, messages: aiMessages, isLoading: isAiLoading } = useAIMentor();
+
+    // Effect to handle AI response updates
+    useEffect(() => {
+        if (aiMessages.length > 0) {
+            const lastMsg = aiMessages[aiMessages.length - 1];
+            if (lastMsg.role === 'assistant') {
+                setRoadmap(lastMsg.content);
+                // Also update local chat history for display consistency if needed, 
+                // but we might just want to rely on aiMessages for the latest state.
+                // However, the existing UI uses chatHistory state. 
+                // Let's sync them or just swap to use aiMessages directly.
+                // For simplicity/least-refactor, we'll sync the *latest* response content.
+            }
+        }
+    }, [aiMessages]);
+
     const generateRoadmap = async () => {
         if (!query.trim()) {
             toast({
@@ -39,23 +57,16 @@ export default function AIRoadmap() {
             return;
         }
 
-        setLoading(true);
-
-        // Add user message to chat
+        // Add user message to local chat history for immediate feedback
         const userMessage = { role: "user", content: query };
         setChatHistory(prev => [...prev, userMessage]);
 
         try {
-            // Simulated AI response (you can integrate with OpenAI API later)
-            const aiResponse = generateMockRoadmap(query);
-
-            setRoadmap(aiResponse);
-            setChatHistory(prev => [...prev, { role: "assistant", content: aiResponse }]);
-            setQuery("");
+            await sendMessage(query, 'roadmap');
 
             toast({
-                title: "Roadmap Generated!",
-                description: "Your personalized learning path is ready.",
+                title: "Generating Roadmap...",
+                description: "This may take a few seconds.",
             });
         } catch (error) {
             toast({
@@ -63,148 +74,6 @@ export default function AIRoadmap() {
                 description: "Failed to generate roadmap. Please try again.",
                 variant: "destructive",
             });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const generateMockRoadmap = (topic: string) => {
-        const topicLower = topic.toLowerCase();
-
-        if (topicLower.includes("react") || topicLower.includes("frontend")) {
-            return `# 🚀 React Developer Roadmap
-
-## Phase 1: Fundamentals (2-3 months)
-✅ HTML5 & CSS3 mastery
-✅ JavaScript ES6+ features
-✅ DOM manipulation
-✅ Async JavaScript (Promises, Async/Await)
-✅ Git & GitHub basics
-
-## Phase 2: React Basics (2 months)
-✅ JSX and Components
-✅ Props and State
-✅ Hooks (useState, useEffect, useContext)
-✅ Event Handling
-✅ Conditional Rendering
-✅ Lists and Keys
-
-## Phase 3: Advanced React (2-3 months)
-✅ Custom Hooks
-✅ Context API & State Management
-✅ React Router
-✅ Performance Optimization
-✅ Code Splitting & Lazy Loading
-✅ Error Boundaries
-
-## Phase 4: Ecosystem & Tools (2 months)
-✅ TypeScript with React
-✅ State Management (Redux/Zustand)
-✅ Styling (Tailwind CSS, Styled Components)
-✅ Testing (Jest, React Testing Library)
-✅ Build Tools (Vite, Webpack)
-
-## Phase 5: Real-World Projects
-✅ Build a Todo App
-✅ Create a Weather Dashboard
-✅ Develop an E-commerce Site
-✅ Build a Social Media Clone
-✅ Contribute to Open Source
-
-## Resources:
-📚 Official React Docs
-🎥 FreeCodeCamp React Course
-💻 React Projects on GitHub
-🌐 React Community Forums
-
-Keep coding and never stop learning! 🎯`;
-        } else if (topicLower.includes("python") || topicLower.includes("backend")) {
-            return `# 🐍 Python Backend Developer Roadmap
-
-## Phase 1: Python Basics (1-2 months)
-✅ Python Syntax & Data Types
-✅ Control Flow & Loops
-✅ Functions & Modules
-✅ OOP Concepts
-✅ File Handling
-✅ Error Handling
-
-## Phase 2: Web Frameworks (2-3 months)
-✅ Flask Basics
-✅ Django Framework
-✅ FastAPI
-✅ RESTful API Design
-✅ Authentication & Authorization
-✅ Database Integration
-
-## Phase 3: Databases (2 months)
-✅ SQL (PostgreSQL, MySQL)
-✅ NoSQL (MongoDB)
-✅ ORMs (SQLAlchemy, Django ORM)
-✅ Database Design
-✅ Migrations
-
-## Phase 4: Advanced Topics (2-3 months)
-✅ Async Programming
-✅ Celery & Task Queues
-✅ Caching (Redis)
-✅ Testing (pytest, unittest)
-✅ Docker & Containerization
-✅ CI/CD Pipelines
-
-## Phase 5: Deployment & DevOps (1-2 months)
-✅ Linux Basics
-✅ AWS/GCP/Azure
-✅ Nginx/Apache
-✅ Monitoring & Logging
-✅ Security Best Practices
-
-## Projects:
-✅ REST API for Blog
-✅ E-commerce Backend
-✅ Real-time Chat Application
-✅ Microservices Architecture
-
-Start building and deploy your first API! 🚀`;
-        } else {
-            return `# 🎯 ${topic} Learning Roadmap
-
-## Phase 1: Foundation (2-3 months)
-✅ Understand the basics and core concepts
-✅ Learn the fundamental syntax and principles
-✅ Study best practices and conventions
-✅ Set up your development environment
-✅ Join relevant communities
-
-## Phase 2: Intermediate Skills (3-4 months)
-✅ Deep dive into advanced features
-✅ Work on small projects
-✅ Learn related tools and frameworks
-✅ Study design patterns
-✅ Read documentation thoroughly
-
-## Phase 3: Advanced Mastery (4-6 months)
-✅ Build complex projects
-✅ Contribute to open source
-✅ Optimize performance
-✅ Learn testing strategies
-✅ Study system design
-
-## Phase 4: Professional Level (Ongoing)
-✅ Build a portfolio
-✅ Network with professionals
-✅ Stay updated with trends
-✅ Mentor others
-✅ Specialize in a niche
-
-## Resources:
-📚 Official Documentation
-🎥 Online Courses (Udemy, Coursera)
-💻 GitHub Projects
-🌐 Community Forums
-📝 Technical Blogs
-
-Remember: Consistency is key! Code every day! 💪`;
         }
     };
 

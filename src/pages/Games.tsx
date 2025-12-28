@@ -21,17 +21,6 @@ import GameLeaderboard from "@/components/GameLeaderboard";
 
 const games = [
     {
-        id: "dots-and-boxes",
-        title: "Dots & Boxes",
-        description: "Strategy: Claim the most boxes to win.",
-        icon: <Grid className="w-10 h-10 md:w-12 md:h-12 text-white" />,
-        gradient: "from-blue-500 to-indigo-600",
-        shadow: "shadow-blue-500/30",
-        path: "/games/dots-and-boxes",
-        difficulty: "Medium",
-        dotColor: "bg-yellow-400"
-    },
-    {
         id: "tic-tac-toe",
         title: "Tic Tac Toe",
         description: "Classic: The timeless game of X's and O's.",
@@ -41,6 +30,17 @@ const games = [
         path: "/games/tic-tac-toe",
         difficulty: "Easy",
         dotColor: "bg-pink-400"
+    },
+    {
+        id: "code-duel",
+        title: "Code Duel",
+        description: "Speed: Type code snippets against the clock!",
+        icon: <Zap className="w-10 h-10 md:w-12 md:h-12 text-white" />,
+        gradient: "from-yellow-400 to-orange-600",
+        shadow: "shadow-yellow-500/30",
+        path: "/games/code-duel",
+        difficulty: "Medium",
+        dotColor: "bg-yellow-400"
     },
     {
         id: "memory-match",
@@ -63,6 +63,17 @@ const games = [
         path: "/games/rock-paper-scissors",
         difficulty: "Easy",
         dotColor: "bg-blue-400"
+    },
+    {
+        id: "dots-and-boxes",
+        title: "Dots & Boxes",
+        description: "Strategy: Claim the most boxes to win.",
+        icon: <Grid className="w-10 h-10 md:w-12 md:h-12 text-white" />,
+        gradient: "from-blue-500 to-indigo-600",
+        shadow: "shadow-blue-500/30",
+        path: "/games/dots-and-boxes",
+        difficulty: "Medium",
+        dotColor: "bg-yellow-400"
     },
     {
         id: "connect-four",
