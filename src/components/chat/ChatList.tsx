@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { UserSearchDialog } from "./UserSearchDialog";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { ConversationItem } from "./ConversationItem";
 
 interface Profile {
     id: string;
@@ -139,34 +140,14 @@ export function ChatList({ currentUserId }: { currentUserId: string }) {
                 <p className="text-muted-foreground text-center py-8">No conversations yet.</p>
             ) : (
                 conversations.map((conv) => (
-                    <div
+                    <ConversationItem
                         key={conv.id}
+                        id={conv.id}
+                        participant={conv.participants[0]}
+                        lastMessage={conv.last_message}
+                        currentUserId={currentUserId}
                         onClick={() => navigate(`/messages/${conv.id}`)}
-                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                    >
-                        <Avatar>
-                            <AvatarImage src={conv.participants[0]?.avatar_url || undefined} />
-                            <AvatarFallback>{conv.participants[0]?.username?.[0]}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-baseline">
-                                <h3 className="font-semibold truncate flex items-center gap-1">
-                                    {conv.participants[0]?.full_name || conv.participants[0]?.username}
-                                    <VerifiedBadge isVerified={conv.participants[0]?.is_verified} size={14} />
-                                </h3>
-                                {conv.last_message && (
-                                    <span className="text-xs text-muted-foreground">
-                                        {formatDistanceToNow(new Date(conv.last_message.created_at), { addSuffix: true })}
-                                    </span>
-                                )}
-                            </div>
-                            {conv.last_message && (
-                                <p className={`text-sm truncate ${!conv.last_message.read_at && conv.last_message.sender_id !== currentUserId ? 'font-bold text-foreground' : 'text-muted-foreground'}`}>
-                                    {conv.last_message.sender_id === currentUserId ? 'You: ' : ''}{conv.last_message.content}
-                                </p>
-                            )}
-                        </div>
-                    </div>
+                    />
                 ))
             )}
         </div>

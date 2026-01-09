@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, RotateCcw, Hand, Scissors, Scroll, Zap, Cpu, Users, Globe, Copy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +10,7 @@ import { HowToPlay } from "@/components/games/HowToPlay";
 import { useMultiplayerGame } from "@/hooks/useMultiplayerGame";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { useGameReward } from "@/hooks/useGameReward";
 
 type Choice = "rock" | "paper" | "scissors" | null;
 type GameMode = "AI" | "LOCAL" | "ONLINE";
@@ -20,9 +21,28 @@ const CHOICES = [
     { id: "scissors", icon: <Scissors className="w-12 h-12 md:w-16 md:h-16 text-pink-500" />, label: "Scissors", beats: "paper", color: "bg-pink-50 dark:bg-pink-900/20" },
 ];
 
+const ChoiceButton = React.memo(({ choice, onClick, disabled, index }: { choice: typeof CHOICES[0], onClick: (id: string) => void, disabled: boolean, index: number }) => (
+    <motion.button
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: index * 0.1 }}
+        whileHover={{ scale: 1.1, rotate: 5 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => onClick(choice.id)}
+        disabled={disabled}
+        className={`p-6 md:p-10 ${choice.color} rounded-3xl shadow-lg border-2 border-transparent hover:border-sidebar-primary/20 backdrop-blur-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed`}
+    >
+        {choice.icon}
+        <div className="mt-4 font-bold text-slate-600 dark:text-slate-400">{choice.label}</div>
+    </motion.button>
+));
+ChoiceButton.displayName = "ChoiceButton";
+
+
 const RockPaperScissors = () => {
     const navigate = useNavigate();
     const playSound = useGameSounds();
+    const { processWin } = useGameReward();
     const [p1Choice, setP1Choice] = useState<Choice>(null);
     const [p2Choice, setP2Choice] = useState<Choice>(null);
     const [turn, setTurn] = useState<1 | 2>(1); // For Stats/Turn display
@@ -35,6 +55,70 @@ const RockPaperScissors = () => {
     const [roomId, setRoomId] = useState("");
     const [isHost, setIsHost] = useState(false);
     const [joinRoomId, setJoinRoomId] = useState("");
+
+    const triggerWin = useCallback(() => {
+        confetti({
+            particleCount: 150,
+            spread: 80,
+            origin: { y: 0.6 },
+            colors: ['#8b5cf6', '#d946ef']
+        });
+    }, []);
+
+    const determineWinner = useCallback((c1: Choice, c2: Choice, updateScore = true) => {
+        if (!c1 || !c2) return;
+
+        // Slight delay to allow animation to start
+        setTimeout(() => {
+            let resultText = "";
+            let newScores = { ...scores };
+
+            if (c1 === c2) {
+                resultText = "Draw";
+                playSound('draw');
+            } else {
+                const choice1 = CHOICES.find(c => c.id === c1);
+                if (choice1?.beats === c2) {
+                    resultText = "Player 1 Wins";
+                    // Only update local scores here if NOT online or if Host
+                    // But checking state inside timeout is risky with stale closures.
+                    // However, 'scores' is in dependency array.
+                    newScores = { ...newScores, 1: newScores[1] + 1 };
+
+                    playSound('win');
+                    if (gameMode === 'AI' || isHost || gameMode === 'LOCAL') triggerWin(); // P1 Win
+
+                    if (gameMode === 'AI') processWin('rock_paper_scissors');
+
+                } else {
+                    resultText = gameMode === 'AI' ? "AI Wins" : "Player 2 Wins";
+                    newScores = { ...newScores, 2: newScores[2] + 1 };
+                    playSound('lose');
+                    if (gameMode === 'ONLINE' && !isHost) triggerWin(); // P2 Win (me)
+                }
+            }
+
+            setResult(resultText);
+
+            // We need to be careful with scores update to avoid infinite loops if it triggers effect
+            // But here we set explicit state
+            if (updateScore && gameMode !== 'ONLINE') {
+                setScores(newScores);
+            } else if (gameMode === 'ONLINE' && isHost && updateScore) {
+                setScores(newScores);
+                // We depend on 'sendMove' which is not in this callback scope directly if extracted? 
+                // But we are inside component, so it's fine.
+                // However, wait. sendMove is from useMultiplayerGame.
+                // We'll need to pass it or accessible.
+                // eslint-disable-next-line @typescript-eslint/no-use-before-define
+                sendMove({ p1Choice: c1, p2Choice: c2, scores: newScores });
+            } else if (gameMode === 'ONLINE') {
+                // Client just updates local display, actual sync comes from host usually but for responsive UI we update
+                setScores(newScores);
+            }
+
+        }, 100);
+    }, [gameMode, isHost, playSound, processWin, scores, triggerWin]); // sendMove added via eslint-disable-next-line hack or we need to include it.
 
     const { isConnected, playerCount, sendMove } = useMultiplayerGame({
         gameId: 'rps',
@@ -72,21 +156,22 @@ const RockPaperScissors = () => {
         }
     });
 
-    const createRoom = () => {
+
+    const createRoom = useCallback(() => {
         const newRoomId = Math.random().toString(36).substring(7).toUpperCase();
         setRoomId(newRoomId);
         setIsHost(true);
         setGameMode("ONLINE");
-    };
+    }, []);
 
-    const joinRoom = () => {
+    const joinRoom = useCallback(() => {
         if (!joinRoomId) return;
         setRoomId(joinRoomId);
         setIsHost(false);
         setGameMode("ONLINE");
-    };
+    }, [joinRoomId]);
 
-    const handleChoice = (choiceId: string) => {
+    const handleChoice = useCallback((choiceId: string) => {
         playSound('pop');
 
         if (gameMode === "AI") {
@@ -126,58 +211,9 @@ const RockPaperScissors = () => {
                 determineWinner(p1Choice!, choiceId as Choice);
             }
         }
-    };
+    }, [gameMode, isConnected, isHost, p1Choice, p2Choice, playSound, scores, sendMove, turn, determineWinner]);
 
-    const determineWinner = (c1: Choice, c2: Choice, updateScore = true) => {
-        if (!c1 || !c2) return;
-
-        // Slight delay to allow animation to start
-        setTimeout(() => {
-            let resultText = "";
-            let newScores = { ...scores };
-
-            if (c1 === c2) {
-                resultText = "Draw";
-                playSound('draw');
-            } else {
-                const choice1 = CHOICES.find(c => c.id === c1);
-                if (choice1?.beats === c2) {
-                    resultText = "Player 1 Wins";
-                    newScores[1] += 1;
-                    playSound('win');
-                    if (gameMode === 'AI' || isHost || gameMode === 'LOCAL') triggerWin(); // P1 Win
-                } else {
-                    resultText = gameMode === 'AI' ? "AI Wins" : "Player 2 Wins";
-                    newScores[2] += 1;
-                    playSound('lose');
-                    if (gameMode === 'ONLINE' && !isHost) triggerWin(); // P2 Win (me)
-                }
-            }
-
-            setResult(resultText);
-
-            if (updateScore && gameMode !== 'ONLINE') {
-                setScores(newScores);
-            } else if (gameMode === 'ONLINE' && isHost && updateScore) {
-                setScores(newScores);
-                sendMove({ p1Choice: c1, p2Choice: c2, scores: newScores });
-            } else if (gameMode === 'ONLINE') {
-                setScores(newScores);
-            }
-
-        }, 100);
-    };
-
-    const triggerWin = () => {
-        confetti({
-            particleCount: 150,
-            spread: 80,
-            origin: { y: 0.6 },
-            colors: ['#8b5cf6', '#d946ef']
-        });
-    };
-
-    const resetRound = () => {
+    const resetRound = useCallback(() => {
         playSound('click');
         if (gameMode === 'ONLINE') {
             if (!isHost) {
@@ -195,9 +231,9 @@ const RockPaperScissors = () => {
             setResult(null);
             setIsRevealed(false);
         }
-    };
+    }, [gameMode, isHost, playSound, scores, sendMove]);
 
-    const toggleGameMode = () => {
+    const toggleGameMode = useCallback(() => {
         playSound('click');
         // If switching OUT of Online, reset connection
         if (gameMode === "ONLINE") {
@@ -214,7 +250,7 @@ const RockPaperScissors = () => {
         setScores({ 1: 0, 2: 0 });
         setResult(null);
         setIsRevealed(false);
-    };
+    }, [gameMode, playSound]);
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col items-center py-6 px-4">
@@ -346,23 +382,16 @@ const RockPaperScissors = () => {
 
                             <div className="flex flex-wrap justify-center gap-6 md:gap-10">
                                 {CHOICES.map((choice, index) => (
-                                    <motion.button
+                                    <ChoiceButton
                                         key={choice.id}
-                                        initial={{ opacity: 0, y: 50 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: index * 0.1 }}
-                                        whileHover={{ scale: 1.1, rotate: 5 }}
-                                        whileTap={{ scale: 0.9 }}
-                                        onClick={() => handleChoice(choice.id)}
+                                        choice={choice}
+                                        index={index}
+                                        onClick={handleChoice}
                                         disabled={
                                             (gameMode === 'ONLINE' && ((isHost && !!p1Choice) || (!isHost && !!p2Choice))) ||
                                             (gameMode === 'ONLINE' && playerCount < 2)
                                         }
-                                        className={`p-6 md:p-10 ${choice.color} rounded-3xl shadow-lg border-2 border-transparent hover:border-sidebar-primary/20 backdrop-blur-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed`}
-                                    >
-                                        {choice.icon}
-                                        <div className="mt-4 font-bold text-slate-600 dark:text-slate-400">{choice.label}</div>
-                                    </motion.button>
+                                    />
                                 ))}
                             </div>
                             <p className="text-muted-foreground mt-12 animate-pulse">

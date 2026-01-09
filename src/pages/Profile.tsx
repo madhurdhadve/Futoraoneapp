@@ -23,6 +23,7 @@ import { QRCodeDialog } from "@/components/QRCodeDialog";
 import { CartoonLoader } from "@/components/CartoonLoader";
 import { AchievementShowcase } from "@/components/AchievementShowcase";
 import { ProfileStatsCard } from "@/components/ProfileStatsCard";
+import { WalletCard } from "@/components/rewards/WalletCard";
 
 interface Profile {
   id: string;
@@ -406,6 +407,9 @@ const Profile = () => {
               </CardContent>
             </Card>
           )}
+
+          {/* Wallet Section */}
+          <WalletCard />
 
           {/* Stats Dashboard */}
           <ProfileStatsCard

@@ -26,7 +26,7 @@ export const AICompanionView = () => {
             timestamp: new Date()
         }
     ]);
-    const [inputValue, setInputValue] = useState("");
+
     const [isTyping, setIsTyping] = useState(false);
 
     // Reset chat when gender changes
@@ -95,15 +95,12 @@ export const AICompanionView = () => {
 
 
     // Optimize: useCallback for stable function reference passed to AIChat
-    const handleSendMessage = useCallback(async () => {
-        if (!inputValue.trim()) return;
-
-        setInputValue("");
+    const handleSendMessage = useCallback(async (text: string) => {
         setIsTyping(true);
 
         try {
             const mode = aiGender === 'female' ? 'female_companion' : 'male_companion';
-            await sendMessage(inputValue, mode);
+            await sendMessage(text, mode);
         } catch (error) {
             console.error("AI Error:", error);
             toast({
@@ -113,7 +110,7 @@ export const AICompanionView = () => {
             });
             setIsTyping(false);
         }
-    }, [inputValue, aiGender, sendMessage, toast]);
+    }, [aiGender, sendMessage, toast]);
 
 
     const aiName = aiGender === 'female' ? 'Riya' : 'Arjun';
@@ -161,9 +158,7 @@ export const AICompanionView = () => {
                 {/* Chat Area - Extracted for Performance */}
                 <AIChat
                     messages={messages}
-                    inputValue={inputValue}
-                    setInputValue={setInputValue}
-                    handleSendMessage={handleSendMessage}
+                    onSendMessage={handleSendMessage}
                     aiName={aiName}
                     themeColor={themeColor}
                     gradientFrom={gradientFrom}

@@ -25,6 +25,15 @@ export const useMultiplayerGame = ({
     const channelRef = useRef<RealtimeChannel | null>(null);
     const [myPlayerId, setMyPlayerId] = useState<string>('');
 
+    // Stable ref for the callback to prevent effect/callback invalidation
+    const onStateUpdateRef = useRef(onStateUpdate);
+    const onPlayerJoinRef = useRef(onPlayerJoin);
+
+    useEffect(() => {
+        onStateUpdateRef.current = onStateUpdate;
+        onPlayerJoinRef.current = onPlayerJoin;
+    }, [onStateUpdate, onPlayerJoin]);
+
     useEffect(() => {
         if (!roomId) return;
 
@@ -44,15 +53,15 @@ export const useMultiplayerGame = ({
 
             channel
                 .on('broadcast', { event: 'game_state' }, ({ payload }) => {
-                    onStateUpdate(payload);
+                    if (onStateUpdateRef.current) onStateUpdateRef.current(payload);
                 })
                 .on('presence', { event: 'sync' }, () => {
                     const state = channel.presenceState();
                     const count = Object.keys(state).length;
                     setPlayerCount(count);
 
-                    if (onPlayerJoin) {
-                        onPlayerJoin(state);
+                    if (onPlayerJoinRef.current) {
+                        onPlayerJoinRef.current(state);
                     }
                 })
                 .subscribe((status) => {
@@ -70,9 +79,11 @@ export const useMultiplayerGame = ({
         setupChannel();
 
         return () => {
-            channelRef.current?.unsubscribe();
+            // Cleanup channel
+            if (channelRef.current) supabase.removeChannel(channelRef.current);
+            channelRef.current = null;
         };
-    }, [roomId, gameId]); // Removed onStateUpdate dependency to avoid re-subscribing
+    }, [roomId, gameId]);
 
     const sendMove = useCallback((newState: GameState) => {
         channelRef.current?.send({
@@ -80,9 +91,9 @@ export const useMultiplayerGame = ({
             event: 'game_state',
             payload: newState,
         });
-        // We also update local state immediately for responsiveness
-        onStateUpdate(newState);
-    }, [onStateUpdate]);
+        // Update local state immediately
+        if (onStateUpdateRef.current) onStateUpdateRef.current(newState);
+    }, []);
 
     return {
         isConnected,

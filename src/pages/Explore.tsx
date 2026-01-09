@@ -13,6 +13,7 @@ import { FollowButton } from "@/components/FollowButton";
 import { StartChatButton } from "@/components/StartChatButton";
 import { OnlineIndicator } from "@/components/OnlineIndicator";
 import { Button } from "@/components/ui/button";
+import { SEO } from "@/components/SEO";
 
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import type { User } from "@supabase/supabase-js";
@@ -222,6 +223,10 @@ const Explore = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-muted/30 to-background pb-20">
+      <SEO
+        title="Explore"
+        description="Discover top developers, trending projects, and exciting opportunities on Futora."
+      />
       {/* Header */}
       <motion.div
         className="sticky top-0 z-50 bg-card/95 backdrop-blur-lg border-b border-border p-4 shadow-sm"

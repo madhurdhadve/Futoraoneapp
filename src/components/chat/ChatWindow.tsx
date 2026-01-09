@@ -8,6 +8,7 @@ import { Send, ArrowLeft, Check, CheckCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { MessageBubble } from "@/components/chat/MessageBubble";
 
 interface Message {
     id: string;
@@ -229,19 +230,13 @@ export function ChatWindow({ conversationId, currentUserId }: { conversationId: 
                     {messages.map((msg) => {
                         const isMe = msg.sender_id === currentUserId;
                         return (
-                            <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                                <div className={`max-w-[70%] rounded-lg p-3 ${isMe ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                                    <p>{msg.content}</p>
-                                    <div className={`flex items-center justify-end gap-1 mt-1 text-[10px] ${isMe ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-                                        <span>{format(new Date(msg.created_at), 'HH:mm')}</span>
-                                        {isMe && (
-                                            <span>
-                                                {msg.read_at ? <CheckCheck className="h-3 w-3" /> : <Check className="h-3 w-3" />}
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
+                            <MessageBubble
+                                key={msg.id}
+                                content={msg.content}
+                                createdAt={msg.created_at}
+                                isMe={isMe}
+                                readAt={msg.read_at}
+                            />
                         );
                     })}
                     <div ref={scrollRef} />

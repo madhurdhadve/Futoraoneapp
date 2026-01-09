@@ -1,4 +1,4 @@
-import { useRef, useEffect, memo } from "react";
+import { useRef, useEffect, useState, memo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -15,9 +15,7 @@ interface Message {
 
 interface AIChatProps {
     messages: Message[];
-    inputValue: string;
-    setInputValue: (value: string) => void;
-    handleSendMessage: () => void;
+    onSendMessage: (text: string) => void;
     aiName: string;
     themeColor: string;
     gradientFrom: string;
@@ -28,9 +26,7 @@ interface AIChatProps {
 
 const AIChat = memo(({
     messages,
-    inputValue,
-    setInputValue,
-    handleSendMessage,
+    onSendMessage,
     aiName,
     themeColor,
     gradientFrom,
@@ -38,6 +34,7 @@ const AIChat = memo(({
     aiGender,
     isTyping = false
 }: AIChatProps) => {
+    const [inputValue, setInputValue] = useState(""); // Local state
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
@@ -109,7 +106,12 @@ const AIChat = memo(({
             <div className="p-4 bg-gradient-to-t from-black via-black/80 to-transparent">
                 <form
                     className="flex gap-3 max-w-md mx-auto"
-                    onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        if (!inputValue.trim()) return;
+                        onSendMessage(inputValue);
+                        setInputValue("");
+                    }}
                 >
                     <Input
                         placeholder={`Message ${aiName}...`}

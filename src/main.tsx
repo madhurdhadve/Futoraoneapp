@@ -16,4 +16,10 @@ Sentry.init({
     replaysOnErrorSampleRate: 1.0,
 });
 
-createRoot(document.getElementById("root")!).render(<App />);
+import { HelmetProvider } from "react-helmet-async";
+
+createRoot(document.getElementById("root")!).render(
+    <HelmetProvider>
+        <App />
+    </HelmetProvider>
+);

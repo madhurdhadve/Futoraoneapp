@@ -15,6 +15,7 @@ import { AchievementListener } from "@/components/AchievementListener";
 import { UserPresenceProvider } from "@/contexts/UserPresenceContext";
 import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
 import { SectionErrorBoundary } from "@/components/SectionErrorBoundary";
+import { CoinRewardPopup } from "@/components/rewards/CoinRewardPopup";
 
 // Core pages - Eager loaded for speed
 import Index from "./pages/Index";
@@ -110,6 +111,7 @@ const App = () => {
           <Sonner />
           <AchievementListener />
           <UserPresenceProvider>
+            <CoinRewardPopup />
             <GlobalErrorBoundary>
               <BrowserRouter>
                 <ScrollToTop />

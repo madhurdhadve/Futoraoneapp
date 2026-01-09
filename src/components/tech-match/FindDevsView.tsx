@@ -326,17 +326,18 @@ export const FindDevsView = () => {
             <div className="flex-1 relative flex items-center justify-center p-4 overflow-hidden max-w-md mx-auto w-full">
                 <AnimatePresence>
                     {potentialMatches.length > 0 ? (
-                        (() => {
-                            const activeProfile = potentialMatches[potentialMatches.length - 1];
+                        potentialMatches.slice(-2).map((profile, index, array) => {
+                            const isFront = index === array.length - 1;
                             return (
                                 <SwipeCard
-                                    key={activeProfile.id}
-                                    profile={activeProfile}
-                                    onSwipe={(dir) => handleSwipe(dir, activeProfile.id)}
-                                    exitDirection={exitDirection}
+                                    key={profile.id}
+                                    profile={profile}
+                                    onSwipe={(dir) => handleSwipe(dir, profile.id)}
+                                    exitDirection={isFront ? exitDirection : null}
+                                    draggable={isFront}
                                 />
                             );
-                        })()
+                        })
                     ) : (
                         <div className="text-center space-y-4">
                             <div className="w-20 h-20 bg-secondary/30 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">

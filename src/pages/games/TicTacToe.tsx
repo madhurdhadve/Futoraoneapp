@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, RotateCcw, Trophy, Circle, X, Cpu, Users, Globe, Copy } from "lucide-react";
@@ -11,10 +11,133 @@ import { HowToPlay } from "@/components/games/HowToPlay";
 import { useMultiplayerGame } from "@/hooks/useMultiplayerGame";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useGameReward } from "@/hooks/useGameReward";
 
 type Player = "X" | "O" | null;
 type GameMode = "PVP" | "AI" | "ONLINE";
 type Difficulty = "EASY" | "HARD";
+
+// --- Pure Helper Functions (Moved Outside) ---
+
+const checkWinner = (squares: Player[]): "X" | "O" | "Draw" | null => {
+    const lines = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8],
+        [0, 3, 6], [1, 4, 7], [2, 5, 8],
+        [0, 4, 8], [2, 4, 6]
+    ];
+    for (let i = 0; i < lines.length; i++) {
+        const [a, b, c] = lines[i];
+        if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+            return squares[a] as "X" | "O";
+        }
+    }
+    if (!squares.includes(null)) return "Draw";
+    return null;
+};
+
+const scoresMap = { O: 10, X: -10, Draw: 0 };
+
+const minimax = (currentBoard: Player[], depth: number, isMaximizing: boolean): number => {
+    const result = checkWinner(currentBoard);
+    if (result !== null) return scoresMap[result as keyof typeof scoresMap];
+
+    if (isMaximizing) {
+        let bestScore = -Infinity;
+        for (let i = 0; i < 9; i++) {
+            if (currentBoard[i] === null) {
+                currentBoard[i] = "O";
+                let score = minimax(currentBoard, depth + 1, false);
+                currentBoard[i] = null;
+                bestScore = Math.max(score, bestScore);
+            }
+        }
+        return bestScore;
+    } else {
+        let bestScore = Infinity;
+        for (let i = 0; i < 9; i++) {
+            if (currentBoard[i] === null) {
+                currentBoard[i] = "X";
+                let score = minimax(currentBoard, depth + 1, true);
+                currentBoard[i] = null;
+                bestScore = Math.min(score, bestScore);
+            }
+        }
+        return bestScore;
+    }
+};
+
+const getBestMove = (currentBoard: Player[]): number => {
+    let bestScore = -Infinity;
+    let move = -1;
+    const emptySpots = currentBoard.filter(s => s === null).length;
+    // Optimization for first move
+    if (emptySpots === 9) return 4;
+    if (emptySpots === 8 && currentBoard[4] === null) return 4;
+
+    for (let i = 0; i < 9; i++) {
+        if (currentBoard[i] === null) {
+            currentBoard[i] = "O";
+            let score = minimax(currentBoard, 0, false);
+            currentBoard[i] = null;
+            if (score > bestScore) {
+                bestScore = score;
+                move = i;
+            }
+        }
+    }
+    return move;
+};
+
+// --- Memoized Square Component ---
+const MemoizedSquare = React.memo(({
+    value,
+    index,
+    onClick,
+    disabled,
+    isWinnerSquare
+}: {
+    value: Player,
+    index: number,
+    onClick: (i: number) => void,
+    disabled: boolean,
+    isWinnerSquare: boolean
+}) => {
+    return (
+        <motion.button
+            whileHover={!disabled ? { scale: 1.05 } : {}}
+            whileTap={!disabled ? { scale: 0.95 } : {}}
+            className={`w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-2xl text-5xl font-bold flex items-center justify-center transition-colors duration-200 
+                ${!disabled ? "hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer bg-slate-50 dark:bg-slate-900" : "cursor-default"}
+                ${value === "X" ? "bg-blue-50 dark:bg-blue-900/20 text-blue-500" : value === "O" ? "bg-pink-50 dark:bg-pink-900/20 text-pink-500" : ""}
+            `}
+            onClick={() => onClick(index)}
+            disabled={disabled}
+        >
+            <AnimatePresence mode="wait">
+                {value === "X" && (
+                    <motion.div
+                        initial={{ scale: 0, rotate: -45 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                    >
+                        <X className="w-12 h-12 sm:w-16 sm:h-16" strokeWidth={3} />
+                    </motion.div>
+                )}
+                {value === "O" && (
+                    <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                    >
+                        <Circle className="w-12 h-12 sm:w-16 sm:h-16" strokeWidth={3} />
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.button>
+    );
+});
+MemoizedSquare.displayName = "MemoizedSquare";
+
 
 const TicTacToe = () => {
     const navigate = useNavigate();
@@ -32,6 +155,7 @@ const TicTacToe = () => {
     const [roomId, setRoomId] = useState("");
     const [showRoomDialog, setShowRoomDialog] = useState(false);
     const [isHost, setIsHost] = useState(false);
+    const { processWin } = useGameReward();
 
     // Join room from URL
     useEffect(() => {
@@ -51,9 +175,7 @@ const TicTacToe = () => {
             if (gameMode === 'ONLINE') {
                 setBoard(newState.board);
                 setXIsNext(newState.xIsNext);
-                // Sync winner/scores if needed or recalculate? 
-                // Better to recalculate locally or sync strict state.
-                // For simplicity, we recalculate derived state (winner) from board effects
+                // State updates will trigger checkWinner effect
             }
         }
     });
@@ -62,152 +184,7 @@ const TicTacToe = () => {
         ? (isHost && xIsNext) || (!isHost && !xIsNext) // Host is X, Joiner is O
         : true; // Local game always my turn (except AI)
 
-    const createRoom = () => {
-        const newRoomId = Math.random().toString(36).substring(7);
-        setRoomId(newRoomId);
-        setIsHost(true);
-        setGameMode("ONLINE");
-        setShowRoomDialog(true);
-        setScores({ X: 0, O: 0 });
-        resetGame(true);
-    };
-
-    // Initial Load Stats
-    useEffect(() => {
-        const savedScores = localStorage.getItem("tictactoe_scores");
-        if (savedScores) setScores(JSON.parse(savedScores));
-    }, []);
-
-    // Save Stats
-    useEffect(() => {
-        localStorage.setItem("tictactoe_scores", JSON.stringify(scores));
-    }, [scores]);
-
-    const checkWinner = (squares: Player[]): "X" | "O" | "Draw" | null => {
-        const lines = [
-            [0, 1, 2], [3, 4, 5], [6, 7, 8],
-            [0, 3, 6], [1, 4, 7], [2, 5, 8],
-            [0, 4, 8], [2, 4, 6]
-        ];
-        for (let i = 0; i < lines.length; i++) {
-            const [a, b, c] = lines[i];
-            if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-                return squares[a] as "X" | "O";
-            }
-        }
-        if (!squares.includes(null)) return "Draw";
-        return null;
-    };
-
-    // Derived effect for winner
-    useEffect(() => {
-        const calculatedWinner = checkWinner(board);
-        if (calculatedWinner && !winner) {
-            setWinner(calculatedWinner);
-            if (calculatedWinner !== "Draw") {
-                playSound('win');
-                if (gameMode !== 'ONLINE') {
-                    setScores(prev => ({ ...prev, [calculatedWinner]: prev[calculatedWinner as keyof typeof prev] + 1 }));
-                }
-                if ((calculatedWinner === 'X' && isHost) || (calculatedWinner === 'O' && !isHost) || gameMode !== 'AI') {
-                    confetti({
-                        particleCount: 150,
-                        spread: 70,
-                        origin: { y: 0.6 },
-                        colors: calculatedWinner === "X" ? ['#3b82f6', '#2563eb'] : ['#ec4899', '#db2777']
-                    });
-                }
-            } else {
-                playSound('draw');
-            }
-        }
-    }, [board, gameMode, isHost, playSound, winner]);
-
-
-    // AI MOVE LOGIC
-    useEffect(() => {
-        if (gameMode === "AI" && !xIsNext && !winner) {
-            setIsAiTurn(true);
-            const timer = setTimeout(() => {
-                makeAiMove();
-            }, 600);
-            return () => clearTimeout(timer);
-        }
-    }, [xIsNext, gameMode, winner]);
-
-    const makeAiMove = () => {
-        if (winner) return;
-        let moveIndex: number = -1;
-
-        if (checkWinner(board)) return;
-
-        if (difficulty === "EASY") {
-            const available = board.map((val, idx) => val === null ? idx : null).filter(val => val !== null) as number[];
-            if (available.length > 0) {
-                moveIndex = available[Math.floor(Math.random() * available.length)];
-            }
-        } else {
-            moveIndex = getBestMove(board);
-        }
-
-        if (moveIndex !== -1) {
-            handleMove(moveIndex, true);
-        }
-        setIsAiTurn(false);
-    };
-
-    const getBestMove = (currentBoard: Player[]): number => {
-        let bestScore = -Infinity;
-        let move = -1;
-        const emptySpots = currentBoard.filter(s => s === null).length;
-        if (emptySpots === 9) return 4;
-        if (emptySpots === 8 && currentBoard[4] === null) return 4;
-
-        for (let i = 0; i < 9; i++) {
-            if (currentBoard[i] === null) {
-                currentBoard[i] = "O";
-                let score = minimax(currentBoard, 0, false);
-                currentBoard[i] = null;
-                if (score > bestScore) {
-                    bestScore = score;
-                    move = i;
-                }
-            }
-        }
-        return move;
-    };
-
-    const scoresMap = { O: 10, X: -10, Draw: 0 };
-    const minimax = (currentBoard: Player[], depth: number, isMaximizing: boolean): number => {
-        const result = checkWinner(currentBoard);
-        if (result !== null) return scoresMap[result as keyof typeof scoresMap];
-
-        if (isMaximizing) {
-            let bestScore = -Infinity;
-            for (let i = 0; i < 9; i++) {
-                if (currentBoard[i] === null) {
-                    currentBoard[i] = "O";
-                    let score = minimax(currentBoard, depth + 1, false);
-                    currentBoard[i] = null;
-                    bestScore = Math.max(score, bestScore);
-                }
-            }
-            return bestScore;
-        } else {
-            let bestScore = Infinity;
-            for (let i = 0; i < 9; i++) {
-                if (currentBoard[i] === null) {
-                    currentBoard[i] = "X";
-                    let score = minimax(currentBoard, depth + 1, true);
-                    currentBoard[i] = null;
-                    bestScore = Math.min(score, bestScore);
-                }
-            }
-            return bestScore;
-        }
-    };
-
-    const handleMove = (i: number, isAi = false) => {
+    const handleMove = useCallback((i: number, isAi = false) => {
         if (winner || board[i]) return;
         if (!isAi && isAiTurn) return;
 
@@ -228,13 +205,11 @@ const TicTacToe = () => {
         if (gameMode === 'ONLINE') {
             sendMove({ board: newBoard, xIsNext: !xIsNext });
         }
-    };
+    }, [board, gameMode, isAiTurn, isMyTurn, playSound, sendMove, winner, xIsNext]);
 
-    const resetGame = (force = false) => {
+    const resetGame = useCallback((force = false) => {
         if (gameMode === 'ONLINE' && !force && !isHost) {
-            // Only host resets? Or vote? For now allow both but sync.
             toast("Host has reset the game");
-            // Actually need to send reset signal
             sendMove({ board: Array(9).fill(null), xIsNext: true });
         }
 
@@ -243,7 +218,100 @@ const TicTacToe = () => {
         setWinner(null);
         setXIsNext(true);
         setIsAiTurn(false);
-    };
+    }, [gameMode, isHost, playSound, sendMove]);
+
+    const createRoom = useCallback(() => {
+        const newRoomId = Math.random().toString(36).substring(7);
+        setRoomId(newRoomId);
+        setIsHost(true);
+        setGameMode("ONLINE");
+        setShowRoomDialog(true);
+        setScores({ X: 0, O: 0 });
+        if (isHost && gameMode === 'ONLINE') {
+            sendMove({ board: Array(9).fill(null), xIsNext: true });
+        } else {
+            // Local reset
+            setBoard(Array(9).fill(null));
+            setWinner(null);
+            setXIsNext(true);
+        }
+    }, [gameMode, isHost, sendMove]);
+
+
+    // Initial Load Stats
+    useEffect(() => {
+        const savedScores = localStorage.getItem("tictactoe_scores");
+        if (savedScores) setScores(JSON.parse(savedScores));
+    }, []);
+
+    // Save Stats
+    useEffect(() => {
+        localStorage.setItem("tictactoe_scores", JSON.stringify(scores));
+    }, [scores]);
+
+    // Derived effect for winner
+    useEffect(() => {
+        const calculatedWinner = checkWinner(board);
+        if (calculatedWinner && !winner) {
+            setWinner(calculatedWinner);
+            if (calculatedWinner !== "Draw") {
+                playSound('win');
+                if (gameMode !== 'ONLINE') {
+                    setScores(prev => ({ ...prev, [calculatedWinner]: prev[calculatedWinner as keyof typeof prev] + 1 }));
+                }
+
+                // Reward Logic
+                if (gameMode === 'AI') {
+                    if (calculatedWinner === 'X') {
+                        processWin('tic_tac_toe');
+                    }
+                }
+
+                if ((calculatedWinner === 'X' && isHost) || (calculatedWinner === 'O' && !isHost) || gameMode !== 'AI') {
+                    confetti({
+                        particleCount: 150,
+                        spread: 70,
+                        origin: { y: 0.6 },
+                        colors: calculatedWinner === "X" ? ['#3b82f6', '#2563eb'] : ['#ec4899', '#db2777']
+                    });
+                }
+            } else {
+                playSound('draw');
+            }
+        }
+    }, [board, gameMode, isHost, playSound, winner, processWin]);
+
+    const makeAiMove = useCallback(() => {
+        if (winner) return;
+        let moveIndex: number = -1;
+
+        if (checkWinner(board)) return;
+
+        if (difficulty === "EASY") {
+            const available = board.map((val, idx) => val === null ? idx : null).filter(val => val !== null) as number[];
+            if (available.length > 0) {
+                moveIndex = available[Math.floor(Math.random() * available.length)];
+            }
+        } else {
+            moveIndex = getBestMove(board);
+        }
+
+        if (moveIndex !== -1) {
+            handleMove(moveIndex, true);
+        }
+        setIsAiTurn(false);
+    }, [board, difficulty, handleMove, winner]);
+
+    // AI MOVE LOGIC
+    useEffect(() => {
+        if (gameMode === "AI" && !xIsNext && !winner) {
+            setIsAiTurn(true);
+            const timer = setTimeout(() => {
+                makeAiMove();
+            }, 600);
+            return () => clearTimeout(timer);
+        }
+    }, [xIsNext, gameMode, winner, makeAiMove]);
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col items-center py-6 px-4">
@@ -339,38 +407,14 @@ const TicTacToe = () => {
                     )}
 
                     {board.map((square, i) => (
-                        <motion.button
+                        <MemoizedSquare
                             key={i}
-                            whileHover={!square && !winner && !isAiTurn && (gameMode !== 'ONLINE' || isMyTurn) ? { scale: 1.05 } : {}}
-                            whileTap={!square && !winner && !isAiTurn && (gameMode !== 'ONLINE' || isMyTurn) ? { scale: 0.95 } : {}}
-                            className={`w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-2xl text-5xl font-bold flex items-center justify-center transition-colors duration-200 
-                                ${!square && !winner ? "hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer bg-slate-50 dark:bg-slate-900" : "cursor-default"}
-                                ${square === "X" ? "bg-blue-50 dark:bg-blue-900/20 text-blue-500" : square === "O" ? "bg-pink-50 dark:bg-pink-900/20 text-pink-500" : ""}
-                            `}
-                            onClick={() => handleMove(i)}
+                            value={square}
+                            index={i}
+                            onClick={handleMove}
                             disabled={!!square || !!winner || isAiTurn || (gameMode === 'ONLINE' && !isMyTurn)}
-                        >
-                            <AnimatePresence mode="wait">
-                                {square === "X" && (
-                                    <motion.div
-                                        initial={{ scale: 0, rotate: -45 }}
-                                        animate={{ scale: 1, rotate: 0 }}
-                                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                                    >
-                                        <X className="w-12 h-12 sm:w-16 sm:h-16" strokeWidth={3} />
-                                    </motion.div>
-                                )}
-                                {square === "O" && (
-                                    <motion.div
-                                        initial={{ scale: 0 }}
-                                        animate={{ scale: 1 }}
-                                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                                    >
-                                        <Circle className="w-12 h-12 sm:w-16 sm:h-16" strokeWidth={3} />
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </motion.button>
+                            isWinnerSquare={false} // Would need logic to highlight, for now false
+                        />
                     ))}
                 </div>
             </motion.div>

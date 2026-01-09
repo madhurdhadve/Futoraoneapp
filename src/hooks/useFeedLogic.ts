@@ -43,31 +43,7 @@ export const useFeedLogic = () => {
     const navigate = useNavigate();
     const { toast } = useToast();
 
-    useEffect(() => {
-        // Check authentication
-        const checkAuth = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) {
-                navigate("/auth");
-            } else {
-                setUser(session.user);
-                fetchUserProfile(session.user.id);
-            }
-        };
-
-        checkAuth();
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            if (!session) {
-                navigate("/auth");
-            } else {
-                setUser(session.user);
-                fetchUserProfile(session.user.id);
-            }
-        });
-
-        return () => subscription.unsubscribe();
-    }, [navigate]);
+    // --- Helper Functions ---
 
     const fetchUserProfile = useCallback(async (userId: string) => {
         if (profileCache.has(userId)) {
@@ -136,27 +112,103 @@ export const useFeedLogic = () => {
     }, [toast]);
 
     const fetchUnreadCount = useCallback(async () => {
+        if (!user) return;
         const { count } = await supabase
             .from('notifications')
             .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id)
             .eq('read', false);
         setUnreadCount(count || 0);
-    }, []);
+    }, [user]);
+
+    // --- Effects ---
 
     useEffect(() => {
-        if (user) {
-            const loadCache = async () => {
-                const cachedPosts = (await getPostsFromCache()) as any;
-                if (cachedPosts && cachedPosts.length > 0) {
-                    cachedPosts.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-                    setPosts(cachedPosts);
+        let mounted = true;
+
+        // Safety timeout to prevent infinite loading
+        const safetyTimeout = setTimeout(() => {
+            if (mounted && loading) {
+                console.warn("Feed loading timed out, forcing UI unlock");
+                setLoading(false);
+                toast({
+                    title: "Network Delay",
+                    description: "Loading took longer than expected. Showing cached content.",
+                    variant: "destructive"
+                });
+            }
+        }, 8000); // 8 seconds timeout
+
+        // Check authentication
+        const checkAuth = async () => {
+            try {
+                const { data: { session }, error } = await supabase.auth.getSession();
+                if (error) throw error;
+
+                if (!session) {
+                    if (mounted) navigate("/auth");
+                } else {
+                    if (mounted) {
+                        setUser(session.user);
+                        fetchUserProfile(session.user.id);
+                    }
+                }
+            } catch (e: any) {
+                console.error("Auth check failed:", e);
+                if (mounted) {
+                    navigate("/auth");
                     setLoading(false);
                 }
-            };
-            loadCache();
+            }
+        };
 
-            fetchPosts();
-            fetchUnreadCount();
+        checkAuth();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (mounted) {
+                if (!session) {
+                    navigate("/auth");
+                } else {
+                    setUser(session.user);
+                    fetchUserProfile(session.user.id);
+                }
+            }
+        });
+
+        return () => {
+            mounted = false;
+            clearTimeout(safetyTimeout);
+            subscription.unsubscribe();
+        };
+    }, [navigate, toast, fetchUserProfile]); // removed loading from deps to avoid re-triggering timeout loop, added fetchUserProfile
+
+    // Separate effect for data fetching
+    useEffect(() => {
+        let mounted = true;
+
+        if (user) {
+            const initFeed = async () => {
+                // 1. Load Cache First (Fastest) for immediate UI
+                try {
+                    const cachedPosts = (await getPostsFromCache()) as any;
+                    if (mounted && cachedPosts && cachedPosts.length > 0) {
+                        cachedPosts.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+                        setPosts(cachedPosts);
+                        // If we have cache, we can stop loading spinner immediately to show content
+                        setLoading(false);
+                    }
+                } catch (e) {
+                    console.error("Cache load error", e);
+                }
+
+                // 2. Fetch Fresh Data (Network)
+                if (mounted) {
+                    fetchPosts();
+                    fetchUnreadCount();
+                }
+            };
+
+            initFeed();
 
             const channel = supabase
                 .channel('posts-changes')
@@ -181,7 +233,7 @@ export const useFeedLogic = () => {
                             .eq('id', newPost.id)
                             .single()
                             .then(({ data }) => {
-                                if (data) {
+                                if (data && mounted) {
                                     const formattedPost: Post = {
                                         ...data,
                                         likes: data.likes || [],
@@ -209,17 +261,21 @@ export const useFeedLogic = () => {
                         filter: `user_id=eq.${user.id}`
                     },
                     () => {
-                        fetchUnreadCount();
+                        if (mounted) fetchUnreadCount();
                     }
                 )
                 .subscribe();
 
             return () => {
+                mounted = false;
                 supabase.removeChannel(channel);
                 supabase.removeChannel(notificationChannel);
             };
         }
     }, [user, fetchPosts, fetchUnreadCount]);
+
+
+    // --- Actions ---
 
     const toggleLike = useCallback(async (postId: string, isLiked: boolean) => {
         if (!user) return;

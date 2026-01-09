@@ -23,9 +23,10 @@ interface SwipeCardProps {
     profile: Profile;
     onSwipe: (direction: "left" | "right") => void;
     exitDirection?: "left" | "right" | null;
+    draggable?: boolean;
 }
 
-export const SwipeCard = memo(({ profile, onSwipe, exitDirection }: SwipeCardProps) => {
+export const SwipeCard = memo(({ profile, onSwipe, exitDirection, draggable = true }: SwipeCardProps) => {
     const x = useMotionValue(0);
     const rotate = useTransform(x, [-200, 200], [-15, 15]);
     const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0, 1, 1, 1, 0]);
@@ -50,15 +51,15 @@ export const SwipeCard = memo(({ profile, onSwipe, exitDirection }: SwipeCardPro
 
     return (
         <motion.div
-            style={{ x, rotate, opacity }}
-            drag="x"
+            style={{ x, rotate, opacity, zIndex: draggable ? 10 : 0 }}
+            drag={draggable ? "x" : false}
             dragConstraints={{ left: -300, right: 300 }}
             dragElastic={0.2}
             onDragEnd={handleDragEnd}
-            initial={{ scale: 0.95, opacity: 0.5, y: 0 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
+            initial={draggable ? { scale: 1, y: 0, opacity: 1 } : { scale: 0.95, y: 10, opacity: 0.5 }}
+            animate={draggable ? { scale: 1, y: 0, opacity: 1 } : { scale: 0.95, y: 10, opacity: 0.5 }}
             exit={exitProps}
-            className="absolute inset-0 w-full h-full p-4 cursor-grab active:cursor-grabbing"
+            className={`absolute inset-0 w-full h-full p-4 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''}`}
             whileDrag={{ scale: 1.05 }}
         >
             <Card className="w-full h-full overflow-hidden shadow-2xl border-0 bg-transparent rounded-3xl relative">

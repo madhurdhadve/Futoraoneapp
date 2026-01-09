@@ -18,9 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { getRandomAvatar } from "@/utils/avatars";
-
-
-
+import { Turnstile } from '@marsidev/react-turnstile';
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -35,6 +33,7 @@ const Auth = () => {
 
   const [loading, setLoading] = useState(false);
   const [showLoginErrorDialog, setShowLoginErrorDialog] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -115,6 +114,7 @@ const Auth = () => {
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
+          options: { captchaToken: captchaToken || undefined }
         });
 
         if (error) throw error;
@@ -129,6 +129,7 @@ const Auth = () => {
           email,
           password,
           options: {
+            captchaToken: captchaToken || undefined,
             data: {
               full_name: fullName,
               username: username,
@@ -173,7 +174,7 @@ const Auth = () => {
     } finally {
       setLoading(false);
     }
-  }, [isLogin, email, password, fullName, username, profilePhoto, selectedAvatar, navigate, toast, uploadProfilePhoto]);
+  }, [isLogin, email, password, fullName, username, profilePhoto, selectedAvatar, navigate, toast, uploadProfilePhoto, captchaToken]);
 
   return (
     <div className="dark min-h-screen bg-background relative flex items-center justify-center p-4 overflow-hidden">
@@ -317,6 +318,19 @@ const Auth = () => {
                   <Input id="password" type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 h-11 bg-secondary/30 border-white/10 focus:border-primary/50 text-white placeholder:text-muted-foreground" required minLength={6} />
                 </div>
               </div>
+
+              {/* CAPTCHA Widget */}
+              {import.meta.env.VITE_CAPTCHA_SITE_KEY && (
+                <div className="flex justify-center py-2">
+                  <Turnstile
+                    siteKey={import.meta.env.VITE_CAPTCHA_SITE_KEY}
+                    onSuccess={(token) => setCaptchaToken(token)}
+                    onError={() => setCaptchaToken(null)}
+                    onExpire={() => setCaptchaToken(null)}
+                    options={{ theme: 'dark' }}
+                  />
+                </div>
+              )}
 
               <Button
                 type="submit"

@@ -3,33 +3,25 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Github, Linkedin, Instagram, Globe, MapPin, MoreVertical, Shield, Star } from "lucide-react";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ArrowLeft, Shield } from "lucide-react";
 import { motion } from "framer-motion";
 import type { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
 import { BottomNav } from "@/components/BottomNav";
-import { FollowButton } from "@/components/FollowButton";
 import { FollowersModal } from "@/components/FollowersModal";
-import { StartChatButton } from "@/components/StartChatButton";
 import { useTrackProfileView } from "@/hooks/useProfileViews";
-import { OnlineIndicator } from "@/components/OnlineIndicator";
 import { useMutualFollowers } from "@/hooks/useMutualFollowers";
 import { MutualFollowersModal } from "@/components/MutualFollowersModal";
-import { Users } from "lucide-react";
 import { BlockUserDialog } from "@/components/BlockUserDialog";
-import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { CartoonLoader } from "@/components/CartoonLoader";
-import { CreateReviewDialog } from "@/components/CreateReviewDialog";
+
+// New Components
+import { ProfileHeader } from "@/components/profile/ProfileHeader";
+import { ProfileStats } from "@/components/profile/ProfileStats";
+import { ProfileTabs } from "@/components/profile/ProfileTabs";
+import { SEO } from "@/components/SEO";
 
 interface Profile {
     id: string;
@@ -77,62 +69,6 @@ interface Review {
         avatar_url: string | null;
     };
 }
-
-// Social Link Button Component with smart click handling
-interface SocialLinkButtonProps {
-    url: string | null | undefined;
-    icon: React.ReactNode;
-    label: string;
-    isOwnProfile: boolean;
-    onEditProfile: () => void;
-}
-
-const SocialLinkButton: React.FC<SocialLinkButtonProps> = ({
-    url,
-    icon,
-    label,
-    isOwnProfile,
-    onEditProfile,
-}) => {
-    const { toast } = useToast();
-
-    const handleClick = (e: React.MouseEvent) => {
-        e.preventDefault();
-
-        if (url) {
-            // If URL exists, open it
-            window.open(url, '_blank', 'noopener,noreferrer');
-        } else {
-            // If URL doesn't exist
-            if (isOwnProfile) {
-                // Navigate to edit profile if it's user's own profile
-                onEditProfile();
-                toast({
-                    title: "Complete Your Profile",
-                    description: `Add your ${label} URL in the edit profile section.`,
-                });
-            } else {
-                // Show "Not Connected" message for other users
-                toast({
-                    title: "Not Connected",
-                    description: `This user hasn't connected their ${label} account yet.`,
-                    variant: "destructive",
-                });
-            }
-        }
-    };
-
-    return (
-        <Button
-            variant="ghost"
-            size="sm"
-            className={`text-foreground ${!url ? 'opacity-50' : ''}`}
-            onClick={handleClick}
-        >
-            {icon}
-        </Button>
-    );
-};
 
 const UserProfile = () => {
     const { userId } = useParams();
@@ -189,7 +125,7 @@ const UserProfile = () => {
             .select('*')
             .eq('blocker_id', currentUser.id)
             .eq('blocked_id', userId)
-            .single();
+            .maybeSingle(); // optimized from single()
 
         setIsBlocked(!!data);
     };
@@ -270,7 +206,7 @@ const UserProfile = () => {
                 .single();
 
             if (updatedProfile) {
-                setProfile(updatedProfile);
+                setProfile(prev => ({ ...prev, ...updatedProfile }));
             }
         } catch (error) {
             console.error('Error verifying user:', error);
@@ -309,7 +245,7 @@ const UserProfile = () => {
                 .single();
 
             if (updatedProfile) {
-                setProfile(updatedProfile);
+                setProfile(prev => ({ ...prev, ...updatedProfile }));
             }
         } catch (error) {
             console.error('Error removing verification:', error);
@@ -352,7 +288,7 @@ const UserProfile = () => {
             ...profileData,
             verification_category: isSanu ? 'creator' : profileData.verification_category,
             is_verified: isSanu ? true : profileData.is_verified,
-            theme_color: isSanu ? '#FFE6EA' : null, // Light pink theme for Sanu
+            theme_color: isSanu ? '#FFE6EA' : profileData.theme_color, // Light pink theme for Sanu
         };
         setProfile(enhancedProfile);
 
@@ -408,6 +344,11 @@ const UserProfile = () => {
                 backgroundColor: profile?.theme_color || 'hsl(var(--background))'
             }}
         >
+            <SEO
+                title={profile?.full_name ? `${profile.full_name} (@${profile.username})` : "User Profile"}
+                description={profile?.bio || `Check out ${profile?.full_name || 'this user'}'s profile on Futora.`}
+                image={profile?.avatar_url || undefined}
+            />
             <div className="relative h-32 w-full">
                 {!profile?.theme_color && <div className="absolute inset-0 gradient-primary" />}
                 {profile?.theme_color && <div className="absolute inset-0 bg-black/5" />}
@@ -427,185 +368,38 @@ const UserProfile = () => {
                     animate={{ opacity: 1, y: 0 }}
                     className="space-y-4"
                 >
+                    <ProfileHeader
+                        profile={profile}
+                        currentUser={currentUser}
+                        userId={userId!}
+                        mutualCount={mutualCount}
+                        isAdmin={isAdmin}
+                        isBlocked={isBlocked}
+                        onFollowChange={fetchFollowerCounts}
+                        onMutualClick={() => setMutualModalOpen(true)}
+                        onVerifyUser={handleVerifyUser}
+                        onRemoveVerification={handleRemoveVerification}
+                        onBlockUser={() => setShowBlockDialog(true)}
+                        onUnblockUser={handleUnblock}
+                    />
+
+                    {/* Stats Section with embedded navigation Logic included in header originally, separated here */}
                     <Card className="bg-card/80 backdrop-blur-sm border-border">
-                        <CardContent className="p-6">
-                            <div className="flex items-start justify-between mb-4">
-                                <div className="relative">
-                                    <div className={`rounded-full ${profile?.verification_category === 'creator'
-                                        ? "p-[3px] bg-gradient-to-tr from-[#FFD700] via-[#FDB931] to-[#C0B283] shadow-[0_0_15px_rgba(255,215,0,0.5)]"
-                                        : ""
-                                        }`}>
-                                        <Avatar className={`h-24 w-24 border-4 ${profile?.verification_category === 'creator' ? "border-white" : "border-background"
-                                            }`}>
-                                            <AvatarImage src={profile?.avatar_url || undefined} loading="lazy" />
-                                            <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
-                                                {profile?.full_name?.[0] || currentUser?.email?.[0]?.toUpperCase()}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                    </div>
-                                    <OnlineIndicator userId={userId!} className="w-5 h-5 absolute bottom-0 right-0 border-4 border-background rounded-full" />
-                                </div>
-                                <div className="flex flex-wrap gap-2 justify-end">
-                                    <FollowButton
-                                        userId={userId!}
-                                        currentUserId={currentUser?.id}
-                                        onFollowChange={fetchFollowerCounts}
-                                    />
-                                    <StartChatButton
-                                        userId={userId!}
-                                        currentUserId={currentUser?.id}
-                                    />
-                                    {currentUser && currentUser.id !== userId && (
-                                        <CreateReviewDialog
-                                            revieweeId={userId!}
-                                            revieweeName={profile?.full_name || ""}
-                                            trigger={
-                                                <Button variant="ghost" size="icon" title="Leave a Review">
-                                                    <Star className="w-5 h-5" />
-                                                </Button>
-                                            }
-                                        />
-                                    )}
-                                    {currentUser && currentUser.id !== userId && (
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon">
-                                                    <MoreVertical className="h-5 w-5" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                {isAdmin ? (
-                                                    <>
-                                                        {profile?.is_verified ? (
-                                                            <DropdownMenuItem
-                                                                className="text-orange-600 focus:text-orange-600 cursor-pointer"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleRemoveVerification();
-                                                                }}
-                                                            >
-                                                                Remove Verification
-                                                            </DropdownMenuItem>
-                                                        ) : (
-                                                            <DropdownMenuItem
-                                                                className="text-green-600 focus:text-green-600 cursor-pointer"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleVerifyUser();
-                                                                }}
-                                                            >
-                                                                Verify this User
-                                                            </DropdownMenuItem>
-                                                        )}
-                                                    </>
-                                                ) : (
-                                                    <DropdownMenuItem
-                                                        className="text-destructive focus:text-destructive cursor-pointer"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            isBlocked ? handleUnblock() : setShowBlockDialog(true);
-                                                        }}
-                                                    >
-                                                        {isBlocked ? "Unblock User" : "Block User"}
-                                                    </DropdownMenuItem>
-                                                )}
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    )}
-                                </div>
-                            </div>
-
-                            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-                                {profile?.full_name}
-                                <VerifiedBadge isVerified={profile?.is_verified} size={20} />
-                            </h1>
-                            <div className="flex items-center gap-2">
-                                <p className="text-muted-foreground">@{profile?.username}</p>
-                                {mutualCount > 0 && currentUser?.id !== userId && (
-                                    <Badge
-                                        variant="secondary"
-                                        className="flex items-center gap-1 bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer transition-colors"
-                                        onClick={() => setMutualModalOpen(true)}
-                                    >
-                                        <Users size={12} />
-                                        {mutualCount} mutual
-                                    </Badge>
-                                )}
-                                <Badge variant="outline" className="ml-2 border-green-200 bg-green-50 text-green-700 flex items-center gap-1">
-                                    <Shield size={12} className="fill-green-100" />
-                                    {profile?.trust_score || 50} Trust
-                                </Badge>
-                            </div>
-
-                            {profile?.bio && (
-                                <p className="text-foreground mt-3">{profile.bio}</p>
-                            )}
-
-                            <div className="flex items-center gap-2 mt-3 text-muted-foreground text-sm">
-                                <>
-                                    <MapPin size={16} />
-                                    <span>{profile?.location || "Pune"}</span>
-                                </>
-                            </div>
-
-                            {/* Social Links - Always visible, smart click handling */}
-                            <div className="flex gap-3 mt-4">
-                                <SocialLinkButton
-                                    url={profile?.github_url}
-                                    icon={<Github size={18} />}
-                                    label="GitHub"
-                                    isOwnProfile={currentUser?.id === userId}
-                                    onEditProfile={() => navigate('/profile')}
-                                />
-                                <SocialLinkButton
-                                    url={profile?.linkedin_url}
-                                    icon={<Linkedin size={18} />}
-                                    label="LinkedIn"
-                                    isOwnProfile={currentUser?.id === userId}
-                                    onEditProfile={() => navigate('/profile')}
-                                />
-                                <SocialLinkButton
-                                    url={profile?.instagram_url}
-                                    icon={<Instagram size={18} />}
-                                    label="Instagram"
-                                    isOwnProfile={currentUser?.id === userId}
-                                    onEditProfile={() => navigate('/profile')}
-                                />
-                                <SocialLinkButton
-                                    url={profile?.portfolio_url}
-                                    icon={<Globe size={18} />}
-                                    label="Website"
-                                    isOwnProfile={currentUser?.id === userId}
-                                    onEditProfile={() => navigate('/profile')}
-                                />
-                            </div>
-
-                            <div className="flex gap-6 mt-4 pt-4 border-t border-border">
-                                <div>
-                                    <p className="text-xl font-bold text-foreground">{projects.length}</p>
-                                    <p className="text-sm text-muted-foreground">Projects</p>
-                                </div>
-                                <div
-                                    className="cursor-pointer hover:text-primary transition-colors"
-                                    onClick={() => {
-                                        setFollowersModalTab("followers");
-                                        setFollowersModalOpen(true);
-                                    }}
-                                >
-                                    <p className="text-xl font-bold text-foreground">{followerCount}</p>
-                                    <p className="text-sm text-muted-foreground">Followers</p>
-                                </div>
-                                <div
-                                    className="cursor-pointer hover:text-primary transition-colors"
-                                    onClick={() => {
-                                        setFollowersModalTab("following");
-                                        setFollowersModalOpen(true);
-                                    }}
-                                >
-                                    <p className="text-xl font-bold text-foreground">{followingCount}</p>
-                                    <p className="text-sm text-muted-foreground">Following</p>
-                                </div>
-                            </div>
+                        <CardContent className="p-4">
+                            {/* Re-using ProfileStats inside this card for consistency with old layout */}
+                            <ProfileStats
+                                projectsCount={projects.length}
+                                followerCount={followerCount}
+                                followingCount={followingCount}
+                                onFollowersClick={() => {
+                                    setFollowersModalTab("followers");
+                                    setFollowersModalOpen(true);
+                                }}
+                                onFollowingClick={() => {
+                                    setFollowersModalTab("following");
+                                    setFollowersModalOpen(true);
+                                }}
+                            />
                         </CardContent>
                     </Card>
 
@@ -647,103 +441,12 @@ const UserProfile = () => {
                         </Card>
                     )}
 
-                    <Tabs defaultValue="projects" className="w-full">
-                        <TabsList className="grid w-full grid-cols-3 bg-muted/80 backdrop-blur-sm">
-                            <TabsTrigger value="projects" className="data-[state=active]:bg-background">
-                                Projects
-                            </TabsTrigger>
-                            <TabsTrigger value="posts" className="data-[state=active]:bg-background">
-                                Posts
-                            </TabsTrigger>
-                            <TabsTrigger value="reviews" className="data-[state=active]:bg-background">
-                                Reviews
-                            </TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="projects" className="space-y-3 mt-4">
-                            {projects.length === 0 ? (
-                                <Card className="bg-card/80 backdrop-blur-sm border-border">
-                                    <CardContent className="p-8 text-center">
-                                        <p className="text-muted-foreground">No projects yet</p>
-                                    </CardContent>
-                                </Card>
-                            ) : (
-                                projects.map((project, index) => (
-                                    <Card key={index} className="bg-card/80 backdrop-blur-sm border-border">
-                                        <CardContent className="p-4">
-                                            <h4 className="font-semibold text-foreground">{project.title}</h4>
-                                            <p className="text-sm text-muted-foreground mt-1">{project.description}</p>
-                                            <div className="flex items-center justify-between mt-2">
-                                                <div className="flex gap-2">
-                                                    {project.tech_stack?.slice(0, 3).map((tech: string) => (
-                                                        <Badge key={tech} variant="outline" className="text-xs border-primary text-primary">
-                                                            {tech}
-                                                        </Badge>
-                                                    ))}
-                                                </div>
-                                                <span className="text-sm text-muted-foreground">{project.project_likes?.length || 0} likes</span>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                ))
-                            )}
-                        </TabsContent>
-                        <TabsContent value="posts" className="space-y-4 mt-4">
-                            {posts.length === 0 ? (
-                                <p className="text-center text-muted-foreground py-8">No posts yet</p>
-                            ) : (
-                                posts.map((post) => (
-                                    <Card key={post.id} className="bg-card/80 backdrop-blur-sm border-border">
-                                        <CardContent className="p-4">
-                                            <div className="flex items-center gap-3 mb-3">
-                                                <Avatar className="h-10 w-10">
-                                                    <AvatarImage src={profile?.avatar_url || undefined} />
-                                                    <AvatarFallback>{profile?.username?.[0]}</AvatarFallback>
-                                                </Avatar>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                ))
-                            )}
-                        </TabsContent>
-                        <TabsContent value="reviews" className="space-y-4 mt-4">
-                            {reviews.length === 0 ? (
-                                <Card className="bg-card/80 backdrop-blur-sm border-border">
-                                    <CardContent className="p-8 text-center text-muted-foreground">
-                                        No reviews yet. Be the first to review!
-                                    </CardContent>
-                                </Card>
-                            ) : (
-                                reviews.map((review) => (
-                                    <Card key={review.id} className="bg-card/80 backdrop-blur-sm border-border">
-                                        <CardContent className="p-4">
-                                            <div className="flex items-start justify-between">
-                                                <div className="flex items-center gap-2">
-                                                    <Avatar className="h-8 w-8">
-                                                        <AvatarImage src={review.reviewer.avatar_url || undefined} />
-                                                        <AvatarFallback>{review.reviewer.username[0].toUpperCase()}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div>
-                                                        <p className="font-semibold text-sm">@{review.reviewer.username}</p>
-                                                        <div className="flex text-yellow-500">
-                                                            {[...Array(5)].map((_, i) => (
-                                                                <Star key={i} className={`w-3 h-3 ${i < review.rating ? "fill-current" : "text-muted opacity-20"}`} />
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <span className="text-xs text-muted-foreground">
-                                                    {new Date(review.created_at).toLocaleDateString()}
-                                                </span>
-                                            </div>
-                                            {review.comment && (
-                                                <p className="mt-2 text-sm text-foreground/90">{review.comment}</p>
-                                            )}
-                                        </CardContent>
-                                    </Card>
-                                ))
-                            )}
-                        </TabsContent>
-                    </Tabs>
+                    <ProfileTabs
+                        projects={projects}
+                        posts={posts}
+                        reviews={reviews}
+                        profile={profile}
+                    />
                 </motion.div>
             </div>
 

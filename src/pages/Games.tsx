@@ -166,7 +166,7 @@ const Games = React.memo(() => {
                             Game Zone <Gamepad2 className="w-8 h-8 md:w-10 md:h-10 text-primary animate-bounce-slow" />
                         </h1>
                         <p className="text-slate-500 dark:text-slate-400 mt-1 md:mt-2 text-base md:text-lg mobile:text-sm">
-                            Immersive games to challenge your friends
+                            Play games, challenge friends, and <span className="text-yellow-500 font-bold">Earn Coins!</span>
                         </p>
                     </div>
                 </div>
