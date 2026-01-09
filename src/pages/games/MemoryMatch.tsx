@@ -37,7 +37,7 @@ type GameMode = "SOLO" | "ONLINE";
 // Memoized Card Component for Smooth Rendering
 const MemoryCard = React.memo(({ card, onClick, disabled }: { card: CardType, onClick: (id: number) => void, disabled: boolean }) => {
     return (
-        <div style={{ perspective: 1000 }} className={`relative w - 16 h - 20 sm: w - 20 sm: h - 24 md: w - 24 md: h - 28 cursor - pointer group ${card.matched ? 'cursor-default' : ''} `} onClick={() => !disabled && onClick(card.id)}>
+        <div style={{ perspective: 1000 }} className={`relative w-16 h-20 sm:w-20 sm:h-24 md:w-24 md:h-28 cursor-pointer group ${card.matched ? 'cursor-default' : ''}`} onClick={() => !disabled && onClick(card.id)}>
             <motion.div
                 className="w-full h-full relative preserve-3d transition-all duration-500"
                 animate={{ rotateY: card.flipped || card.matched ? 180 : 0 }}
@@ -54,7 +54,7 @@ const MemoryCard = React.memo(({ card, onClick, disabled }: { card: CardType, on
 
                 {/* Back (Revealed) */}
                 <div
-                    className={`absolute w - full h - full backface - hidden rounded - xl bg - white dark: bg - slate - 800 border - 2 border - indigo - 200 dark: border - indigo - 800 shadow - xl flex items - center justify - center text - 3xl sm: text - 4xl
+                    className={`absolute w-full h-full backface-hidden rounded-xl bg-white dark:bg-slate-800 border-2 border-indigo-200 dark:border-indigo-800 shadow-xl flex items-center justify-center text-3xl sm:text-4xl
                         ${card.matched ? "ring-4 ring-green-400/50 ring-offset-2" : ""}
 `}
                     style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
@@ -463,14 +463,14 @@ const MemoryMatch = () => {
                     </>
                 ) : (
                     <>
-                        <Card className={`flex - 1 p - 3 flex flex - col items - center justify - center border - 2 transition - all ${currentPlayer === 1 ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-transparent bg-white/50'} `}>
+                        <Card className={`flex-1 p-3 flex flex-col items-center justify-center border-2 transition-all ${currentPlayer === 1 ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-transparent bg-white/50'}`}>
                             <div className="flex items-center gap-2 text-blue-500 mb-1">
                                 <Users className="w-4 h-4" />
                                 <span className="text-xs font-bold uppercase tracking-wider">{isHost ? "You" : "Opponent"}</span>
                             </div>
                             <span className="text-2xl font-black text-slate-700 dark:text-slate-200">{scores[1]}</span>
                         </Card>
-                        <Card className={`flex - 1 p - 3 flex flex - col items - center justify - center border - 2 transition - all ${currentPlayer === 2 ? 'border-pink-500 bg-pink-50 dark:bg-pink-900/20' : 'border-transparent bg-white/50'} `}>
+                        <Card className={`flex-1 p-3 flex flex-col items-center justify-center border-2 transition-all ${currentPlayer === 2 ? 'border-pink-500 bg-pink-50 dark:bg-pink-900/20' : 'border-transparent bg-white/50'}`}>
                             <div className="flex items-center gap-2 text-pink-500 mb-1">
                                 <Users className="w-4 h-4" />
                                 <span className="text-xs font-bold uppercase tracking-wider">{!isHost ? "You" : "Opponent"}</span>
@@ -482,7 +482,7 @@ const MemoryMatch = () => {
             </div>
 
             {/* Grid */}
-            <div className={`p - 4 grid grid - cols - 4 gap - 3 md: gap - 4 max - w - xl mx - auto perspective - 1000 ${gameMode === 'ONLINE' && !isConnected && playerCount < 2 ? 'opacity-50 pointer-events-none' : ''} `}>
+            <div className={`p-4 grid grid-cols-4 gap-3 md:gap-4 max-w-xl mx-auto perspective-1000 ${gameMode === 'ONLINE' && !isConnected && playerCount < 2 ? 'opacity-50 pointer-events-none' : ''}`}>
                 <AnimatePresence>
                     {cards.map((card) => (
                         <MemoryCard
