@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useInView } from "react-intersection-observer";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -35,37 +35,43 @@ interface CommentItemProps {
 }
 
 // Memoized comment item to prevent re-renders
-const CommentItem = React.memo(({ comment, currentUser, onDelete }: CommentItemProps) => (
-    <Card className="p-3">
-        <div className="flex items-start gap-3">
-            <Avatar className="h-8 w-8">
-                <AvatarImage src={comment.profiles.avatar_url || undefined} />
-                <AvatarFallback>{comment.profiles.username[0]}</AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="font-semibold text-sm">{comment.profiles.full_name}</p>
-                        <p className="text-xs text-muted-foreground">
-                            @{comment.profiles.username} · {new Date(comment.created_at).toLocaleDateString()}
-                        </p>
+const CommentItem = React.memo(({ comment, currentUser, onDelete }: CommentItemProps) => {
+    const formattedDate = useMemo(() =>
+        new Date(comment.created_at).toLocaleDateString()
+        , [comment.created_at]);
+
+    return (
+        <Card className="p-3">
+            <div className="flex items-start gap-3">
+                <Avatar className="h-8 w-8">
+                    <AvatarImage src={comment.profiles.avatar_url || undefined} />
+                    <AvatarFallback>{comment.profiles.username?.[0] || '?'}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="font-semibold text-sm">{comment.profiles.full_name}</p>
+                            <p className="text-xs text-muted-foreground">
+                                @{comment.profiles.username} · {formattedDate}
+                            </p>
+                        </div>
+                        {currentUser?.id === comment.user_id && (
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => onDelete(comment.id)}
+                            >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                        )}
                     </div>
-                    {currentUser?.id === comment.user_id && (
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => onDelete(comment.id)}
-                        >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                    )}
+                    <p className="text-sm mt-1">{comment.content}</p>
                 </div>
-                <p className="text-sm mt-1">{comment.content}</p>
             </div>
-        </div>
-    </Card>
-));
+        </Card>
+    );
+});
 
 CommentItem.displayName = "CommentItem";
 
@@ -198,19 +204,23 @@ export const CommentSection = ({ postId, postAuthorId, currentUser }: CommentSec
         }
     }, [toast]);
 
+    const renderedComments = useMemo(() => (
+        comments.map((comment) => (
+            <CommentItem
+                key={comment.id}
+                comment={comment}
+                currentUser={currentUser}
+                onDelete={handleDeleteComment}
+            />
+        ))
+    ), [comments, currentUser, handleDeleteComment]);
+
     return (
         <div ref={ref} className="space-y-4">
             {/* Comments List */}
             {comments.length > 0 && (
                 <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {comments.map((comment) => (
-                        <CommentItem
-                            key={comment.id}
-                            comment={comment}
-                            currentUser={currentUser}
-                            onDelete={handleDeleteComment}
-                        />
-                    ))}
+                    {renderedComments}
                 </div>
             )}
 

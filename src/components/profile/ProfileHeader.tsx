@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,7 @@ interface SocialLinkButtonProps {
     onEditProfile: () => void;
 }
 
-const SocialLinkButton: React.FC<SocialLinkButtonProps> = ({
+const SocialLinkButton = memo<SocialLinkButtonProps>(({
     url,
     icon,
     label,
@@ -36,7 +36,7 @@ const SocialLinkButton: React.FC<SocialLinkButtonProps> = ({
 }) => {
     const { toast } = useToast();
 
-    const handleClick = (e: React.MouseEvent) => {
+    const handleClick = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
 
         if (url) {
@@ -56,7 +56,7 @@ const SocialLinkButton: React.FC<SocialLinkButtonProps> = ({
                 });
             }
         }
-    };
+    }, [url, isOwnProfile, onEditProfile, label, toast]);
 
     return (
         <Button
@@ -68,7 +68,9 @@ const SocialLinkButton: React.FC<SocialLinkButtonProps> = ({
             {icon}
         </Button>
     );
-};
+});
+
+SocialLinkButton.displayName = "SocialLinkButton";
 
 interface ProfileHeaderProps {
     profile: any;

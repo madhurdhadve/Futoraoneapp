@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Heart, MessageCircle, Share2, Bookmark } from "lucide-react";
 import { motion } from "framer-motion";
@@ -27,6 +27,21 @@ export const PostActions = memo(({
     onShare
 }: PostActionsProps) => {
 
+    const likeButtonClass = useMemo(() =>
+        `${isLiked ? "text-red-500 hover:text-red-600" : "hover:text-red-500"} transition-colors`,
+        [isLiked]
+    );
+
+    const commentButtonClass = useMemo(() =>
+        `transition-colors ${showComments ? "text-blue-500" : "hover:text-blue-500"}`,
+        [showComments]
+    );
+
+    const saveButtonClass = useMemo(() =>
+        `${isSaved ? "text-primary hover:text-primary/80" : "hover:text-primary"} transition-colors`,
+        [isSaved]
+    );
+
     return (
         <div className="flex items-center justify-between pt-4 border-t border-border/50">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -34,7 +49,7 @@ export const PostActions = memo(({
                     variant="ghost"
                     size="sm"
                     onClick={onLike}
-                    className={`${isLiked ? "text-red-500 hover:text-red-600" : "hover:text-red-500"} transition-colors`}
+                    className={likeButtonClass}
                 >
                     <Heart
                         className={`w-5 h-5 mr-1.5 ${isLiked ? "fill-red-500" : ""} transition-all`}
@@ -47,7 +62,7 @@ export const PostActions = memo(({
                 <Button
                     variant="ghost"
                     size="sm"
-                    className={`transition-colors ${showComments ? "text-blue-500" : "hover:text-blue-500"}`}
+                    className={commentButtonClass}
                     onClick={onComment}
                 >
                     <MessageCircle className="w-5 h-5 mr-1.5" />
@@ -60,7 +75,7 @@ export const PostActions = memo(({
                     variant="ghost"
                     size="sm"
                     onClick={onSave}
-                    className={`${isSaved ? "text-primary hover:text-primary/80" : "hover:text-primary"} transition-colors`}
+                    className={saveButtonClass}
                 >
                     <Bookmark
                         className={`w-5 h-5 mr-1.5 ${isSaved ? "fill-primary" : ""} transition-all`}

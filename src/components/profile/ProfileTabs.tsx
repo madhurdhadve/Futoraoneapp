@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -41,6 +41,50 @@ interface ProfileTabsProps {
     profile: any;
 }
 
+// Memoized Star Rating Component
+const StarRating = memo(({ rating }: { rating: number }) => {
+    const stars = useMemo(() => Array.from({ length: 5 }, (_, i) => i), []);
+
+    return (
+        <div className="flex text-yellow-500">
+            {stars.map((i) => (
+                <Star key={i} className={`w-3 h-3 ${i < rating ? "fill-current" : "text-muted opacity-20"}`} />
+            ))}
+        </div>
+    );
+});
+
+StarRating.displayName = "StarRating";
+
+// Memoized Project Card Component
+const ProjectCard = memo(({ project }: { project: Project }) => {
+    const displayTechStack = useMemo(
+        () => project.tech_stack?.slice(0, 3) || [],
+        [project.tech_stack]
+    );
+
+    return (
+        <Card className="bg-card/80 backdrop-blur-sm border-border">
+            <CardContent className="p-4">
+                <h4 className="font-semibold text-foreground">{project.title}</h4>
+                <p className="text-sm text-muted-foreground mt-1">{project.description}</p>
+                <div className="flex items-center justify-between mt-2">
+                    <div className="flex gap-2">
+                        {displayTechStack.map((tech: string) => (
+                            <Badge key={tech} variant="outline" className="text-xs border-primary text-primary">
+                                {tech}
+                            </Badge>
+                        ))}
+                    </div>
+                    <span className="text-sm text-muted-foreground">{project.project_likes?.length || 0} likes</span>
+                </div>
+            </CardContent>
+        </Card>
+    );
+});
+
+ProjectCard.displayName = "ProjectCard";
+
 export const ProfileTabs = memo(({ projects, posts, reviews, profile }: ProfileTabsProps) => {
     return (
         <Tabs defaultValue="projects" className="w-full">
@@ -63,23 +107,8 @@ export const ProfileTabs = memo(({ projects, posts, reviews, profile }: ProfileT
                         </CardContent>
                     </Card>
                 ) : (
-                    projects.map((project, index) => (
-                        <Card key={index} className="bg-card/80 backdrop-blur-sm border-border">
-                            <CardContent className="p-4">
-                                <h4 className="font-semibold text-foreground">{project.title}</h4>
-                                <p className="text-sm text-muted-foreground mt-1">{project.description}</p>
-                                <div className="flex items-center justify-between mt-2">
-                                    <div className="flex gap-2">
-                                        {project.tech_stack?.slice(0, 3).map((tech: string) => (
-                                            <Badge key={tech} variant="outline" className="text-xs border-primary text-primary">
-                                                {tech}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                    <span className="text-sm text-muted-foreground">{project.project_likes?.length || 0} likes</span>
-                                </div>
-                            </CardContent>
-                        </Card>
+                    projects.map((project) => (
+                        <ProjectCard key={project.id} project={project} />
                     ))
                 )}
             </TabsContent>
@@ -124,11 +153,7 @@ export const ProfileTabs = memo(({ projects, posts, reviews, profile }: ProfileT
                                         </Avatar>
                                         <div>
                                             <p className="font-semibold text-sm">@{review.reviewer.username}</p>
-                                            <div className="flex text-yellow-500">
-                                                {[...Array(5)].map((_, i) => (
-                                                    <Star key={i} className={`w-3 h-3 ${i < review.rating ? "fill-current" : "text-muted opacity-20"}`} />
-                                                ))}
-                                            </div>
+                                            <StarRating rating={review.rating} />
                                         </div>
                                     </div>
                                     <span className="text-xs text-muted-foreground">
@@ -143,7 +168,7 @@ export const ProfileTabs = memo(({ projects, posts, reviews, profile }: ProfileT
                     ))
                 )}
             </TabsContent>
-        </Tabs>
+        </Tabs >
     );
 });
 

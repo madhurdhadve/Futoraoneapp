@@ -50,6 +50,64 @@ interface GamificationWidgetProps {
   streak?: number;
 }
 
+// Memoized Challenge Item Component
+const ChallengeItem = memo(({ challenge }: { challenge: Challenge }) => (
+  <div className="bg-secondary/50 rounded-xl p-3">
+    <div className="flex items-start gap-3">
+      <div className={`w-10 h-10 rounded-lg bg-secondary flex items-center justify-center ${challenge.color}`}>
+        <challenge.icon className="w-5 h-5" />
+      </div>
+      <div className="flex-1">
+        <div className="flex items-center justify-between">
+          <span className="font-medium text-sm">{challenge.title}</span>
+          <Badge variant="outline" className="text-xs">
+            +{challenge.xp} XP
+          </Badge>
+        </div>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          {challenge.description}
+        </p>
+        <div className="mt-2">
+          <Progress
+            value={(challenge.progress / challenge.total) * 100}
+            className="h-1.5"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            {challenge.progress}/{challenge.total} completed
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+));
+
+ChallengeItem.displayName = "ChallengeItem";
+
+// Memoized Skill Badge Item Component
+const SkillBadgeItem = memo(({ badge }: { badge: SkillBadge }) => {
+  const starsArray = useMemo(() => Array.from({ length: badge.maxLevel }), [badge.maxLevel]);
+
+  return (
+    <div className="bg-secondary/50 rounded-xl p-3 text-center">
+      <div className="text-3xl mb-1">{badge.icon}</div>
+      <p className="font-medium text-sm">{badge.name}</p>
+      <div className="flex items-center justify-center gap-1 mt-1">
+        {starsArray.map((_, i) => (
+          <Star
+            key={i}
+            className={`w-3 h-3 ${i < badge.level
+              ? 'text-yellow-500 fill-yellow-500'
+              : 'text-muted-foreground/30'
+              }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+});
+
+SkillBadgeItem.displayName = "SkillBadgeItem";
+
 const GamificationWidget = memo(({
   userXP = 0,
   userLevel = 1,
@@ -336,36 +394,7 @@ const GamificationWidget = memo(({
                       </div>
                     ) : (
                       dailyChallenges.map((challenge) => (
-                        <div
-                          key={challenge.id}
-                          className="bg-secondary/50 rounded-xl p-3"
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className={`w-10 h-10 rounded-lg bg-secondary flex items-center justify-center ${challenge.color}`}>
-                              <challenge.icon className="w-5 h-5" />
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between">
-                                <span className="font-medium text-sm">{challenge.title}</span>
-                                <Badge variant="outline" className="text-xs">
-                                  +{challenge.xp} XP
-                                </Badge>
-                              </div>
-                              <p className="text-xs text-muted-foreground mt-0.5">
-                                {challenge.description}
-                              </p>
-                              <div className="mt-2">
-                                <Progress
-                                  value={(challenge.progress / challenge.total) * 100}
-                                  className="h-1.5"
-                                />
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {challenge.progress}/{challenge.total} completed
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                        <ChallengeItem key={challenge.id} challenge={challenge} />
                       ))
                     )}
                   </div>
@@ -379,24 +408,7 @@ const GamificationWidget = memo(({
                   </h3>
                   <div className="grid grid-cols-2 gap-2">
                     {skillBadges.map((badge) => (
-                      <div
-                        key={badge.id}
-                        className="bg-secondary/50 rounded-xl p-3 text-center"
-                      >
-                        <div className="text-3xl mb-1">{badge.icon}</div>
-                        <p className="font-medium text-sm">{badge.name}</p>
-                        <div className="flex items-center justify-center gap-1 mt-1">
-                          {Array.from({ length: badge.maxLevel }).map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-3 h-3 ${i < badge.level
-                                ? 'text-yellow-500 fill-yellow-500'
-                                : 'text-muted-foreground/30'
-                                }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
+                      <SkillBadgeItem key={badge.id} badge={badge} />
                     ))}
                   </div>
                 </div>

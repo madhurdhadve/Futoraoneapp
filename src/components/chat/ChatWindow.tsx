@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo, memo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,7 @@ interface Profile {
     avatar_url: string | null;
 }
 
-export function ChatWindow({ conversationId, currentUserId }: { conversationId: string; currentUserId: string }) {
+export const ChatWindow = memo(({ conversationId, currentUserId }: { conversationId: string; currentUserId: string }) => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState("");
     const [otherUser, setOtherUser] = useState<Profile | null>(null);
@@ -36,10 +36,83 @@ export function ChatWindow({ conversationId, currentUserId }: { conversationId: 
 
     const [isBlocked, setIsBlocked] = useState(false);
 
+    const markAsRead = useCallback(async (messageId: string) => {
+        // Update message read status
+        await supabase
+            .from('messages')
+            .update({ read_at: new Date().toISOString() })
+            .eq('id', messageId);
+
+        // Update conversation participant last_read_at
+        await supabase
+            .from('conversation_participants')
+            .update({ last_read_at: new Date().toISOString() })
+            .eq('conversation_id', conversationId)
+            .eq('user_id', currentUserId);
+    }, [conversationId, currentUserId]);
+
+    const scrollToBottom = useCallback(() => {
+        setTimeout(() => {
+            if (scrollRef.current) {
+                scrollRef.current.scrollIntoView({ behavior: 'smooth' });
+            }
+        }, 100);
+    }, []);
+
+    const fetchOtherUser = useCallback(async () => {
+        const { data } = await supabase
+            .from('conversation_participants')
+            .select('user:profiles(*)')
+            .eq('conversation_id', conversationId)
+            .neq('user_id', currentUserId)
+            .single();
+
+        if (data) {
+            setOtherUser(data.user as unknown as Profile);
+        }
+    }, [conversationId, currentUserId]);
+
+    const fetchMessages = useCallback(async () => {
+        const { data } = await supabase
+            .from('messages')
+            .select('*')
+            .eq('conversation_id', conversationId)
+            .order('created_at', { ascending: true });
+
+        if (data) {
+            setMessages(data as Message[]);
+            // Mark unread messages as read
+            const unreadMessages = data.filter(m => m.sender_id !== currentUserId && !m.read_at);
+            unreadMessages.forEach(m => markAsRead(m.id));
+            scrollToBottom();
+        }
+    }, [conversationId, currentUserId, markAsRead, scrollToBottom]);
+
+    const checkBlocks = useCallback(async () => {
+        if (!otherUser) return;
+
+        const { data: block1 } = await supabase
+            .from('blocks')
+            .select('*')
+            .eq('blocker_id', currentUserId)
+            .eq('blocked_id', otherUser.id)
+            .single();
+
+        const { data: block2 } = await supabase
+            .from('blocks')
+            .select('*')
+            .eq('blocker_id', otherUser.id)
+            .eq('blocked_id', currentUserId)
+            .single();
+
+        if (block1 || block2) {
+            setIsBlocked(true);
+        }
+    }, [currentUserId, otherUser]);
+
     useEffect(() => {
         fetchMessages();
         fetchOtherUser();
-        checkBlockStatus();
 
         const channel = supabase
             .channel(`conversation:${conversationId}`)
@@ -67,141 +140,52 @@ export function ChatWindow({ conversationId, currentUserId }: { conversationId: 
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [conversationId, currentUserId]);
-
-    const checkBlockStatus = async () => {
-        // Check if I blocked them
-        const { data: myBlock } = await supabase
-            .from('blocks')
-            .select('*')
-            .eq('blocker_id', currentUserId)
-            .eq('blocked_id', otherUser?.id) // Note: otherUser might be null initially, need to handle that or re-check when otherUser is set.
-            .single();
-
-        // Check if they blocked me
-        // Ideally we should know the other user ID. 
-        // We can get it from conversation participants if otherUser is not set yet.
-
-        // Let's rely on fetching participants first to get the other user ID.
-    };
-
-    // Better approach: Fetch participants, identify other user, then check blocks.
-    useEffect(() => {
-        const init = async () => {
-            await fetchOtherUser();
-        };
-        init();
-    }, [conversationId]);
+    }, [conversationId, currentUserId, fetchMessages, fetchOtherUser, markAsRead, scrollToBottom]);
 
     useEffect(() => {
         if (otherUser) {
             checkBlocks();
         }
-    }, [otherUser]);
+    }, [otherUser, checkBlocks]);
 
-    const checkBlocks = async () => {
-        if (!otherUser) return;
-
-        const { data: block1 } = await supabase
-            .from('blocks')
-            .select('*')
-            .eq('blocker_id', currentUserId)
-            .eq('blocked_id', otherUser.id)
-            .single();
-
-        const { data: block2 } = await supabase
-            .from('blocks')
-            .select('*')
-            .eq('blocker_id', otherUser.id)
-            .eq('blocked_id', currentUserId)
-            .single();
-
-        if (block1 || block2) {
-            setIsBlocked(true);
-        }
-    };
-
-    const fetchOtherUser = async () => {
-        const { data } = await supabase
-            .from('conversation_participants')
-            .select('user:profiles(*)')
-            .eq('conversation_id', conversationId)
-            .neq('user_id', currentUserId)
-            .single();
-
-        if (data) {
-            setOtherUser(data.user as unknown as Profile);
-        }
-    };
-
-    const fetchMessages = async () => {
-        const { data } = await supabase
-            .from('messages')
-            .select('*')
-            .eq('conversation_id', conversationId)
-            .order('created_at', { ascending: true });
-
-        if (data) {
-            setMessages(data as Message[]);
-            // Mark unread messages as read
-            const unreadMessages = data.filter(m => m.sender_id !== currentUserId && !m.read_at);
-            unreadMessages.forEach(m => markAsRead(m.id));
-            scrollToBottom();
-        }
-    };
-
-    const markAsRead = async (messageId: string) => {
-        // Update message read status
-        await supabase
-            .from('messages')
-            .update({ read_at: new Date().toISOString() })
-            .eq('id', messageId);
-
-        // Update conversation participant last_read_at
-        await supabase
-            .from('conversation_participants')
-            .update({ last_read_at: new Date().toISOString() })
-            .eq('conversation_id', conversationId)
-            .eq('user_id', currentUserId);
-    };
-
-    const scrollToBottom = () => {
-        setTimeout(() => {
-            if (scrollRef.current) {
-                scrollRef.current.scrollIntoView({ behavior: 'smooth' });
-            }
-        }, 100);
-    };
-
-    const handleSend = async (e: React.FormEvent) => {
+    const handleSend = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newMessage.trim() || isBlocked) return;
 
-        console.log('Attempting to send message:', {
-            conversation_id: conversationId,
-            sender_id: currentUserId,
-            content: newMessage.trim()
-        });
+        const messageContent = newMessage.trim();
+        setNewMessage("");
 
         const { error } = await supabase.from('messages').insert({
             conversation_id: conversationId,
             sender_id: currentUserId,
-            content: newMessage.trim(),
+            content: messageContent,
         });
 
         if (error) {
             console.error('Error sending message:', error);
+            setNewMessage(messageContent); // Restore on error
             toast({
                 title: "Failed to send message",
                 description: error.message || "Please check if the conversation exists and you have permission to send messages.",
                 variant: "destructive"
             });
         } else {
-            setNewMessage("");
             // Update conversation updated_at
             await supabase.from('conversations').update({ updated_at: new Date().toISOString() }).eq('id', conversationId);
         }
-    };
+    }, [conversationId, currentUserId, isBlocked, newMessage, toast]);
+
+    const renderedMessages = useMemo(() => (
+        messages.map((msg) => (
+            <MessageBubble
+                key={msg.id}
+                content={msg.content}
+                createdAt={msg.created_at}
+                isMe={msg.sender_id === currentUserId}
+                readAt={msg.read_at}
+            />
+        ))
+    ), [messages, currentUserId]);
 
     return (
         <div className="flex flex-col h-[calc(100vh-4rem)] md:h-[600px] bg-background">
@@ -227,18 +211,7 @@ export function ChatWindow({ conversationId, currentUserId }: { conversationId: 
             {/* Messages */}
             <ScrollArea className="flex-1 p-4">
                 <div className="space-y-4">
-                    {messages.map((msg) => {
-                        const isMe = msg.sender_id === currentUserId;
-                        return (
-                            <MessageBubble
-                                key={msg.id}
-                                content={msg.content}
-                                createdAt={msg.created_at}
-                                isMe={isMe}
-                                readAt={msg.read_at}
-                            />
-                        );
-                    })}
+                    {renderedMessages}
                     <div ref={scrollRef} />
                 </div>
             </ScrollArea>
@@ -263,4 +236,6 @@ export function ChatWindow({ conversationId, currentUserId }: { conversationId: 
             )}
         </div>
     );
-}
+});
+
+ChatWindow.displayName = "ChatWindow";

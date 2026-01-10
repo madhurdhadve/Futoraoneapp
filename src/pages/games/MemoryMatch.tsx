@@ -71,6 +71,47 @@ const MemoryCard = React.memo(({ card, onClick, disabled }: { card: CardType, on
 });
 MemoryCard.displayName = "MemoryCard";
 
+interface StatCardProps {
+    icon: React.ElementType;
+    label: string;
+    value: string | number;
+    color: string;
+    borderColor: string;
+}
+
+const StatCard = memo(({ icon: Icon, label, value, color, borderColor }: StatCardProps) => (
+    <Card className={`flex-1 p-3 flex flex-col items-center justify-center bg-white/50 dark:bg-slate-800/50 backdrop-blur border-2 ${borderColor}`}>
+        <div className={`flex items-center gap-2 ${color} mb-1`}>
+            <Icon className="w-4 h-4" />
+            <span className="text-xs font-bold uppercase tracking-wider">{label}</span>
+        </div>
+        <span className="text-2xl font-black text-slate-700 dark:text-slate-200">{value}</span>
+    </Card>
+));
+
+StatCard.displayName = "StatCard";
+
+interface PvPStatCardProps {
+    isMe: boolean;
+    isCurrent: boolean;
+    score: number;
+    playerLabel: string;
+}
+
+const PvPStatCard = memo(({ isMe, isCurrent, score, playerLabel }: PvPStatCardProps) => (
+    <Card className={`flex-1 p-3 flex flex-col items-center justify-center border-2 transition-all ${isCurrent
+        ? (isMe ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-pink-500 bg-pink-50 dark:bg-pink-900/20')
+        : 'border-transparent bg-white/50 dark:bg-slate-800/50'}`}>
+        <div className={`flex items-center gap-2 ${isMe ? 'text-blue-500' : 'text-pink-500'} mb-1`}>
+            <Users className="w-4 h-4" />
+            <span className="text-xs font-bold uppercase tracking-wider">{playerLabel}</span>
+        </div>
+        <span className="text-2xl font-black text-slate-700 dark:text-slate-200">{score}</span>
+    </Card>
+));
+
+PvPStatCard.displayName = "PvPStatCard";
+
 const MemoryMatch = () => {
     const navigate = useNavigate();
     const playSound = useGameSounds();
@@ -350,6 +391,53 @@ const MemoryMatch = () => {
     }, [cards, checkForMatch, currentPlayer, flippedCards, gameMode, isConnected, isHost, isLock, isWon, playSound, sendMove]);
 
 
+    const statsBar = useMemo(() => {
+        if (gameMode === 'SOLO') {
+            return (
+                <div className="flex gap-4 mb-8 w-full max-w-md">
+                    <StatCard
+                        icon={Hash}
+                        label="Moves"
+                        value={moves}
+                        color="text-violet-500"
+                        borderColor="border-violet-100 dark:border-violet-900/20"
+                    />
+                    <StatCard
+                        icon={Timer}
+                        label="Time"
+                        value={formatTime(timer)}
+                        color="text-pink-500"
+                        borderColor="border-violet-100 dark:border-violet-900/20"
+                    />
+                    <StatCard
+                        icon={Trophy}
+                        label="Best"
+                        value={bestScore || "-"}
+                        color="text-yellow-500"
+                        borderColor="border-violet-100 dark:border-violet-900/20"
+                    />
+                </div>
+            );
+        } else {
+            return (
+                <div className="flex gap-4 mb-8 w-full max-w-md">
+                    <PvPStatCard
+                        isMe={isHost}
+                        isCurrent={currentPlayer === 1}
+                        score={scores[1]}
+                        playerLabel={isHost ? "You" : "Opponent"}
+                    />
+                    <PvPStatCard
+                        isMe={!isHost}
+                        isCurrent={currentPlayer === 2}
+                        score={scores[2]}
+                        playerLabel={!isHost ? "You" : "Opponent"}
+                    />
+                </div>
+            );
+        }
+    }, [gameMode, moves, timer, bestScore, isHost, currentPlayer, scores, formatTime]);
+
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col items-center py-6 px-4">
             {/* Header */}
@@ -436,50 +524,7 @@ const MemoryMatch = () => {
             )}
 
             {/* Stats Bar */}
-            <div className="flex gap-4 mb-8 w-full max-w-md">
-                {gameMode === 'SOLO' ? (
-                    <>
-                        <Card className="flex-1 p-3 flex flex-col items-center justify-center bg-white/50 backdrop-blur border-violet-100 dark:border-violet-900/20">
-                            <div className="flex items-center gap-2 text-violet-500 mb-1">
-                                <Hash className="w-4 h-4" />
-                                <span className="text-xs font-bold uppercase tracking-wider">Moves</span>
-                            </div>
-                            <span className="text-2xl font-black text-slate-700 dark:text-slate-200">{moves}</span>
-                        </Card>
-                        <Card className="flex-1 p-3 flex flex-col items-center justify-center bg-white/50 backdrop-blur border-violet-100 dark:border-violet-900/20">
-                            <div className="flex items-center gap-2 text-pink-500 mb-1">
-                                <Timer className="w-4 h-4" />
-                                <span className="text-xs font-bold uppercase tracking-wider">Time</span>
-                            </div>
-                            <span className="text-2xl font-black text-slate-700 dark:text-slate-200">{formatTime(timer)}</span>
-                        </Card>
-                        <Card className="flex-1 p-3 flex flex-col items-center justify-center bg-white/50 backdrop-blur border-violet-100 dark:border-violet-900/20">
-                            <div className="flex items-center gap-2 text-yellow-500 mb-1">
-                                <Trophy className="w-4 h-4" />
-                                <span className="text-xs font-bold uppercase tracking-wider">Best</span>
-                            </div>
-                            <span className="text-2xl font-black text-slate-700 dark:text-slate-200">{bestScore || "-"}</span>
-                        </Card>
-                    </>
-                ) : (
-                    <>
-                        <Card className={`flex-1 p-3 flex flex-col items-center justify-center border-2 transition-all ${currentPlayer === 1 ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-transparent bg-white/50'}`}>
-                            <div className="flex items-center gap-2 text-blue-500 mb-1">
-                                <Users className="w-4 h-4" />
-                                <span className="text-xs font-bold uppercase tracking-wider">{isHost ? "You" : "Opponent"}</span>
-                            </div>
-                            <span className="text-2xl font-black text-slate-700 dark:text-slate-200">{scores[1]}</span>
-                        </Card>
-                        <Card className={`flex-1 p-3 flex flex-col items-center justify-center border-2 transition-all ${currentPlayer === 2 ? 'border-pink-500 bg-pink-50 dark:bg-pink-900/20' : 'border-transparent bg-white/50'}`}>
-                            <div className="flex items-center gap-2 text-pink-500 mb-1">
-                                <Users className="w-4 h-4" />
-                                <span className="text-xs font-bold uppercase tracking-wider">{!isHost ? "You" : "Opponent"}</span>
-                            </div>
-                            <span className="text-2xl font-black text-slate-700 dark:text-slate-200">{scores[2]}</span>
-                        </Card>
-                    </>
-                )}
-            </div>
+            {statsBar}
 
             {/* Grid */}
             <div className={`p-4 grid grid-cols-4 gap-3 md:gap-4 max-w-xl mx-auto perspective-1000 ${gameMode === 'ONLINE' && !isConnected && playerCount < 2 ? 'opacity-50 pointer-events-none' : ''}`}>
